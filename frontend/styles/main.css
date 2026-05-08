@@ -1,0 +1,171 @@
+:root {
+  --primary-color: #00d4ff;
+  --bg-color: #0a0a1a;
+  --text-color: #e0e0ff;
+  --glass-bg: rgba(16, 16, 36, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glow-green: #00ff88;
+  --glow-red: #ff4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+#game-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+#ui-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none; /* Let clicks pass through to game by default */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.screen {
+  pointer-events: auto; /* Re-enable clicks for active screens */
+  padding: 3rem;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateY(0);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none !important;
+  transform: translateY(20px);
+}
+
+.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+h1 {
+  font-size: 3.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+  letter-spacing: 2px;
+}
+
+h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.8;
+}
+
+.instructions {
+  margin-bottom: 2.5rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  background: rgba(0,0,0,0.3);
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.text-glow-green {
+  color: var(--glow-green);
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+.text-glow-red {
+  color: var(--glow-red);
+  text-shadow: 0 0 20px rgba(255, 68, 68, 0.4);
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn.primary {
+  background: var(--primary-color);
+  color: #000;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+}
+
+.btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(0, 212, 255, 0.6);
+  background: #33ddff;
+}
+
+.btn.primary:active {
+  transform: translateY(1px);
+}
+
+.villain-dialog {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(255, 68, 68, 0.1);
+  border-left: 4px solid var(--glow-red);
+  border-radius: 4px 12px 12px 4px;
+  font-style: italic;
+  font-size: 1.2rem;
+}
+
+#hud {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  pointer-events: auto;
+}
+
+.level-indicator {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}

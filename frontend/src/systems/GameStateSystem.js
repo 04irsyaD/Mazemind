@@ -1,0 +1,35 @@
+import { CONSTANTS } from '../core/Constants.js';
+
+export class GameStateSystem {
+  constructor(uiManager) {
+    this.state = CONSTANTS.STATE_MENU;
+    this.uiManager = uiManager;
+  }
+
+  setState(newState, data = null) {
+    this.state = newState;
+    
+    switch (this.state) {
+      case CONSTANTS.STATE_MENU:
+        this.uiManager.showScreen('start-screen');
+        break;
+      case CONSTANTS.STATE_PLAYING:
+        this.uiManager.hideAllScreens();
+        this.uiManager.showHUD();
+        break;
+      case CONSTANTS.STATE_WIN:
+        this.uiManager.hideHUD();
+        this.uiManager.showScreen('win-screen');
+        break;
+      case CONSTANTS.STATE_LOSE:
+        this.uiManager.hideHUD();
+        this.uiManager.updateVillainText(data?.taunt || "Kamu pikir bisa kabur dari sini? Hahaha!");
+        this.uiManager.showScreen('lose-screen');
+        break;
+    }
+  }
+
+  isState(checkState) {
+    return this.state === checkState;
+  }
+}

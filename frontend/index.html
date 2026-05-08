@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MazeMind</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/main.css">
+  </head>
+  <body>
+    <div id="game-container"></div>
+    
+    <!-- UI Overlay -->
+    <div id="ui-layer">
+      <!-- Start Screen -->
+      <div id="start-screen" class="screen glass-panel active">
+        <h1>MazeMind</h1>
+        <p class="subtitle">Can you outsmart the AI Villain?</p>
+        <div class="instructions">
+          <p>Use <strong>W A S D</strong> or <strong>Arrows</strong> to move.</p>
+          <p>Reach the green goal. Avoid the red traps.</p>
+        </div>
+        <button id="btn-start" class="btn primary">Start Game</button>
+      </div>
+
+      <!-- HUD -->
+      <div id="hud" class="hidden">
+        <div class="level-indicator">Level 1</div>
+      </div>
+
+      <!-- Win Screen -->
+      <div id="win-screen" class="screen glass-panel hidden">
+        <h2 class="text-glow-green">Level Complete!</h2>
+        <p>You reached the goal safely.</p>
+        <button id="btn-next" class="btn primary">Play Again</button>
+      </div>
+
+      <!-- Lose Screen -->
+      <div id="lose-screen" class="screen glass-panel hidden">
+        <h2 class="text-glow-red">You got Trapped!</h2>
+        <div class="villain-dialog">
+          <p id="villain-text">"Kamu pikir bisa kabur dari sini? Hahaha!"</p>
+        </div>
+        <button id="btn-retry" class="btn primary">Try Again</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

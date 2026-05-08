@@ -27,6 +27,7 @@ export class MazeBuilder {
   }
 
   build(mapData) {
+    console.log('MazeBuilder: Building map...');
     this.clear();
 
     const grid = mapData.grid;

@@ -8,7 +8,10 @@ export class Scene {
     // Scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(CONSTANTS.COLORS.BACKGROUND);
-    this.scene.fog = new THREE.Fog(CONSTANTS.COLORS.BACKGROUND, 15, 35);
+    
+    // DEBUG: Increased fog range. Camera distance is ~37.7, so 35 was cutting everything off.
+    this.scene.fog = new THREE.Fog(CONSTANTS.COLORS.BACKGROUND, 20, 100);
+    console.log('Scene: Initialized with fog (20, 100)');
 
     // Camera (Orthographic for Isometric view)
     const aspect = window.innerWidth / window.innerHeight;
@@ -37,8 +40,16 @@ export class Scene {
     this.container.appendChild(this.renderer.domElement);
 
     this.setupLights();
+    
+    // DEBUG HELPERS
+    const axesHelper = new THREE.AxesHelper(10);
+    this.scene.add(axesHelper);
+    
+    const gridHelper = new THREE.GridHelper(22, 11, 0x444444, 0x222222);
+    gridHelper.position.set(10, 0, 10); // Center of 11x11 grid with size 2
+    this.scene.add(gridHelper);
 
-    // Resize handler
+    console.log('Scene: Renderer and Helpers initialized');
     window.addEventListener('resize', this.onWindowResize.bind(this));
   }
 
@@ -79,6 +90,10 @@ export class Scene {
   }
 
   render() {
+    if (!this.renderer || !this.scene || !this.camera) {
+      console.error('Scene: Render components missing!', { r: !!this.renderer, s: !!this.scene, c: !!this.camera });
+      return;
+    }
     this.renderer.render(this.scene, this.camera);
   }
 }

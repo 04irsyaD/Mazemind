@@ -35,6 +35,7 @@ export class Game {
   }
 
   startLevel() {
+    console.log('Game: Starting level...');
     // Clean up old entities
     if (this.goal) {
       this.sceneManager.scene.remove(this.goal.group);
@@ -63,6 +64,7 @@ export class Game {
     this.cameraSystem.snap(this.player.mesh.position);
 
     this.stateSystem.setState(CONSTANTS.STATE_PLAYING);
+    console.log('Game: State changed to PLAYING. Scene children:', this.sceneManager.scene.children.length);
   }
 
   update() {
@@ -102,6 +104,12 @@ export class Game {
     }
 
     this.inputManager.update();
+    
+    // DEBUG: Log scene children count occasionally
+    if (Math.random() < 0.01) {
+      // console.log('Game: Rendering... Scene children:', this.sceneManager.scene.children.length);
+    }
+
     this.sceneManager.render();
   }
 }

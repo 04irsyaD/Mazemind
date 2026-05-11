@@ -9,26 +9,13 @@ export class Scene {
     // Scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(CONSTANTS.COLORS.BACKGROUND);
-    this.scene.fog = new THREE.Fog(CONSTANTS.COLORS.BACKGROUND, 20, 100);
-    devLog('Scene: Initialized with fog (20, 100)');
+    this.scene.fog = new THREE.Fog(CONSTANTS.COLORS.BACKGROUND, 20, 95);
+    devLog('Scene: Initialized FPS scene fog (20, 95)');
 
-    // Camera (Orthographic for Isometric view)
+    // First-person camera. Camera transform is owned by CameraSystem, not parented to the player mesh.
     const aspect = window.innerWidth / window.innerHeight;
-    const frustumSize = 18; // How much of the map we see
-    
-    this.camera = new THREE.OrthographicCamera(
-      frustumSize * aspect / -2,
-      frustumSize * aspect / 2,
-      frustumSize / 2,
-      frustumSize / -2,
-      1,
-      1000
-    );
-
-    // Setup Isometric angle
-    // Pitch ~ -55 degrees, Yaw 45 degrees
-    this.camera.position.set(20, 25, 20); // Initial position, will follow player
-    this.camera.lookAt(0, 0, 0);
+    this.camera = new THREE.PerspectiveCamera(68, aspect, 0.08, 140);
+    this.camera.position.set(0, CONSTANTS.PLAYER_EYE_HEIGHT, 0);
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -45,9 +32,16 @@ export class Scene {
       const axesHelper = new THREE.AxesHelper(10);
       this.scene.add(axesHelper);
 
-      const gridHelper = new THREE.GridHelper(22, 11, 0x444444, 0x222222);
-      gridHelper.position.set(10, 0, 10);
+      const gridHelper = new THREE.GridHelper(50, 25, 0x444444, 0x222222);
+      gridHelper.position.set(24, 0, 16);
       this.scene.add(gridHelper);
+
+      this.cameraTargetHelper = new THREE.Mesh(
+        new THREE.SphereGeometry(0.15, 8, 8),
+        new THREE.MeshBasicMaterial({ color: CONSTANTS.COLORS.PLAYER })
+      );
+      this.cameraTargetHelper.position.y = 0.2;
+      this.scene.add(this.cameraTargetHelper);
     }
 
     devLog('Scene: Renderer initialized');
@@ -56,12 +50,14 @@ export class Scene {
   }
 
   setupLights() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
     this.scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    // Isometric light angle
-    dirLight.position.set(10, 20, -10);
+    const hemiLight = new THREE.HemisphereLight(0xa8c8ff, 0x090a14, 0.72);
+    this.scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.55);
+    dirLight.position.set(10, 16, -10);
     dirLight.castShadow = true;
     
     dirLight.shadow.mapSize.width = 1024;
@@ -80,12 +76,7 @@ export class Scene {
 
   onWindowResize() {
     const aspect = window.innerWidth / window.innerHeight;
-    const frustumSize = 18;
-
-    this.camera.left = frustumSize * aspect / -2;
-    this.camera.right = frustumSize * aspect / 2;
-    this.camera.top = frustumSize / 2;
-    this.camera.bottom = frustumSize / -2;
+    this.camera.aspect = aspect;
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);

@@ -158,9 +158,14 @@ h2 {
   top: 20px;
   left: 20px;
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
 }
 
-.level-indicator {
+.level-indicator,
+.hud-pill {
   background: var(--glass-bg);
   backdrop-filter: blur(8px);
   border: 1px solid var(--glass-border);
@@ -168,4 +173,41 @@ h2 {
   border-radius: 20px;
   font-weight: 600;
   letter-spacing: 1px;
+}
+
+.hud-pill.status {
+  max-width: 340px;
+  border-color: rgba(0, 212, 255, 0.28);
+  color: #bdefff;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+#crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(189, 239, 255, 0.8);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.45);
+}
+
+.warning-text {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 122, 26, 0.55);
+  border-radius: 999px;
+  background: rgba(40, 14, 6, 0.62);
+  color: #ffd5bd;
+  text-shadow: 0 0 12px rgba(255, 122, 26, 0.5);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  pointer-events: none;
 }

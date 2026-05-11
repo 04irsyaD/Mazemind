@@ -17,8 +17,10 @@
         <h1>MazeMind</h1>
         <p class="subtitle">Can you outsmart the AI Villain?</p>
         <div class="instructions">
-          <p>Use <strong>W A S D</strong> or <strong>Arrows</strong> to move.</p>
-          <p>Reach the green goal. Avoid the red traps.</p>
+          <p>Use <strong>W A S D</strong> to move and <strong>mouse</strong> to look.</p>
+          <p>Collect all <strong>5 office checkpoints</strong>, then reach the exit.</p>
+          <p>Beware: the office furniture has opinions.</p>
+          <p>Click Start to lock the mouse. Press <strong>Esc</strong> to release it.</p>
         </div>
         <button id="btn-start" class="btn primary">Start Game</button>
       </div>
@@ -26,7 +28,12 @@
       <!-- HUD -->
       <div id="hud" class="hidden">
         <div class="level-indicator">Level 1</div>
+        <div id="checkpoint-counter" class="hud-pill">Checkpoints 0/5</div>
+        <div id="status-text" class="hud-pill status">Collect all office checkpoints.</div>
       </div>
+
+      <div id="crosshair" aria-hidden="true"></div>
+      <div id="warning-text" class="warning-text hidden"></div>
 
       <!-- Win Screen -->
       <div id="win-screen" class="screen glass-panel hidden">

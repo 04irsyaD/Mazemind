@@ -8,6 +8,9 @@ export class UIManager {
     this.loseScreen = document.getElementById('lose-screen');
     this.hud = document.getElementById('hud');
     this.villainText = document.getElementById('villain-text');
+    this.checkpointCounter = document.getElementById('checkpoint-counter');
+    this.statusText = document.getElementById('status-text');
+    this.warningText = document.getElementById('warning-text');
 
     // Buttons
     document.getElementById('btn-start').addEventListener('click', () => {
@@ -55,5 +58,28 @@ export class UIManager {
     if (this.villainText) {
       this.villainText.innerText = `"${text}"`;
     }
+  }
+
+  updateProgress(current, total) {
+    if (this.checkpointCounter) {
+      this.checkpointCounter.innerText = `Checkpoints ${current}/${total}`;
+    }
+  }
+
+  updateStatus(text) {
+    if (this.statusText) {
+      this.statusText.innerText = text;
+    }
+  }
+
+  showWarning(text) {
+    if (!this.warningText) return;
+
+    this.warningText.innerText = text;
+    this.warningText.classList.remove('hidden');
+    window.clearTimeout(this.warningTimeout);
+    this.warningTimeout = window.setTimeout(() => {
+      this.warningText.classList.add('hidden');
+    }, 1800);
   }
 }

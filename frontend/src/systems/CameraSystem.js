@@ -4,42 +4,71 @@ import { CONSTANTS } from '../core/Constants.js';
 export class CameraSystem {
   constructor(camera) {
     this.camera = camera;
-    this.target = new THREE.Vector3();
+    this.eyePosition = new THREE.Vector3();
     this.lookTarget = new THREE.Vector3();
+    this.euler = new THREE.Euler(0, 0, 0, 'YXZ');
+    this.yaw = 0;
+    this.pitch = 0;
+    this.headBobTime = 0;
+    this.lastPlayerPosition = new THREE.Vector3();
     this.shakeTime = 0;
     this.shakeStrength = 0;
-    
-    // Isometric offset
-    this.offset = new THREE.Vector3(20, 25, 20);
+  }
+
+  applyMouseLook(mouseDelta) {
+    this.yaw -= mouseDelta.x * CONSTANTS.MOUSE_SENSITIVITY;
+    this.pitch -= mouseDelta.y * CONSTANTS.MOUSE_SENSITIVITY;
+    this.pitch = THREE.MathUtils.clamp(this.pitch, -1.2, 1.2);
   }
 
   update(playerPos, delta = 0) {
-    // Determine where camera should be
-    this.target.copy(playerPos).add(this.offset);
+    const horizontalSpeed = this.lastPlayerPosition.distanceTo(playerPos) / Math.max(delta, 0.0001);
+    this.lastPlayerPosition.copy(playerPos);
+    this.headBobTime += horizontalSpeed > 0.1 ? delta * CONSTANTS.HEAD_BOB_SPEED : 0;
 
-    // Smoothly interpolate current camera position to target position
-    this.camera.position.lerp(this.target, CONSTANTS.CAMERA_LERP);
-    this.lookTarget.copy(playerPos);
+    const bobOffset = Math.sin(this.headBobTime) * CONSTANTS.HEAD_BOB_AMOUNT * Math.min(1, horizontalSpeed / CONSTANTS.PLAYER_SPEED);
+    this.eyePosition.set(
+      playerPos.x,
+      CONSTANTS.PLAYER_EYE_HEIGHT + bobOffset,
+      playerPos.z
+    );
 
     if (this.shakeTime > 0) {
       this.shakeTime = Math.max(0, this.shakeTime - delta);
       const falloff = this.shakeTime * CONSTANTS.CAMERA_SHAKE_DECAY;
       const shake = this.shakeStrength * Math.min(1, falloff);
-      this.camera.position.x += (Math.random() - 0.5) * shake;
-      this.camera.position.y += (Math.random() - 0.5) * shake * 0.4;
+      this.eyePosition.x += (Math.random() - 0.5) * shake;
+      this.eyePosition.y += (Math.random() - 0.5) * shake * 0.35;
     }
 
-    this.camera.lookAt(this.lookTarget);
+    this.camera.position.copy(this.eyePosition);
+    this.euler.set(this.pitch, this.yaw, 0);
+    this.camera.quaternion.setFromEuler(this.euler);
+
+    const forward = this.getForwardVector();
+    this.lookTarget.copy(this.camera.position).addScaledVector(forward, 3);
   }
 
   // Snap instantly (e.g. on start/restart)
   snap(playerPos) {
-    this.camera.position.copy(playerPos).add(this.offset);
-    this.camera.lookAt(playerPos);
+    this.lastPlayerPosition.copy(playerPos);
+    this.update(playerPos, 0);
   }
 
   shake(strength = 0.25, duration = 0.5) {
     this.shakeStrength = Math.max(this.shakeStrength, strength);
     this.shakeTime = Math.max(this.shakeTime, duration);
+  }
+
+  getYaw() {
+    return this.yaw;
+  }
+
+  getForwardVector() {
+    return new THREE.Vector3(
+      -Math.sin(this.yaw) * Math.cos(this.pitch),
+      Math.sin(this.pitch),
+      -Math.cos(this.yaw) * Math.cos(this.pitch)
+    ).normalize();
   }
 }

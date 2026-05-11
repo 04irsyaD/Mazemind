@@ -7,6 +7,7 @@ export class Checkpoint {
     this.eventBus = eventBus;
     this.type = 'checkpoint';
     this.id = config.id;
+    this.label = config.label ?? config.id;
     this.radius = config.radius ?? CONSTANTS.CELL_SIZE * 0.6;
     this.activated = false;
     this.group = new THREE.Group();
@@ -67,7 +68,11 @@ export class Checkpoint {
     this.material.emissiveIntensity = 0.8;
     this.light.color.setHex(CONSTANTS.COLORS.CHECKPOINT_ACTIVE);
     this.light.intensity = 1.2;
-    this.eventBus.emit(CONSTANTS.EVENTS.CHECKPOINT_ACTIVATED, { id: this.id });
+    this.eventBus.emit(CONSTANTS.EVENTS.CHECKPOINT_ACTIVATED, {
+      id: this.id,
+      label: this.label,
+      respawnPoint: new THREE.Vector3(this.group.position.x, 0, this.group.position.z),
+    });
   }
 
   dispose() {

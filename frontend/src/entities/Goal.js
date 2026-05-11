@@ -2,9 +2,15 @@ import * as THREE from 'three';
 import { CONSTANTS } from '../core/Constants.js';
 
 export class Goal {
-  constructor(scene, gridX, gridY) {
+  constructor(scene, gridX, gridY, eventBus = null, config = {}) {
     this.scene = scene;
+    this.eventBus = eventBus;
     this.gridPos = { x: gridX, y: gridY };
+    this.id = config.id ?? 'goal';
+    this.requiresCheckpoint = config.requiresCheckpoint ?? config.requiresAllCheckpoints ?? true;
+    this.requiresAllCheckpoints = config.requiresAllCheckpoints ?? this.requiresCheckpoint;
+    this.lockTriggerId = config.lockTriggerId ?? null;
+    this.contacting = false;
     
     this.group = new THREE.Group();
     
@@ -47,9 +53,10 @@ export class Goal {
     this.scene.add(this.group);
     this.time = 0;
     this.type = 'goal';
+    this.setLockedVisual(this.requiresCheckpoint);
   }
 
-  update(delta) {
+  update(delta, context = null) {
     this.time += delta;
     // Rotate and bob gem
     this.gem.rotation.y += delta * 2;
@@ -57,6 +64,31 @@ export class Goal {
     
     // Pulse platform
     this.platform.material.emissiveIntensity = 0.5 + Math.sin(this.time * 5) * 0.2;
+
+    if (!context?.player) return;
+
+    const isTouching = this.checkCollision(context.player.position.x, context.player.position.z);
+    const isUnlocked = !this.requiresAllCheckpoints || context.gameManager?.hasAllCheckpoints();
+    this.setLockedVisual(!isUnlocked);
+
+    if (!isTouching) {
+      this.contacting = false;
+      return;
+    }
+
+    if (this.contacting) return;
+    this.contacting = true;
+
+    if (isUnlocked) {
+      this.eventBus?.emit(CONSTANTS.EVENTS.GOAL_REACHED, { id: this.id });
+      return;
+    }
+
+    this.eventBus?.emit(CONSTANTS.EVENTS.GOAL_LOCKED, {
+      id: this.id,
+      triggerId: this.lockTriggerId,
+      taunt: 'Exit masih terkunci. Amankan semua ruangan dulu.'
+    });
   }
 
   checkCollision(playerWorldX, playerWorldZ) {
@@ -65,6 +97,13 @@ export class Goal {
     
     const dist = Math.hypot(playerWorldX - worldX, playerWorldZ - worldZ);
     return dist < CONSTANTS.CELL_SIZE * 0.6; // Trigger distance
+  }
+
+  setLockedVisual(isLocked) {
+    const color = isLocked ? CONSTANTS.COLORS.GOAL_LOCKED : CONSTANTS.COLORS.GOAL;
+    this.platform.material.color.setHex(color);
+    this.platform.material.emissive.setHex(color);
+    this.gem.material.emissive.setHex(color);
   }
 
   dispose() {

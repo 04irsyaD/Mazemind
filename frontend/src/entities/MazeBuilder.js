@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { CONSTANTS } from '../core/Constants.js';
+import { devLog } from '../core/Debug.js';
 
 export class MazeBuilder {
   constructor(scene) {
@@ -10,24 +11,56 @@ export class MazeBuilder {
     // Materials
     this.wallMat = new THREE.MeshStandardMaterial({ 
       color: CONSTANTS.COLORS.WALL,
-      roughness: 0.8,
-      metalness: 0.2
+      emissive: CONSTANTS.COLORS.WALL_EMISSIVE,
+      emissiveIntensity: 0.35,
+      roughness: 0.72,
+      metalness: 0.12
     });
     
     this.pathMat = new THREE.MeshStandardMaterial({ 
       color: CONSTANTS.COLORS.PATH,
-      roughness: 0.9,
+      roughness: 0.84,
       metalness: 0.1
     });
 
+    this.pathAccentMat = new THREE.MeshStandardMaterial({
+      color: CONSTANTS.COLORS.PATH_ACCENT,
+      roughness: 0.84,
+      metalness: 0.1
+    });
+
+    this.checkpointFloorMat = new THREE.MeshStandardMaterial({
+      color: 0x123847,
+      emissive: CONSTANTS.COLORS.CHECKPOINT_INACTIVE,
+      emissiveIntensity: 0.12,
+      roughness: 0.72,
+      metalness: 0.08
+    });
+
+    this.triggerFloorMat = new THREE.MeshStandardMaterial({
+      color: 0x432011,
+      emissive: CONSTANTS.COLORS.TRIGGER,
+      emissiveIntensity: 0.08,
+      roughness: 0.78,
+      metalness: 0.08
+    });
+
+    this.goalFloorMat = new THREE.MeshStandardMaterial({
+      color: 0x173a2d,
+      emissive: CONSTANTS.COLORS.GOAL,
+      emissiveIntensity: 0.1,
+      roughness: 0.72,
+      metalness: 0.08
+    });
+
     this.geometries = {
-      wall: new THREE.BoxGeometry(CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE),
+      wall: new THREE.BoxGeometry(CONSTANTS.CELL_SIZE, CONSTANTS.WALL_HEIGHT, CONSTANTS.CELL_SIZE),
       floor: new THREE.PlaneGeometry(CONSTANTS.CELL_SIZE, CONSTANTS.CELL_SIZE)
     };
   }
 
   build(mapData) {
-    console.log('MazeBuilder: Building map...');
+    devLog('MazeBuilder: Building map...');
     this.clear();
 
     const grid = mapData.grid;
@@ -59,7 +92,7 @@ export class MazeBuilder {
 
         if (cellType === CONSTANTS.CELL_WALL) {
           // Add wall
-          dummy.position.set(worldX, CONSTANTS.CELL_SIZE / 2, worldZ);
+          dummy.position.set(worldX, CONSTANTS.WALL_HEIGHT / 2, worldZ);
           dummy.updateMatrix();
           this.wallMesh.setMatrixAt(wallIndex, dummy.matrix);
           
@@ -71,7 +104,7 @@ export class MazeBuilder {
           wallIndex++;
         } else {
           // Add floor (path, goal, or trap all have a floor base)
-          const floorTile = new THREE.Mesh(this.geometries.floor, this.pathMat);
+          const floorTile = new THREE.Mesh(this.geometries.floor, this.getFloorMaterial(cellType, x, y));
           floorTile.rotation.x = -Math.PI / 2;
           floorTile.position.set(worldX, 0, worldZ);
           floorTile.receiveShadow = true;
@@ -98,5 +131,12 @@ export class MazeBuilder {
       this.scene.remove(mesh);
     });
     this.floorMeshes = [];
+  }
+
+  getFloorMaterial(cellType, x, y) {
+    if (cellType === CONSTANTS.CELL_CHECKPOINT) return this.checkpointFloorMat;
+    if (cellType === CONSTANTS.CELL_TRIGGER) return this.triggerFloorMat;
+    if (cellType === CONSTANTS.CELL_GOAL) return this.goalFloorMat;
+    return (x + y) % 5 === 0 ? this.pathAccentMat : this.pathMat;
   }
 }

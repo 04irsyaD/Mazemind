@@ -2,6 +2,8 @@ export class InputManager {
   constructor() {
     this.keys = {};
     this.previousKeys = {};
+    this.mouseDelta = { x: 0, y: 0 };
+    this.pointerLocked = false;
 
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
@@ -14,11 +16,24 @@ export class InputManager {
     window.addEventListener('keyup', (e) => {
       this.keys[e.code] = false;
     });
+
+    document.addEventListener('pointerlockchange', () => {
+      this.pointerLocked = document.pointerLockElement !== null;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!this.pointerLocked) return;
+
+      this.mouseDelta.x += e.movementX;
+      this.mouseDelta.y += e.movementY;
+    });
   }
 
   update() {
     // Copy current state to previous state for key-down-once checks if needed
     this.previousKeys = { ...this.keys };
+    this.mouseDelta.x = 0;
+    this.mouseDelta.y = 0;
   }
 
   isKeyDown(code) {
@@ -42,5 +57,13 @@ export class InputManager {
     }
 
     return { x: dx, z: dz };
+  }
+
+  consumeMouseDelta() {
+    return { ...this.mouseDelta };
+  }
+
+  requestPointerLock(element = document.body) {
+    element.requestPointerLock?.();
   }
 }

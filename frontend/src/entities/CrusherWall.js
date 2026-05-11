@@ -41,6 +41,21 @@ export class CrusherWall {
         this.beginWarning();
       }
     });
+
+    this.unsubCheckpoint = this.eventBus.on(CONSTANTS.EVENTS.CHECKPOINT_ACTIVATED, () => {
+      this.disarm();
+    });
+
+    if (CONSTANTS.DEV_MODE) {
+      const points = [
+        new THREE.Vector3(this.start.x, 0.08, this.start.z),
+        new THREE.Vector3(this.end.x, 0.08, this.end.z)
+      ];
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineBasicMaterial({ color: CONSTANTS.COLORS.WARNING });
+      this.debugPath = new THREE.Line(geometry, material);
+      this.scene.add(this.debugPath);
+    }
   }
 
   beginWarning() {
@@ -52,6 +67,8 @@ export class CrusherWall {
   }
 
   update(delta, context) {
+    if (this.state === 'disarmed') return;
+
     if (this.state === 'warning') {
       this.timer += delta;
       const pulse = 0.35 + Math.sin(this.timer * 16) * 0.25;
@@ -85,8 +102,24 @@ export class CrusherWall {
 
   dispose() {
     this.unsubTrigger?.();
+    this.unsubCheckpoint?.();
     this.scene.remove(this.mesh);
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
+
+    if (this.debugPath) {
+      this.scene.remove(this.debugPath);
+      this.debugPath.geometry.dispose();
+      this.debugPath.material.dispose();
+    }
+  }
+
+  disarm() {
+    if (this.state === 'moving' || this.state === 'finished') return;
+
+    this.state = 'disarmed';
+    this.material.color.setHex(0x2d7d68);
+    this.material.emissive.setHex(CONSTANTS.COLORS.CHECKPOINT_ACTIVE);
+    this.material.emissiveIntensity = 0.18;
   }
 }

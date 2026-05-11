@@ -2,8 +2,11 @@ export const CONSTANTS = {
   DEV_MODE: import.meta.env.DEV,
 
   // Grid settings
-  GRID_SIZE: 11,
-  CELL_SIZE: 2, // 1 cell = 2x2 world units
+  GRID_SIZE: 25,
+  CELL_SIZE: 2.8,
+  WALL_HEIGHT: 2.65,
+  PLAYER_EYE_HEIGHT: 1.62,
+  PLAYER_COLLISION_RADIUS: 0.42,
   
   // Cell types
   CELL_WALL: 0,
@@ -17,30 +20,46 @@ export const CONSTANTS = {
   // Colors
   COLORS: {
     BACKGROUND: 0x0a0a1a,
-    WALL: 0x2a2a3d,
-    PATH: 0x151525,
+    WALL: 0x30334c,
+    WALL_EMISSIVE: 0x070914,
+    PATH: 0x20233c,
+    PATH_ACCENT: 0x282d50,
     PLAYER: 0x00d4ff,
     PLAYER_EMISSIVE: 0x00aacc,
     GOAL: 0x00ff88,
+    GOAL_LOCKED: 0xff7a1a,
     TRAP: 0xff4444,
-    CHECKPOINT_INACTIVE: 0xffc857,
-    CHECKPOINT_ACTIVE: 0x00ff88,
+    CHECKPOINT_INACTIVE: 0x28d8ff,
+    CHECKPOINT_ACTIVE: 0x7afcff,
+    FURNITURE: 0x8d745f,
+    FURNITURE_ALERT: 0xff7a1a,
+    OFFICE_GLASS: 0x79d7ff,
     TRIGGER: 0xff7a1a,
     CRUSHER: 0x6f7685,
     WARNING: 0xff3300,
   },
 
   // Game settings
-  PLAYER_SPEED: 6,
+  PLAYER_SPEED: 4.4,
+  MOUSE_SENSITIVITY: 0.0022,
+  HEAD_BOB_AMOUNT: 0.035,
+  HEAD_BOB_SPEED: 9.5,
+  CAMERA_FOLLOW_DAMPING: 5.5,
   CAMERA_LERP: 0.08,
+  CAMERA_FRUSTUM_SIZE: 34,
   CAMERA_SHAKE_DECAY: 4.5,
 
   EVENTS: {
     CHECKPOINT_ACTIVATED: 'checkpoint:activated',
+    CHECKPOINT_COLLECTED: 'checkpoint:collected',
+    EXIT_UNLOCKED: 'exit:unlocked',
     TRIGGER_ENTERED: 'trigger:entered',
+    GOAL_REACHED: 'goal:reached',
+    GOAL_LOCKED: 'goal:locked',
     CRUSHER_WARNING: 'crusher:warning',
     CRUSHER_ACTIVATED: 'crusher:activated',
     PLAYER_KILLED: 'player:killed',
+    PLAYER_RESPAWNED: 'player:respawned',
     LEVEL_RESET: 'level:reset',
   },
   

@@ -5,8 +5,7 @@ export class CollisionSystem {
     this.grid = mapData.grid;
     this.width = this.grid[0].length;
     this.height = this.grid.length;
-    // Padding to account for player size (capsule radius is 0.4)
-    this.padding = 0.4;
+    this.padding = CONSTANTS.PLAYER_COLLISION_RADIUS;
   }
 
   // World coordinates to grid coordinates
@@ -15,12 +14,17 @@ export class CollisionSystem {
   }
 
   canMoveTo(worldX, worldZ) {
-    // Check 4 corners of the player bounding box
+    // Circle-ish sampling gives first-person movement smoother corner sliding than a box.
     const checkPoints = [
-      { x: worldX - this.padding, z: worldZ - this.padding },
-      { x: worldX + this.padding, z: worldZ - this.padding },
-      { x: worldX - this.padding, z: worldZ + this.padding },
-      { x: worldX + this.padding, z: worldZ + this.padding }
+      { x: worldX, z: worldZ },
+      { x: worldX - this.padding, z: worldZ },
+      { x: worldX + this.padding, z: worldZ },
+      { x: worldX, z: worldZ - this.padding },
+      { x: worldX, z: worldZ + this.padding },
+      { x: worldX - this.padding * 0.7, z: worldZ - this.padding * 0.7 },
+      { x: worldX + this.padding * 0.7, z: worldZ - this.padding * 0.7 },
+      { x: worldX - this.padding * 0.7, z: worldZ + this.padding * 0.7 },
+      { x: worldX + this.padding * 0.7, z: worldZ + this.padding * 0.7 }
     ];
 
     for (let point of checkPoints) {

@@ -6,7 +6,7 @@ export class Player {
     this.scene = scene;
     
     // Geometric shape for player
-    const geometry = new THREE.CapsuleGeometry(0.4, 0.6, 4, 8);
+    const geometry = new THREE.CapsuleGeometry(0.36, 0.62, 4, 8);
     const material = new THREE.MeshStandardMaterial({
       color: CONSTANTS.COLORS.PLAYER,
       emissive: CONSTANTS.COLORS.PLAYER_EMISSIVE,
@@ -21,7 +21,7 @@ export class Player {
     this.scene.add(this.mesh);
 
     // Add a point light to the player
-    this.light = new THREE.PointLight(CONSTANTS.COLORS.PLAYER, 0.65, 9);
+    this.light = new THREE.PointLight(CONSTANTS.COLORS.PLAYER, 0.58, 10);
     this.scene.add(this.light);
 
     // State

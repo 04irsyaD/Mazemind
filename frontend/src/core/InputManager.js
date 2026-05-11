@@ -8,7 +8,7 @@ export class InputManager {
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
       // Prevent default scrolling for arrow keys and space
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
         e.preventDefault();
       }
     });
@@ -38,6 +38,10 @@ export class InputManager {
 
   isKeyDown(code) {
     return !!this.keys[code];
+  }
+
+  wasKeyPressed(code) {
+    return !!this.keys[code] && !this.previousKeys[code];
   }
 
   getMovementVector() {

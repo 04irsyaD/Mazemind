@@ -17,6 +17,12 @@ export class GameStateSystem {
         this.uiManager.hideAllScreens();
         this.uiManager.showHUD();
         break;
+      case CONSTANTS.STATE_DEV_EXPLORE:
+        this.uiManager.hideAllScreens();
+        this.uiManager.showHUD();
+        this.uiManager.showDebugPanel();
+        this.uiManager.updateStatus('Free Explore: progression, traps, crushers, and death are disabled.');
+        break;
       case CONSTANTS.STATE_WIN:
         this.uiManager.hideHUD();
         this.uiManager.showScreen('win-screen');

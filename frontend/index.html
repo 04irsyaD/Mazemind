@@ -22,7 +22,12 @@
           <p>Beware: the office furniture has opinions.</p>
           <p>Click Start to lock the mouse. Press <strong>Esc</strong> to release it.</p>
         </div>
-        <button id="btn-start" class="btn primary">Start Game</button>
+        <div class="menu-actions">
+          <button id="btn-start" class="btn primary">Start Game</button>
+          <button id="btn-explore" class="btn secondary">Free Explore</button>
+          <button id="btn-settings" class="btn ghost" disabled>Settings</button>
+        </div>
+        <p class="dev-note">Free Explore disables progression, traps, crusher activation, and death.</p>
       </div>
 
       <!-- HUD -->
@@ -34,6 +39,13 @@
 
       <div id="crosshair" aria-hidden="true"></div>
       <div id="warning-text" class="warning-text hidden"></div>
+
+      <div id="debug-panel" class="debug-panel hidden" aria-live="polite">
+        <div class="debug-title">Developer Explore</div>
+        <div id="debug-mode-line">Sandbox active</div>
+        <div id="debug-tools-line">F1 Helpers On | F2 Fly Off | F3 Collision On</div>
+        <div class="debug-help">1-5 checkpoints | 0 exit | R reset | F4 crushers</div>
+      </div>
 
       <!-- Win Screen -->
       <div id="win-screen" class="screen glass-panel hidden">

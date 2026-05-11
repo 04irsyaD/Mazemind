@@ -49,6 +49,16 @@ export class CameraSystem {
     this.lookTarget.copy(this.camera.position).addScaledVector(forward, 3);
   }
 
+  updateFreeFly(position) {
+    this.eyePosition.copy(position);
+    this.camera.position.copy(this.eyePosition);
+    this.euler.set(this.pitch, this.yaw, 0);
+    this.camera.quaternion.setFromEuler(this.euler);
+
+    const forward = this.getForwardVector();
+    this.lookTarget.copy(this.camera.position).addScaledVector(forward, 3);
+  }
+
   // Snap instantly (e.g. on start/restart)
   snap(playerPos) {
     this.lastPlayerPosition.copy(playerPos);

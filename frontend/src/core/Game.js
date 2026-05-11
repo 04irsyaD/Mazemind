@@ -17,6 +17,7 @@ import { SentientObject } from '../entities/SentientObject.js';
 import { CollisionSystem } from '../systems/CollisionSystem.js';
 import { CameraSystem } from '../systems/CameraSystem.js';
 import { GameStateSystem } from '../systems/GameStateSystem.js';
+import { DeveloperExploreSystem } from '../systems/DeveloperExploreSystem.js';
 import { UIManager } from '../ui/UIManager.js';
 
 // Map Data
@@ -35,6 +36,7 @@ export class Game {
     this.mazeBuilder = new MazeBuilder(this.sceneManager.scene);
     this.player = new Player(this.sceneManager.scene);
     this.cameraSystem = new CameraSystem(this.sceneManager.camera);
+    this.developerExploreSystem = new DeveloperExploreSystem(this.sceneManager.scene);
     
     this.goal = null;
     this.checkpointActive = false;
@@ -54,15 +56,18 @@ export class Game {
     });
 
     this.eventBus.on(CONSTANTS.EVENTS.CRUSHER_WARNING, () => {
+      if (this.isFreeExplore()) return;
       this.cameraSystem.shake(0.22, 0.8);
       this.uiManager.showWarning('Crusher moving. Back up.');
     });
 
     this.eventBus.on(CONSTANTS.EVENTS.CRUSHER_ACTIVATED, () => {
+      if (this.isFreeExplore()) return;
       this.cameraSystem.shake(0.32, 0.55);
     });
 
     this.eventBus.on(CONSTANTS.EVENTS.PLAYER_KILLED, payload => {
+      if (this.isFreeExplore()) return;
       if (this.levelEnding) return;
       if (payload?.respawn !== false) {
         this.cameraSystem.shake(0.32, 0.55);
@@ -77,12 +82,14 @@ export class Game {
     });
 
     this.eventBus.on(CONSTANTS.EVENTS.GOAL_REACHED, () => {
+      if (this.isFreeExplore()) return;
       if (this.levelEnding) return;
       this.levelEnding = true;
       this.stateSystem.setState(CONSTANTS.STATE_WIN);
     });
 
     this.eventBus.on(CONSTANTS.EVENTS.GOAL_LOCKED, payload => {
+      if (this.isFreeExplore()) return;
       this.cameraSystem.shake(0.18, 0.45);
       if (payload.triggerId) {
         this.eventBus.emit(CONSTANTS.EVENTS.TRIGGER_ENTERED, { id: payload.triggerId });
@@ -92,7 +99,16 @@ export class Game {
     });
   }
 
-  startLevel() {
+  areDeveloperToolsEnabled() {
+    return CONSTANTS.DEVELOPER_TOOLS_ENABLED;
+  }
+
+  isFreeExplore() {
+    return this.stateSystem.isState(CONSTANTS.STATE_DEV_EXPLORE);
+  }
+
+  startLevel(options = {}) {
+    const freeExplore = !!options.freeExplore && this.areDeveloperToolsEnabled();
     this.inputManager.requestPointerLock(this.sceneManager.renderer.domElement);
     devLog('Game: Starting level...');
     this.eventBus.emit(CONSTANTS.EVENTS.LEVEL_RESET);
@@ -138,11 +154,17 @@ export class Game {
       this.entityManager.add(new SentientObject(this.sceneManager.scene, this.eventBus, config));
     });
 
+    this.developerExploreSystem.reset(level1, this.entityManager);
+
     // Setup Player
     this.player.setPosition(level1.playerStart.x, level1.playerStart.y);
     this.cameraSystem.snap(this.player.mesh.position);
 
-    this.stateSystem.setState(CONSTANTS.STATE_PLAYING);
+    this.stateSystem.setState(freeExplore ? CONSTANTS.STATE_DEV_EXPLORE : CONSTANTS.STATE_PLAYING);
+    if (freeExplore) {
+      this.uiManager.updateProgress(0, level1.checkpoints?.length ?? 0);
+      this.uiManager.updateDebugPanel(this.developerExploreSystem.getState());
+    }
     devLog('Game: State changed to PLAYING.', sceneDiagnostics(
       this.sceneManager.scene,
       this.sceneManager.camera,
@@ -156,18 +178,7 @@ export class Game {
     const delta = this.clock.getDelta();
 
     if (this.stateSystem.isState(CONSTANTS.STATE_PLAYING)) {
-      // Input
-      const inputVec = this.inputManager.getMovementVector();
-      this.cameraSystem.applyMouseLook(this.inputManager.consumeMouseDelta());
-      
-      // Update Player
-      this.player.update(delta, inputVec, this.collisionSystem, this.cameraSystem.getYaw());
-      
-      // Update Camera
-      this.cameraSystem.update(this.player.mesh.position, delta);
-      this.updateDebugHelpers();
-
-      this.entityManager.update(delta, this.createUpdateContext());
+      this.updateGameplay(delta);
 
       if (!this.levelEnding) {
         for (let trap of this.entityManager.findByType('trap')) {
@@ -179,6 +190,8 @@ export class Game {
           }
         }
       }
+    } else if (this.stateSystem.isState(CONSTANTS.STATE_DEV_EXPLORE)) {
+      this.updateFreeExplore(delta);
     } else if (this.stateSystem.isState(CONSTANTS.STATE_LOSE) || this.stateSystem.isState(CONSTANTS.STATE_WIN)) {
       // Continue updating goal/traps animation even if not playing
       this.cameraSystem.update(this.player.mesh.position, delta);
@@ -191,10 +204,35 @@ export class Game {
     this.sceneManager.render();
   }
 
+  updateGameplay(delta) {
+    const inputVec = this.inputManager.getMovementVector();
+    this.cameraSystem.applyMouseLook(this.inputManager.consumeMouseDelta());
+    this.player.update(delta, inputVec, this.collisionSystem, this.cameraSystem.getYaw());
+    this.cameraSystem.update(this.player.mesh.position, delta);
+    this.updateDebugHelpers();
+    this.entityManager.update(delta, this.createUpdateContext());
+  }
+
+  updateFreeExplore(delta) {
+    const inputVec = this.inputManager.getMovementVector();
+    this.cameraSystem.applyMouseLook(this.inputManager.consumeMouseDelta());
+    this.developerExploreSystem.update(delta, this.inputManager, this.cameraSystem, this.player, this.uiManager);
+
+    if (!this.developerExploreSystem.flyMode) {
+      const collisionSystem = this.developerExploreSystem.getCollisionSystem(this.collisionSystem);
+      this.player.update(delta, inputVec, collisionSystem, this.cameraSystem.getYaw());
+      this.cameraSystem.update(this.player.mesh.position, delta);
+    }
+
+    this.updateDebugHelpers();
+    this.entityManager.update(delta, this.createUpdateContext());
+  }
+
   createUpdateContext() {
     return {
       player: this.player,
       checkpointActive: this.checkpointActive,
+      isFreeExplore: this.isFreeExplore(),
       eventBus: this.eventBus,
       collisionSystem: this.collisionSystem,
       gameManager: this.gameManager,

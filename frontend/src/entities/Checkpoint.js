@@ -11,7 +11,7 @@ export class Checkpoint {
     this.radius = config.radius ?? CONSTANTS.CELL_SIZE * 0.6;
     this.activated = false;
     this.group = new THREE.Group();
-    this.group.position.set(config.x * CONSTANTS.CELL_SIZE, 0, config.y * CONSTANTS.CELL_SIZE);
+    this.group.position.set(config.x * CONSTANTS.CELL_SIZE, config.height ?? 0, config.y * CONSTANTS.CELL_SIZE);
 
     this.material = new THREE.MeshStandardMaterial({
       color: CONSTANTS.COLORS.CHECKPOINT_INACTIVE,
@@ -49,6 +49,7 @@ export class Checkpoint {
     this.beacon.rotation.y += delta * 2;
     this.beacon.position.y = 1 + Math.sin(this.time * 3) * 0.15;
 
+    if (context?.isFreeExplore) return;
     if (this.activated) return;
 
     const distance = Math.hypot(

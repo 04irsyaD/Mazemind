@@ -16,7 +16,7 @@ export class Goal {
     
     const worldX = gridX * CONSTANTS.CELL_SIZE;
     const worldZ = gridY * CONSTANTS.CELL_SIZE;
-    this.group.position.set(worldX, 0, worldZ);
+    this.group.position.set(worldX, config.height ?? 0, worldZ);
 
     // Goal indicator (glowing platform)
     const platformGeo = new THREE.BoxGeometry(CONSTANTS.CELL_SIZE * 0.8, 0.1, CONSTANTS.CELL_SIZE * 0.8);
@@ -70,6 +70,11 @@ export class Goal {
     const isTouching = this.checkCollision(context.player.position.x, context.player.position.z);
     const isUnlocked = !this.requiresAllCheckpoints || context.gameManager?.hasAllCheckpoints();
     this.setLockedVisual(!isUnlocked);
+
+    if (context.isFreeExplore) {
+      this.contacting = false;
+      return;
+    }
 
     if (!isTouching) {
       this.contacting = false;

@@ -3,10 +3,10 @@ export const CONSTANTS = {
 
   // Grid settings
   GRID_SIZE: 25,
-  CELL_SIZE: 2.8,
-  WALL_HEIGHT: 2.65,
+  CELL_SIZE: 3.2,
+  WALL_HEIGHT: 2.75,
   PLAYER_EYE_HEIGHT: 1.62,
-  PLAYER_COLLISION_RADIUS: 0.42,
+  PLAYER_COLLISION_RADIUS: 0.38,
   
   // Cell types
   CELL_WALL: 0,
@@ -40,10 +40,10 @@ export const CONSTANTS = {
   },
 
   // Game settings
-  PLAYER_SPEED: 4.4,
+  PLAYER_SPEED: 4.7,
   MOUSE_SENSITIVITY: 0.0022,
-  HEAD_BOB_AMOUNT: 0.035,
-  HEAD_BOB_SPEED: 9.5,
+  HEAD_BOB_AMOUNT: 0.026,
+  HEAD_BOB_SPEED: 8.4,
   CAMERA_FOLLOW_DAMPING: 5.5,
   CAMERA_LERP: 0.08,
   CAMERA_FRUSTUM_SIZE: 34,
@@ -67,5 +67,10 @@ export const CONSTANTS = {
   STATE_MENU: 0,
   STATE_PLAYING: 1,
   STATE_WIN: 2,
-  STATE_LOSE: 3
+  STATE_LOSE: 3,
+  STATE_DEV_EXPLORE: 4,
+
+  // Developer tools
+  DEVELOPER_TOOLS_ENABLED: import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEV_TOOLS === 'true',
+  FREE_FLY_SPEED: 9.5
 };

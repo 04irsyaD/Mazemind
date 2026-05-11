@@ -9,8 +9,8 @@ export class Scene {
     // Scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(CONSTANTS.COLORS.BACKGROUND);
-    this.scene.fog = new THREE.Fog(CONSTANTS.COLORS.BACKGROUND, 20, 95);
-    devLog('Scene: Initialized FPS scene fog (20, 95)');
+    this.scene.fog = new THREE.Fog(CONSTANTS.COLORS.BACKGROUND, 26, 118);
+    devLog('Scene: Initialized FPS scene fog (26, 118)');
 
     // First-person camera. Camera transform is owned by CameraSystem, not parented to the player mesh.
     const aspect = window.innerWidth / window.innerHeight;
@@ -32,7 +32,7 @@ export class Scene {
       const axesHelper = new THREE.AxesHelper(10);
       this.scene.add(axesHelper);
 
-      const gridHelper = new THREE.GridHelper(50, 25, 0x444444, 0x222222);
+      const gridHelper = new THREE.GridHelper(58, 25, 0x444444, 0x222222);
       gridHelper.position.set(24, 0, 16);
       this.scene.add(gridHelper);
 

@@ -19,7 +19,7 @@ export class SentientObject {
     this.hasKilledDuringAttack = false;
 
     this.group = this.createMeshGroup(this.kind);
-    this.group.position.set(config.x * CONSTANTS.CELL_SIZE, 0, config.y * CONSTANTS.CELL_SIZE);
+    this.group.position.set(config.x * CONSTANTS.CELL_SIZE, config.height ?? 0, config.y * CONSTANTS.CELL_SIZE);
     this.group.rotation.y = config.rotation ?? 0;
     this.scene.add(this.group);
 
@@ -34,6 +34,12 @@ export class SentientObject {
     if (!context?.player) return;
 
     this.time += delta;
+    if (context.isFreeExplore) {
+      this.state = 'idle';
+      this.returnHome(delta);
+      return;
+    }
+
     const playerPosition = context.player.position;
     const distanceToPlayer = this.group.position.distanceTo(playerPosition);
     const distanceFromHome = this.group.position.distanceTo(this.originalPosition);

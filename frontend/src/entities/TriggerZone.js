@@ -12,7 +12,7 @@ export class TriggerZone {
     this.requiresCheckpointInactive = config.requiresCheckpointInactive ?? false;
     this.gridPos = { x: config.x, y: config.y };
     this.group = new THREE.Group();
-    this.group.position.set(config.x * CONSTANTS.CELL_SIZE, 0, config.y * CONSTANTS.CELL_SIZE);
+    this.group.position.set(config.x * CONSTANTS.CELL_SIZE, config.height ?? 0, config.y * CONSTANTS.CELL_SIZE);
 
     const markerGeo = new THREE.RingGeometry(this.radius * 0.55, this.radius, 24);
     const markerMat = new THREE.MeshBasicMaterial({
@@ -31,6 +31,7 @@ export class TriggerZone {
   }
 
   update(delta, context) {
+    if (context?.isFreeExplore) return;
     if (this.triggered) return;
     if (this.requiresCheckpointInactive && context.checkpointActive) return;
 

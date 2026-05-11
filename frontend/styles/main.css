@@ -96,12 +96,27 @@ h2 {
 }
 
 .instructions {
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
   font-size: 1.1rem;
   line-height: 1.6;
   background: rgba(0,0,0,0.3);
   padding: 1.5rem;
   border-radius: 12px;
+}
+
+.menu-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.dev-note {
+  margin-top: 1rem;
+  color: #ffd5bd;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  opacity: 0.86;
 }
 
 .text-glow-green {
@@ -141,6 +156,26 @@ h2 {
 
 .btn.primary:active {
   transform: translateY(1px);
+}
+
+.btn.secondary {
+  background: rgba(255, 122, 26, 0.16);
+  color: #ffd5bd;
+  border: 1px solid rgba(255, 122, 26, 0.5);
+  box-shadow: 0 0 15px rgba(255, 122, 26, 0.18);
+}
+
+.btn.secondary:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 122, 26, 0.25);
+  box-shadow: 0 0 22px rgba(255, 122, 26, 0.28);
+}
+
+.btn.ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(224, 224, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: not-allowed;
 }
 
 .villain-dialog {
@@ -210,4 +245,51 @@ h2 {
   font-weight: 700;
   letter-spacing: 0.04em;
   pointer-events: none;
+}
+
+.debug-panel {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  width: min(340px, calc(100vw - 40px));
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 122, 26, 0.45);
+  border-radius: 10px;
+  background: rgba(18, 10, 24, 0.68);
+  backdrop-filter: blur(8px);
+  color: #ffd5bd;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  pointer-events: none;
+  box-shadow: 0 0 22px rgba(255, 122, 26, 0.12);
+}
+
+.debug-title {
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.debug-help {
+  color: rgba(224, 224, 255, 0.78);
+  margin-top: 4px;
+}
+
+@media (max-width: 560px) {
+  .screen {
+    padding: 2rem;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .debug-panel {
+    left: 20px;
+    right: 20px;
+    top: auto;
+    bottom: 20px;
+  }
 }

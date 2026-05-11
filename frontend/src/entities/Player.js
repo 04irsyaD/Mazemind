@@ -27,6 +27,7 @@ export class Player {
     this.position = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.bobTime = 0;
+    this.type = 'player';
   }
 
   setPosition(gridX, gridY) {

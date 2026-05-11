@@ -55,6 +55,7 @@ export class Trap {
     this.group.add(this.light);
 
     this.scene.add(this.group);
+    this.type = 'trap';
   }
 
   update(delta) {
@@ -84,5 +85,13 @@ export class Trap {
 
   trigger() {
     this.triggered = true;
+  }
+
+  dispose() {
+    this.scene.remove(this.group);
+    this.group.traverse(child => {
+      child.geometry?.dispose?.();
+      child.material?.dispose?.();
+    });
   }
 }

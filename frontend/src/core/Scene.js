@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { CONSTANTS } from './Constants.js';
+import { devLog } from './Debug.js';
 
 export class Scene {
   constructor(containerId) {
@@ -8,10 +9,8 @@ export class Scene {
     // Scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(CONSTANTS.COLORS.BACKGROUND);
-    
-    // DEBUG: Increased fog range. Camera distance is ~37.7, so 35 was cutting everything off.
     this.scene.fog = new THREE.Fog(CONSTANTS.COLORS.BACKGROUND, 20, 100);
-    console.log('Scene: Initialized with fog (20, 100)');
+    devLog('Scene: Initialized with fog (20, 100)');
 
     // Camera (Orthographic for Isometric view)
     const aspect = window.innerWidth / window.innerHeight;
@@ -33,6 +32,7 @@ export class Scene {
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.setClearColor(CONSTANTS.COLORS.BACKGROUND, 1);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
@@ -41,16 +41,18 @@ export class Scene {
 
     this.setupLights();
     
-    // DEBUG HELPERS
-    const axesHelper = new THREE.AxesHelper(10);
-    this.scene.add(axesHelper);
-    
-    const gridHelper = new THREE.GridHelper(22, 11, 0x444444, 0x222222);
-    gridHelper.position.set(10, 0, 10); // Center of 11x11 grid with size 2
-    this.scene.add(gridHelper);
+    if (CONSTANTS.DEV_MODE) {
+      const axesHelper = new THREE.AxesHelper(10);
+      this.scene.add(axesHelper);
 
-    console.log('Scene: Renderer and Helpers initialized');
-    window.addEventListener('resize', this.onWindowResize.bind(this));
+      const gridHelper = new THREE.GridHelper(22, 11, 0x444444, 0x222222);
+      gridHelper.position.set(10, 0, 10);
+      this.scene.add(gridHelper);
+    }
+
+    devLog('Scene: Renderer initialized');
+    this.boundResize = this.onWindowResize.bind(this);
+    window.addEventListener('resize', this.boundResize);
   }
 
   setupLights() {
@@ -95,5 +97,10 @@ export class Scene {
       return;
     }
     this.renderer.render(this.scene, this.camera);
+  }
+
+  dispose() {
+    window.removeEventListener('resize', this.boundResize);
+    this.renderer.dispose();
   }
 }

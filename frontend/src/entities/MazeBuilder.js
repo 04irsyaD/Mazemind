@@ -91,12 +91,11 @@ export class MazeBuilder {
     if (this.wallMesh) {
       this.scene.remove(this.wallMesh);
       this.wallMesh.dispose();
+      this.wallMesh = null;
     }
     
     this.floorMeshes.forEach(mesh => {
       this.scene.remove(mesh);
-      mesh.geometry.dispose();
-      mesh.material.dispose();
     });
     this.floorMeshes = [];
   }

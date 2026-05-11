@@ -46,6 +46,7 @@ export class Goal {
 
     this.scene.add(this.group);
     this.time = 0;
+    this.type = 'goal';
   }
 
   update(delta) {
@@ -64,5 +65,13 @@ export class Goal {
     
     const dist = Math.hypot(playerWorldX - worldX, playerWorldZ - worldZ);
     return dist < CONSTANTS.CELL_SIZE * 0.6; // Trigger distance
+  }
+
+  dispose() {
+    this.scene.remove(this.group);
+    this.group.traverse(child => {
+      child.geometry?.dispose?.();
+      child.material?.dispose?.();
+    });
   }
 }

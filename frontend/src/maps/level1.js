@@ -258,9 +258,9 @@ export const level1 = {
   crushers: hazards.filter(hazard => hazard.type === 'crusher'),
   sentientObjects: [],
   floorZones: [
-    { id: 'front-reception', x1: 2, y1: 18, x2: 12, y2: 22, color: 0x747f7b, emissive: 0x0e1311, emissiveIntensity: 0.085, roughness: 0.82, height: 0 },
-    { id: 'employee-intake', x1: 2, y1: 14, x2: 12, y2: 17, color: 0x7e8984, emissive: 0x0f1412, emissiveIntensity: 0.088, roughness: 0.8, height: 0 },
-    { id: 'main-workstation-hall', x1: 2, y1: 4, x2: 20, y2: 13, color: 0x4f606b, emissive: 0x050a0b, emissiveIntensity: 0.06, roughness: 0.88, height: 0 },
+    { id: 'front-reception', x1: 2, y1: 18, x2: 12, y2: 22, color: 0x78837f, emissive: 0x0e1311, emissiveIntensity: 0.085, roughness: 0.74, metalness: 0.05, height: 0, floorLineColor: 0x303a3a, floorLineOpacity: 0.24 },
+    { id: 'employee-intake', x1: 2, y1: 14, x2: 12, y2: 17, color: 0x808b86, emissive: 0x0f1412, emissiveIntensity: 0.088, roughness: 0.78, metalness: 0.04, height: 0, floorLineColor: 0x2d3737, floorLineOpacity: 0.22 },
+    { id: 'main-workstation-hall', x1: 2, y1: 4, x2: 20, y2: 13, color: 0x4b5d69, emissive: 0x050a0b, emissiveIntensity: 0.06, roughness: 0.9, height: 0, floorLineColor: 0x26323a, floorLineOpacity: 0.18, floorLineStep: 2 },
     { id: 'archive', x1: 3, y1: 22, x2: 15, y2: 28, color: 0x2a3037, emissive: 0x050714, emissiveIntensity: 0.08, height: -0.03 },
     { id: 'checkpoint-chamber', x1: 17, y1: 11, x2: 24, y2: 19, color: 0x2f4248, emissive: 0x061b20, emissiveIntensity: 0.11, height: 0.08 },
     { id: 'wrong-department', x1: 24, y1: 4, x2: 35, y2: 10, color: 0x414139, emissive: 0x070705, emissiveIntensity: 0.055, height: 0.04 },
@@ -268,6 +268,14 @@ export const level1 = {
     { id: 'crusher-corridor', x1: 25, y1: 14, x2: 37, y2: 16, color: 0x3c2723, emissive: 0x150302, emissiveIntensity: 0.14, height: -0.08 },
     { id: 'fake-exit', x1: 37, y1: 12, x2: 42, y2: 18, color: 0x28382f, emissive: 0x07150d, emissiveIntensity: 0.12, height: -0.04 },
     { id: 'final-route', x1: 34, y1: 21, x2: 42, y2: 28, color: 0x1f3337, emissive: 0x06191d, emissiveIntensity: 0.2, height: -0.04 }
+  ],
+  wallDetailZones: [
+    { id: 'reception-intake-trim', x1: 2, y1: 12, x2: 12, y2: 22 },
+    { id: 'workstation-entry-trim', x1: 2, y1: 4, x2: 16, y2: 13 }
+  ],
+  ceilingDetailZones: [
+    { id: 'reception-intake-ceiling', x1: 2, y1: 12, x2: 12, y2: 22, step: 1 },
+    { id: 'workstation-entry-ceiling', x1: 2, y1: 4, x2: 16, y2: 13, step: 2 }
   ],
   guideStrips: [],
   navigationNodes: [],
@@ -353,10 +361,10 @@ export const level1 = {
     ]
   },
   architecture: [
-    { type: 'receptionDesk', x: 4.2, y: 21.05, width: 2.25, depth: 0.5, color: 0x9a8a72, trimColor: 0x3a4345, roughness: 0.76 },
-    { type: 'receptionDesk', x: 5.35, y: 16.25, width: 3.15, depth: 0.78, color: 0xaa9678, trimColor: 0x394244, roughness: 0.74 },
-    { type: 'sofa', x: 3.8, y: 19.18, width: 2.1, color: 0x687073 },
-    { type: 'waitingChairs', x: 11.05, y: 19.05, count: 2, axis: 'z', spacing: 0.7, rotation: -Math.PI / 2, color: 0x4a5256 },
+    { type: 'receptionDesk', x: 4.2, y: 21.05, width: 2.25, depth: 0.5, color: 0x9a8a72, panelColor: 0x7b6d5b, topColor: 0xad9c81, trimColor: 0x3a4345, roughness: 0.76 },
+    { type: 'receptionDesk', x: 5.35, y: 16.25, width: 3.15, depth: 0.78, color: 0xaa9678, panelColor: 0x836f58, topColor: 0xb9a486, trimColor: 0x394244, roughness: 0.74 },
+    { type: 'sofa', x: 3.8, y: 19.18, width: 2.1, color: 0x727b7d },
+    { type: 'waitingChairs', x: 11.05, y: 19.05, count: 2, axis: 'z', spacing: 0.7, rotation: -Math.PI / 2, color: 0x545d61 },
     { type: 'coffeeTable', x: 5.15, y: 19.32, color: 0x867c69 },
     { type: 'plant', x: 2.7, y: 18.35, color: 0x41684f },
     { type: 'plant', x: 11.55, y: 21.55, color: 0x3e6049 },
@@ -382,8 +390,8 @@ export const level1 = {
     { type: 'taskTerminal', x: 7, y: 25, color: 0x8ca2ff },
     { type: 'taskTerminal', x: 21, y: 15, color: 0xb7f7ff },
     { type: 'taskTerminal', x: 31, y: 7, color: 0xd0d1bd },
-    { type: 'cubicleCluster', x: 4.2, y: 6.6, columns: 2, rows: 2, color: 0x566066, monitorColor: 0x607b82, chairColor: 0x25282a },
-    { type: 'cubicleCluster', x: 13.0, y: 6.6, columns: 2, rows: 2, color: 0x566066, monitorColor: 0x5f777d, chairColor: 0x25282a },
+    { type: 'cubicleCluster', x: 4.2, y: 6.6, columns: 2, rows: 2, color: 0x647077, deskColor: 0x6b665c, trimColor: 0x394349, monitorColor: 0x78989d, monitorIntensity: 0.24, chairColor: 0x343a3d },
+    { type: 'cubicleCluster', x: 13.0, y: 6.6, columns: 2, rows: 2, color: 0x5d6970, deskColor: 0x625f57, trimColor: 0x354047, monitorColor: 0x6e8d92, monitorIntensity: 0.2, chairColor: 0x30363a },
     { type: 'glassWall', x: 10.8, y: 13.2, axis: 'x', length: 3.0, color: 0x8ac7d9 },
     { type: 'serverRackRow', x: 5, y: 24, count: 4, axis: 'x', color: 0x222832, emissive: 0x182a4a },
     { type: 'serverRackRow', x: 5, y: 27, count: 4, axis: 'x', color: 0x222832, emissive: 0x182a4a },

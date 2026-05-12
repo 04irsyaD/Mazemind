@@ -52,6 +52,7 @@ export class LightingSystem {
       config.y * CONSTANTS.CELL_SIZE
     );
     this.group.add(fixture);
+    this.addFixtureFrame(config, fixture.position);
 
     const light = new THREE.PointLight(
       config.color ?? CONSTANTS.COLORS.FLUORESCENT,
@@ -71,6 +72,51 @@ export class LightingSystem {
       flicker: !!config.flicker,
       phase: this.seedPhase(`${config.x}:${config.y}`)
     }, departmentControlSystem);
+  }
+
+  addFixtureFrame(config, position) {
+    const width = (config.width ?? 1.4) * CONSTANTS.CELL_SIZE;
+    const depth = (config.depth ?? 0.16) * CONSTANTS.CELL_SIZE;
+    const thickness = config.frameThickness ?? 0.055;
+    const material = new THREE.MeshStandardMaterial({
+      color: config.frameColor ?? 0x4b5658,
+      emissive: 0x010202,
+      emissiveIntensity: 0.035,
+      roughness: 0.82,
+      metalness: 0.08
+    });
+    const frameY = CONSTANTS.WALL_HEIGHT - 0.028;
+    const frameParts = [
+      {
+        geometry: new THREE.BoxGeometry(width + thickness * 2, 0.035, thickness),
+        x: position.x,
+        z: position.z - depth / 2 - thickness / 2
+      },
+      {
+        geometry: new THREE.BoxGeometry(width + thickness * 2, 0.035, thickness),
+        x: position.x,
+        z: position.z + depth / 2 + thickness / 2
+      },
+      {
+        geometry: new THREE.BoxGeometry(thickness, 0.035, depth),
+        x: position.x - width / 2 - thickness / 2,
+        z: position.z
+      },
+      {
+        geometry: new THREE.BoxGeometry(thickness, 0.035, depth),
+        x: position.x + width / 2 + thickness / 2,
+        z: position.z
+      }
+    ];
+
+    frameParts.forEach(part => {
+      const mesh = new THREE.Mesh(part.geometry, material.clone());
+      mesh.position.set(part.x, frameY, part.z);
+      mesh.castShadow = false;
+      mesh.receiveShadow = true;
+      this.group.add(mesh);
+    });
+    material.dispose();
   }
 
   addAreaLight(config, departmentControlSystem) {

@@ -130,6 +130,8 @@ export class MazeBuilder {
     if (this.wallMesh.instanceColor) this.wallMesh.instanceColor.needsUpdate = true;
     
     this.scene.add(this.wallMesh);
+    this.addWallDetails(mapData);
+    this.addFloorSeams(mapData);
     this.addNavigationGuides(mapData);
   }
 
@@ -204,6 +206,7 @@ export class MazeBuilder {
 
   addNavigationGuides(mapData) {
     this.addCeiling(mapData);
+    this.addCeilingGrid(mapData);
 
     mapData.guideStrips?.forEach(config => {
       const length = (config.length ?? 1) * CONSTANTS.CELL_SIZE;
@@ -271,6 +274,189 @@ export class MazeBuilder {
     ceiling.receiveShadow = true;
     this.scene.add(ceiling);
     this.guideMeshes.push(ceiling);
+  }
+
+  addWallDetails(mapData) {
+    const zones = mapData.wallDetailZones ?? [];
+    if (!zones.length) return;
+
+    const grid = mapData.grid;
+    const sides = [];
+    const directions = [
+      { dx: 1, dy: 0 },
+      { dx: -1, dy: 0 },
+      { dx: 0, dy: 1 },
+      { dx: 0, dy: -1 }
+    ];
+
+    for (let y = 0; y < grid.length; y++) {
+      for (let x = 0; x < grid[y].length; x++) {
+        if (grid[y][x] === CONSTANTS.CELL_WALL || !this.isInDetailZone(zones, x, y)) continue;
+
+        directions.forEach(({ dx, dy }) => {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (grid[ny]?.[nx] === undefined || grid[ny][nx] !== CONSTANTS.CELL_WALL) return;
+          sides.push({ x, y, dx, dy });
+        });
+      }
+    }
+
+    if (!sides.length) return;
+
+    this.addWallDetailMesh(sides, {
+      centerY: 0.18,
+      height: 0.18,
+      thickness: 0.075,
+      lengthScale: 0.92,
+      material: new THREE.MeshStandardMaterial({
+        color: 0x334044,
+        emissive: 0x020404,
+        emissiveIntensity: 0.05,
+        roughness: 0.84,
+        metalness: 0.05
+      })
+    });
+
+    this.addWallDetailMesh(sides, {
+      centerY: 1.25,
+      height: 0.08,
+      thickness: 0.045,
+      lengthScale: 0.86,
+      material: new THREE.MeshStandardMaterial({
+        color: 0x657276,
+        emissive: 0x020505,
+        emissiveIntensity: 0.035,
+        roughness: 0.86,
+        metalness: 0.03
+      })
+    });
+  }
+
+  addWallDetailMesh(sides, { centerY, height, thickness, lengthScale, material }) {
+    const xFaces = sides.filter(side => side.dx !== 0);
+    const zFaces = sides.filter(side => side.dy !== 0);
+    const longSide = CONSTANTS.CELL_SIZE * lengthScale;
+
+    if (xFaces.length) {
+      const mesh = new THREE.InstancedMesh(
+        new THREE.BoxGeometry(thickness, height, longSide),
+        material.clone(),
+        xFaces.length
+      );
+      this.populateWallDetailMesh(mesh, xFaces, centerY);
+      this.scene.add(mesh);
+      this.guideMeshes.push(mesh);
+    }
+
+    if (zFaces.length) {
+      const mesh = new THREE.InstancedMesh(
+        new THREE.BoxGeometry(longSide, height, thickness),
+        material.clone(),
+        zFaces.length
+      );
+      this.populateWallDetailMesh(mesh, zFaces, centerY);
+      this.scene.add(mesh);
+      this.guideMeshes.push(mesh);
+    }
+
+    material.dispose();
+  }
+
+  populateWallDetailMesh(mesh, sides, centerY) {
+    const dummy = new THREE.Object3D();
+    sides.forEach((side, index) => {
+      const pathSideOffset = 0.035;
+      dummy.position.set(
+        (side.x + side.dx * 0.5) * CONSTANTS.CELL_SIZE - side.dx * pathSideOffset,
+        centerY,
+        (side.y + side.dy * 0.5) * CONSTANTS.CELL_SIZE - side.dy * pathSideOffset
+      );
+      dummy.updateMatrix();
+      mesh.setMatrixAt(index, dummy.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+  }
+
+  addFloorSeams(mapData) {
+    mapData.floorZones
+      ?.filter(zone => zone.floorLineColor)
+      .forEach(zone => {
+        const step = zone.floorLineStep ?? 1;
+        const y = (zone.height ?? 0) + 0.018;
+        const xStart = (zone.x1 - 0.5) * CONSTANTS.CELL_SIZE;
+        const xEnd = (zone.x2 + 0.5) * CONSTANTS.CELL_SIZE;
+        const zStart = (zone.y1 - 0.5) * CONSTANTS.CELL_SIZE;
+        const zEnd = (zone.y2 + 0.5) * CONSTANTS.CELL_SIZE;
+        const positions = [];
+
+        for (let x = zone.x1 - 0.5; x <= zone.x2 + 0.5; x += step) {
+          const worldX = x * CONSTANTS.CELL_SIZE;
+          positions.push(worldX, y, zStart, worldX, y, zEnd);
+        }
+        for (let z = zone.y1 - 0.5; z <= zone.y2 + 0.5; z += step) {
+          const worldZ = z * CONSTANTS.CELL_SIZE;
+          positions.push(xStart, y, worldZ, xEnd, y, worldZ);
+        }
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        const material = new THREE.LineBasicMaterial({
+          color: zone.floorLineColor,
+          transparent: true,
+          opacity: zone.floorLineOpacity ?? 0.22,
+          depthWrite: false
+        });
+        const lines = new THREE.LineSegments(geometry, material);
+        this.scene.add(lines);
+        this.guideMeshes.push(lines);
+      });
+  }
+
+  addCeilingGrid(mapData) {
+    const zones = mapData.ceilingDetailZones ?? [];
+    if (!zones.length) return;
+
+    const y = CONSTANTS.WALL_HEIGHT - 0.026;
+    const material = new THREE.LineBasicMaterial({
+      color: 0x6f797a,
+      transparent: true,
+      opacity: 0.2,
+      depthWrite: false
+    });
+    const positions = [];
+
+    zones.forEach(zone => {
+      const step = zone.step ?? 1;
+      const xStart = (zone.x1 - 0.5) * CONSTANTS.CELL_SIZE;
+      const xEnd = (zone.x2 + 0.5) * CONSTANTS.CELL_SIZE;
+      const zStart = (zone.y1 - 0.5) * CONSTANTS.CELL_SIZE;
+      const zEnd = (zone.y2 + 0.5) * CONSTANTS.CELL_SIZE;
+
+      for (let x = zone.x1 - 0.5; x <= zone.x2 + 0.5; x += step) {
+        const worldX = x * CONSTANTS.CELL_SIZE;
+        positions.push(worldX, y, zStart, worldX, y, zEnd);
+      }
+      for (let z = zone.y1 - 0.5; z <= zone.y2 + 0.5; z += step) {
+        const worldZ = z * CONSTANTS.CELL_SIZE;
+        positions.push(xStart, y, worldZ, xEnd, y, worldZ);
+      }
+    });
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    const grid = new THREE.LineSegments(geometry, material);
+    this.scene.add(grid);
+    this.guideMeshes.push(grid);
+  }
+
+  isInDetailZone(zones, x, y) {
+    return zones.some(zone => (
+      x >= zone.x1 && x <= zone.x2 &&
+      y >= zone.y1 && y <= zone.y2
+    ));
   }
 
   addCeilingLights(mapData) {
@@ -484,10 +670,22 @@ export class MazeBuilder {
   }
 
   addReceptionDesk(config) {
-    const material = this.createArchitectureMaterial(config, 0x4b4f4f);
+    const width = config.width ?? 2.2;
+    const depth = config.depth ?? 0.45;
+    const panelMaterial = this.createArchitectureMaterial({
+      ...config,
+      color: config.panelColor ?? config.color
+    }, 0x4b4f4f);
+    const topMaterial = this.createArchitectureMaterial({
+      ...config,
+      color: config.topColor ?? config.color,
+      roughness: config.topRoughness ?? 0.66
+    }, 0x6b6255);
     const trimMaterial = this.createArchitectureMaterial({ color: config.trimColor ?? 0x2f3436 }, 0x2f3436);
-    this.addPropBox(config.x, 0.48, config.y, config.width ?? 2.2, 0.28, config.depth ?? 0.45, material);
-    this.addPropBox(config.x, 0.9, config.y - 0.18, (config.width ?? 2.2) * 0.86, 0.18, 0.14, trimMaterial);
+    this.addPropBox(config.x, 0.45, config.y, width, 0.48, depth, panelMaterial);
+    this.addPropBox(config.x, 0.72, config.y, width * 1.03, 0.08, depth * 1.05, topMaterial);
+    this.addPropBox(config.x, 0.9, config.y - 0.18, width * 0.86, 0.18, 0.14, trimMaterial);
+    this.addPropBox(config.x, 0.67, config.y - depth * 0.24, width * 0.9, 0.08, 0.035, trimMaterial);
   }
 
   addTaskTerminal(config) {
@@ -613,7 +811,8 @@ export class MazeBuilder {
 
   addCubicleCluster(config) {
     const material = this.createArchitectureMaterial(config, 0x4b5358);
-    const deskMaterial = this.createArchitectureMaterial({ color: 0x5c574e }, 0x5c574e);
+    const deskMaterial = this.createArchitectureMaterial({ color: config.deskColor ?? 0x5c574e }, 0x5c574e);
+    const trimMaterial = this.createArchitectureMaterial({ color: config.trimColor ?? 0x333c40 }, 0x333c40);
     const columns = config.columns ?? 2;
     const rows = config.rows ?? 2;
     for (let row = 0; row < rows; row++) {
@@ -623,10 +822,12 @@ export class MazeBuilder {
         this.addPropBox(x, 0.58, y, 0.95, 0.08, 0.58, deskMaterial);
         this.addPropBox(x + 0.48, 0.82, y, 0.04, 0.86, 0.78, material);
         this.addPropBox(x, 0.82, y + 0.46, 0.94, 0.86, 0.04, material);
+        this.addPropBox(x + 0.48, 1.27, y, 0.055, 0.045, 0.8, trimMaterial);
+        this.addPropBox(x, 1.27, y + 0.46, 0.96, 0.045, 0.055, trimMaterial);
         this.addMeterBox(x - 0.18, 0.76, y - 0.14, 0.56, 0.34, 0.05, new THREE.MeshStandardMaterial({
           color: 0x071013,
           emissive: config.monitorColor ?? 0x8da6a8,
-          emissiveIntensity: 0.16,
+          emissiveIntensity: config.monitorIntensity ?? 0.16,
           roughness: 0.24
         }));
         this.addStaticChair(x - 0.18, y + 0.48, Math.PI, config.chairColor ?? 0x25282a);

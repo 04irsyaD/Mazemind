@@ -31,7 +31,7 @@ export class Checkpoint {
       this.screen.material.emissiveIntensity = (this.activated ? 0.7 : 0.24) + Math.sin(this.time * 2.8) * 0.08;
     }
     if (this.paperMaterial) {
-      this.paperMaterial.emissiveIntensity = (this.activated ? 0.16 : 0.035) + Math.sin(this.time * 1.8) * 0.012;
+      this.paperMaterial.emissiveIntensity = (this.activated ? 0.16 : 0.045) + Math.sin(this.time * 1.8) * 0.012;
     }
 
     if (context?.isFreeExplore) return;
@@ -80,7 +80,7 @@ export class Checkpoint {
     this.group.add(base);
 
     const consoleMat = new THREE.MeshStandardMaterial({
-      color: 0x303941,
+      color: 0x5c686b,
       roughness: 0.58,
       metalness: 0.14
     });
@@ -109,11 +109,11 @@ export class Checkpoint {
   }
 
   createDocumentVisual(config) {
-    const paperColor = config.paperColor ?? 0xded8c8;
+    const paperColor = config.paperColor ?? 0xf1eee3;
     this.paperMaterial = new THREE.MeshStandardMaterial({
       color: paperColor,
       emissive: CONSTANTS.COLORS.CHECKPOINT_INACTIVE,
-      emissiveIntensity: 0.035,
+      emissiveIntensity: 0.045,
       roughness: 0.86,
       metalness: 0.02
     });
@@ -154,7 +154,7 @@ export class Checkpoint {
     outline.position.y = surfaceHeight + 0.042;
     this.group.add(outline);
 
-    this.light = new THREE.PointLight(CONSTANTS.COLORS.CHECKPOINT_INACTIVE, 0.22, 3.6);
+    this.light = new THREE.PointLight(CONSTANTS.COLORS.CHECKPOINT_INACTIVE, 0.26, 4.2);
     this.light.position.y = surfaceHeight + 0.45;
     this.group.add(this.light);
   }

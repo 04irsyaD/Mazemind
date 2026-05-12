@@ -79,11 +79,11 @@ export class LightingSystem {
     const depth = (config.depth ?? 0.16) * CONSTANTS.CELL_SIZE;
     const thickness = config.frameThickness ?? 0.055;
     const material = new THREE.MeshStandardMaterial({
-      color: config.frameColor ?? 0x4b5658,
-      emissive: 0x010202,
-      emissiveIntensity: 0.035,
+      color: config.frameColor ?? 0x8d989a,
+      emissive: 0x06090a,
+      emissiveIntensity: 0.018,
       roughness: 0.82,
-      metalness: 0.08
+      metalness: 0.04
     });
     const frameY = CONSTANTS.WALL_HEIGHT - 0.028;
     const frameParts = [
@@ -191,7 +191,7 @@ export class LightingSystem {
   }
 
   resolveFixtureColor(color) {
-    return new THREE.Color(color).lerp(new THREE.Color(0x89928f), 0.42);
+    return new THREE.Color(color).lerp(new THREE.Color(0xa2aaa8), 0.38);
   }
 
   seedPhase(seed) {

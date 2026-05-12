@@ -15,9 +15,9 @@ export class MazeBuilder {
     this.wallMat = new THREE.MeshStandardMaterial({ 
       color: CONSTANTS.COLORS.WALL,
       emissive: CONSTANTS.COLORS.WALL_EMISSIVE,
-      emissiveIntensity: 0.13,
-      roughness: 0.82,
-      metalness: 0.06
+      emissiveIntensity: 0.07,
+      roughness: 0.76,
+      metalness: 0.02
     });
     
     this.pathMat = new THREE.MeshStandardMaterial({ 
@@ -33,36 +33,36 @@ export class MazeBuilder {
     });
 
     this.ceilingMat = new THREE.MeshStandardMaterial({
-      color: 0x41494c,
-      emissive: 0x020404,
-      emissiveIntensity: 0.05,
-      roughness: 0.92,
+      color: 0xb9c1c2,
+      emissive: 0x111819,
+      emissiveIntensity: 0.055,
+      roughness: 0.88,
       metalness: 0.02,
       side: THREE.DoubleSide
     });
 
     this.checkpointFloorMat = new THREE.MeshStandardMaterial({
-      color: 0x123847,
+      color: 0x7f9aa0,
       emissive: CONSTANTS.COLORS.CHECKPOINT_INACTIVE,
-      emissiveIntensity: 0.12,
+      emissiveIntensity: 0.08,
       roughness: 0.72,
-      metalness: 0.08
+      metalness: 0.04
     });
 
     this.triggerFloorMat = new THREE.MeshStandardMaterial({
-      color: 0x432011,
+      color: 0x775149,
       emissive: CONSTANTS.COLORS.TRIGGER,
-      emissiveIntensity: 0.08,
+      emissiveIntensity: 0.07,
       roughness: 0.78,
-      metalness: 0.08
+      metalness: 0.04
     });
 
     this.goalFloorMat = new THREE.MeshStandardMaterial({
-      color: 0x173a2d,
+      color: 0x9eb5ad,
       emissive: CONSTANTS.COLORS.GOAL,
-      emissiveIntensity: 0.1,
-      roughness: 0.72,
-      metalness: 0.08
+      emissiveIntensity: 0.075,
+      roughness: 0.68,
+      metalness: 0.04
     });
 
     this.geometries = {
@@ -110,7 +110,7 @@ export class MazeBuilder {
           
           // Slight color variation
           color.setHex(CONSTANTS.COLORS.WALL);
-          color.offsetHSL(0, 0, (((x * 17 + y * 31) % 7) - 3) * 0.008);
+          color.offsetHSL(0, 0, (((x * 17 + y * 31) % 7) - 3) * 0.005);
           this.wallMesh.setColorAt(wallIndex, color);
           
           wallIndex++;
@@ -310,11 +310,11 @@ export class MazeBuilder {
       thickness: 0.075,
       lengthScale: 0.92,
       material: new THREE.MeshStandardMaterial({
-        color: 0x334044,
-        emissive: 0x020404,
-        emissiveIntensity: 0.05,
+        color: 0xa2aaac,
+        emissive: 0x070a0b,
+        emissiveIntensity: 0.025,
         roughness: 0.84,
-        metalness: 0.05
+        metalness: 0.02
       })
     });
 
@@ -324,11 +324,11 @@ export class MazeBuilder {
       thickness: 0.045,
       lengthScale: 0.86,
       material: new THREE.MeshStandardMaterial({
-        color: 0x657276,
-        emissive: 0x020505,
-        emissiveIntensity: 0.035,
+        color: 0xb7c0c2,
+        emissive: 0x080c0d,
+        emissiveIntensity: 0.018,
         roughness: 0.86,
-        metalness: 0.03
+        metalness: 0.02
       })
     });
   }
@@ -421,9 +421,9 @@ export class MazeBuilder {
 
     const y = CONSTANTS.WALL_HEIGHT - 0.026;
     const material = new THREE.LineBasicMaterial({
-      color: 0x6f797a,
+      color: 0x8f999b,
       transparent: true,
-      opacity: 0.2,
+      opacity: 0.12,
       depthWrite: false
     });
     const positions = [];
@@ -694,11 +694,14 @@ export class MazeBuilder {
       return;
     }
 
-    const baseMaterial = this.createArchitectureMaterial(config, 0x303941);
+    const baseMaterial = this.createArchitectureMaterial({
+      ...config,
+      color: config.bodyColor ?? 0x5d686c
+    }, 0x5d686c);
     const screenMaterial = new THREE.MeshStandardMaterial({
       color: 0x081114,
       emissive: config.color ?? CONSTANTS.COLORS.AI_CYAN,
-      emissiveIntensity: 0.55,
+      emissiveIntensity: 0.36,
       roughness: 0.28,
       metalness: 0.05
     });
@@ -709,11 +712,14 @@ export class MazeBuilder {
   }
 
   addDesktopTerminal(config) {
-    const baseMaterial = this.createArchitectureMaterial(config, 0x2e363b);
+    const baseMaterial = this.createArchitectureMaterial({
+      ...config,
+      color: config.bodyColor ?? 0x667175
+    }, 0x667175);
     const screenMaterial = new THREE.MeshStandardMaterial({
       color: 0x071013,
       emissive: config.color ?? CONSTANTS.COLORS.AI_CYAN,
-      emissiveIntensity: 0.48,
+      emissiveIntensity: 0.32,
       roughness: 0.22,
       metalness: 0.04
     });
@@ -865,10 +871,10 @@ export class MazeBuilder {
     const material = new THREE.MeshStandardMaterial({
       color: config.color ?? CONSTANTS.COLORS.OFFICE_GLASS,
       emissive: config.color ?? CONSTANTS.COLORS.OFFICE_GLASS,
-      emissiveIntensity: 0.08,
+      emissiveIntensity: config.emissiveIntensity ?? 0.025,
       transparent: true,
-      opacity: 0.28,
-      roughness: 0.08,
+      opacity: config.opacity ?? 0.24,
+      roughness: 0.12,
       metalness: 0.02
     });
     const mesh = new THREE.Mesh(
@@ -888,7 +894,7 @@ export class MazeBuilder {
 
   addCopyMachine(config) {
     const material = this.createArchitectureMaterial(config, 0x6d746f);
-    const darkMaterial = this.createArchitectureMaterial({ color: 0x25292b }, 0x25292b);
+    const darkMaterial = this.createArchitectureMaterial({ color: 0x4a5254 }, 0x4a5254);
     this.addPropBox(config.x, 0.55, config.y, 0.9, 0.75, 0.62, material);
     this.addPropBox(config.x, 1.02, config.y - 0.12, 0.78, 0.18, 0.45, darkMaterial);
   }
@@ -897,10 +903,10 @@ export class MazeBuilder {
     const material = new THREE.MeshStandardMaterial({
       color: config.color ?? CONSTANTS.COLORS.OFFICE_GLASS,
       emissive: config.color ?? CONSTANTS.COLORS.OFFICE_GLASS,
-      emissiveIntensity: 0.18,
+      emissiveIntensity: config.emissiveIntensity ?? 0.08,
       transparent: true,
-      opacity: 0.24,
-      roughness: 0.05,
+      opacity: config.opacity ?? 0.22,
+      roughness: 0.08,
       metalness: 0.02
     });
     const length = (config.length ?? 3) * CONSTANTS.CELL_SIZE;

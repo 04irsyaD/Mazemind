@@ -19,11 +19,11 @@ export const CONSTANTS = {
 
   // Colors
   COLORS: {
-    BACKGROUND: 0x0a0d10,
-    WALL: 0x596267,
-    WALL_EMISSIVE: 0x030505,
-    PATH: 0x434b50,
-    PATH_ACCENT: 0x4c5559,
+    BACKGROUND: 0x11171a,
+    WALL: 0xc9d0d2,
+    WALL_EMISSIVE: 0x141a1c,
+    PATH: 0x8f9a9b,
+    PATH_ACCENT: 0xa0a8a7,
     PLAYER: 0x8bdcff,
     PLAYER_EMISSIVE: 0x4bb8d8,
     GOAL: 0x86f7b2,
@@ -31,9 +31,9 @@ export const CONSTANTS = {
     TRAP: 0xb85035,
     CHECKPOINT_INACTIVE: 0x6bc7dc,
     CHECKPOINT_ACTIVE: 0xb7f7ff,
-    FURNITURE: 0x756b5f,
+    FURNITURE: 0xb9bab5,
     FURNITURE_ALERT: 0xb85035,
-    OFFICE_GLASS: 0x8ac7d9,
+    OFFICE_GLASS: 0xb7d4dc,
     TRIGGER: 0xd58a4a,
     CRUSHER: 0x727a80,
     WARNING: 0xc43c24,

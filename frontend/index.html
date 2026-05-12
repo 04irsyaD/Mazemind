@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MazeMind</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles/main.css">
   </head>
   <body>
@@ -15,11 +14,11 @@
       <!-- Start Screen -->
       <div id="start-screen" class="screen glass-panel active">
         <h1>MazeMind</h1>
-        <p class="subtitle">Can you outsmart the AI Villain?</p>
+        <p class="subtitle">Night shift task verification in a department that keeps correcting itself.</p>
         <div class="instructions">
           <p>Use <strong>W A S D</strong> to move and <strong>mouse</strong> to look.</p>
-          <p>Collect all <strong>5 office checkpoints</strong>, then reach the exit.</p>
-          <p>Beware: the office furniture has opinions.</p>
+          <p>Complete all <strong>5 assigned office tasks</strong>, then reach the public exit.</p>
+          <p>The department controls routes, lights, and signage. It does not need a body.</p>
           <p>Click Start to lock the mouse. Press <strong>Esc</strong> to release it.</p>
         </div>
         <div class="menu-actions">
@@ -33,8 +32,8 @@
       <!-- HUD -->
       <div id="hud" class="hidden">
         <div class="level-indicator">Level 1</div>
-        <div id="checkpoint-counter" class="hud-pill">Checkpoints 0/5</div>
-        <div id="status-text" class="hud-pill status">Collect all office checkpoints.</div>
+        <div id="checkpoint-counter" class="hud-pill">Tasks 0/5</div>
+        <div id="status-text" class="hud-pill status">Complete assigned office tasks.</div>
       </div>
 
       <div id="crosshair" aria-hidden="true"></div>
@@ -44,21 +43,23 @@
         <div class="debug-title">Developer Explore</div>
         <div id="debug-mode-line">Sandbox active</div>
         <div id="debug-tools-line">F1 Helpers On | F2 Fly Off | F3 Collision On</div>
-        <div class="debug-help">1-5 checkpoints | 0 exit | R reset | F4 crushers</div>
+        <div id="debug-state-line">Tasks 0/5 | Exit Locked | Player -</div>
+        <div id="debug-room-line">Room: -</div>
+        <div class="debug-help">1-5 tasks | 0 exit | R reset | F4 crushers | F5 solids | F6 rooms | F7 route</div>
       </div>
 
       <!-- Win Screen -->
       <div id="win-screen" class="screen glass-panel hidden">
         <h2 class="text-glow-green">Level Complete!</h2>
-        <p>You reached the goal safely.</p>
+        <p>The exit accepted your route.</p>
         <button id="btn-next" class="btn primary">Play Again</button>
       </div>
 
       <!-- Lose Screen -->
       <div id="lose-screen" class="screen glass-panel hidden">
-        <h2 class="text-glow-red">You got Trapped!</h2>
+        <h2 class="text-glow-red">Route Rejected</h2>
         <div class="villain-dialog">
-          <p id="villain-text">"Kamu pikir bisa kabur dari sini? Hahaha!"</p>
+          <p id="villain-text">"Public exit rejected. Assigned tasks remain unverified."</p>
         </div>
         <button id="btn-retry" class="btn primary">Try Again</button>
       </div>

@@ -29,7 +29,7 @@ export class GameStateSystem {
         break;
       case CONSTANTS.STATE_LOSE:
         this.uiManager.hideHUD();
-        this.uiManager.updateVillainText(data?.taunt || "Kamu pikir bisa kabur dari sini? Hahaha!");
+        this.uiManager.updateVillainText(data?.taunt || 'Public exit rejected. Assigned tasks remain unverified.');
         this.uiManager.showScreen('lose-screen');
         break;
     }

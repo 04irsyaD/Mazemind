@@ -4,29 +4,34 @@ export class InputManager {
     this.previousKeys = {};
     this.mouseDelta = { x: 0, y: 0 };
     this.pointerLocked = false;
+    this.lockElement = null;
 
-    window.addEventListener('keydown', (e) => {
+    this.handleKeyDown = (e) => {
       this.keys[e.code] = true;
-      // Prevent default scrolling for arrow keys and space
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
         e.preventDefault();
       }
-    });
+    };
 
-    window.addEventListener('keyup', (e) => {
+    this.handleKeyUp = (e) => {
       this.keys[e.code] = false;
-    });
+    };
 
-    document.addEventListener('pointerlockchange', () => {
+    this.handlePointerLockChange = () => {
       this.pointerLocked = document.pointerLockElement !== null;
-    });
+    };
 
-    window.addEventListener('mousemove', (e) => {
+    this.handleMouseMove = (e) => {
       if (!this.pointerLocked) return;
 
       this.mouseDelta.x += e.movementX;
       this.mouseDelta.y += e.movementY;
-    });
+    };
+
+    window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('keyup', this.handleKeyUp);
+    document.addEventListener('pointerlockchange', this.handlePointerLockChange);
+    window.addEventListener('mousemove', this.handleMouseMove);
   }
 
   update() {
@@ -64,10 +69,27 @@ export class InputManager {
   }
 
   consumeMouseDelta() {
-    return { ...this.mouseDelta };
+    const delta = { ...this.mouseDelta };
+    this.mouseDelta.x = 0;
+    this.mouseDelta.y = 0;
+    return delta;
   }
 
   requestPointerLock(element = document.body) {
+    this.lockElement = element;
     element.requestPointerLock?.();
+  }
+
+  resetTransient() {
+    this.previousKeys = { ...this.keys };
+    this.mouseDelta.x = 0;
+    this.mouseDelta.y = 0;
+  }
+
+  dispose() {
+    window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('keyup', this.handleKeyUp);
+    document.removeEventListener('pointerlockchange', this.handlePointerLockChange);
+    window.removeEventListener('mousemove', this.handleMouseMove);
   }
 }

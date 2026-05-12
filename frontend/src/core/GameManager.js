@@ -17,9 +17,9 @@ export class GameManager {
     this.checkpointsCollected = 0;
     this.collectedCheckpointIds.clear();
     this.exitUnlocked = false;
-    this.respawnPoint.set(playerStart.x * CONSTANTS.CELL_SIZE, 0, playerStart.y * CONSTANTS.CELL_SIZE);
+    this.respawnPoint.set(playerStart.x * CONSTANTS.CELL_SIZE, playerStart.height ?? 0, playerStart.y * CONSTANTS.CELL_SIZE);
     this.uiManager.updateProgress(this.checkpointsCollected, this.totalCheckpoints);
-    this.uiManager.updateStatus('Collect all 5 office checkpoints before exiting.');
+    this.uiManager.updateStatus('Complete assigned office tasks before using the public exit.');
   }
 
   collectCheckpoint(checkpoint) {
@@ -40,8 +40,7 @@ export class GameManager {
 
     if (this.hasAllCheckpoints()) {
       this.exitUnlocked = true;
-      this.uiManager.updateStatus('All checkpoints collected. Exit door unlocked.');
-      this.eventBus.emit(CONSTANTS.EVENTS.EXIT_UNLOCKED);
+      this.uiManager.updateStatus('All assigned tasks verified. Public exit route accepted.');
     }
 
     return true;

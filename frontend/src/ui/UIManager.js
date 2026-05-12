@@ -14,27 +14,28 @@ export class UIManager {
     this.debugPanel = document.getElementById('debug-panel');
     this.debugModeLine = document.getElementById('debug-mode-line');
     this.debugToolsLine = document.getElementById('debug-tools-line');
+    this.debugStateLine = document.getElementById('debug-state-line');
+    this.debugRoomLine = document.getElementById('debug-room-line');
+    this.listeners = [];
 
     // Buttons
-    document.getElementById('btn-start').addEventListener('click', () => {
-      this.game.startLevel();
-    });
+    this.bindButton('btn-start', () => this.game.startLevel());
 
     const exploreButton = document.getElementById('btn-explore');
     if (exploreButton) {
       exploreButton.hidden = !this.game.areDeveloperToolsEnabled();
-      exploreButton.addEventListener('click', () => {
-        this.game.startLevel({ freeExplore: true });
-      });
+      this.bindButton('btn-explore', () => this.game.startLevel({ freeExplore: true }));
     }
 
-    document.getElementById('btn-next').addEventListener('click', () => {
-      this.game.startLevel(); // For now, just restart level 1
-    });
+    this.bindButton('btn-next', () => this.game.startLevel());
+    this.bindButton('btn-retry', () => this.game.startLevel());
+  }
 
-    document.getElementById('btn-retry').addEventListener('click', () => {
-      this.game.startLevel();
-    });
+  bindButton(id, handler) {
+    const element = document.getElementById(id);
+    if (!element) return;
+    element.addEventListener('click', handler);
+    this.listeners.push({ element, type: 'click', handler });
   }
 
   hideAllScreens() {
@@ -74,7 +75,7 @@ export class UIManager {
 
   updateProgress(current, total) {
     if (this.checkpointCounter) {
-      this.checkpointCounter.innerText = `Checkpoints ${current}/${total}`;
+      this.checkpointCounter.innerText = `Tasks ${current}/${total}`;
     }
   }
 
@@ -117,8 +118,40 @@ export class UIManager {
         `F1 Helpers ${state.debugVisible ? 'On' : 'Off'}`,
         `F2 Fly ${state.flyMode ? 'On' : 'Off'}`,
         `F3 Collision ${state.collisionEnabled ? 'On' : 'Off'}`,
-        `F4 Crushers ${state.crushersVisible ? 'On' : 'Off'}`
+        `F4 Crushers ${state.crushersVisible ? 'On' : 'Off'}`,
+        `F5 Solids ${state.collisionVisible ? 'On' : 'Off'}`,
+        `F6 Rooms ${state.roomsVisible ? 'On' : 'Off'}`,
+        `F7 Route ${state.routeVisible ? 'On' : 'Off'}`
       ].join(' | ');
     }
+
+    if (this.debugStateLine) {
+      this.debugStateLine.innerText = [
+        `Tasks ${state.checkpointsCollected ?? 0}/${state.totalCheckpoints ?? 0}`,
+        `Flow ${state.progressionState ?? 'unknown'}`,
+        `Exit ${state.exitUnlocked ? 'Unlocked' : 'Locked'}`,
+        `Player ${state.playerGrid ?? '-'}`,
+        `FPS ${state.fps ?? '-'}`
+      ].join(' | ');
+    }
+
+    if (this.debugRoomLine) {
+      const lightSummary = state.lightChannels?.map(channel => `${channel.id}:${channel.scale.toFixed(2)}`).join(' ');
+      this.debugRoomLine.innerText = state.activeRoom
+        ? `Room: ${state.activeRoom}`
+        : 'Room: outside authored space';
+      if (lightSummary) {
+        this.debugRoomLine.innerText += ` | Lights ${lightSummary}`;
+      }
+      this.debugRoomLine.innerText += ` | Volumes ${state.collisionVolumes ?? 0} | Locks ${state.routeBlockers ?? 0}`;
+    }
+  }
+
+  dispose() {
+    this.listeners.forEach(({ element, type, handler }) => {
+      element.removeEventListener(type, handler);
+    });
+    this.listeners = [];
+    window.clearTimeout(this.warningTimeout);
   }
 }

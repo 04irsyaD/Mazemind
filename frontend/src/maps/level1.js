@@ -1,124 +1,389 @@
+import { CONSTANTS } from '../core/Constants.js';
+import { OfficeMazeGenerator } from './OfficeMazeGenerator.js';
+
+const W = 45;
+const H = 31;
+
+const rooms = [
+  {
+    id: 'entry',
+    label: 'Office Entry',
+    x1: 2,
+    y1: 14,
+    x2: 8,
+    y2: 18,
+    color: 0x637079,
+    purpose: 'spawn',
+    mood: 'calm'
+  },
+  {
+    id: 'orientation-hub',
+    label: 'Orientation Hub',
+    x1: 8,
+    y1: 11,
+    x2: 16,
+    y2: 20,
+    color: 0x6bc7dc,
+    purpose: 'route reading',
+    mood: 'clinical'
+  },
+  {
+    id: 'cubicle-sector',
+    label: 'Assigned Desks',
+    x1: 3,
+    y1: 4,
+    x2: 15,
+    y2: 10,
+    color: 0x93a4a7,
+    purpose: 'exploration',
+    mood: 'ordinary'
+  },
+  {
+    id: 'archive',
+    label: 'Server Archive',
+    x1: 3,
+    y1: 22,
+    x2: 15,
+    y2: 28,
+    color: 0x7f89b8,
+    purpose: 'exploration',
+    mood: 'cold storage'
+  },
+  {
+    id: 'checkpoint-chamber',
+    label: 'Task Review Chamber',
+    x1: 17,
+    y1: 11,
+    x2: 24,
+    y2: 19,
+    color: 0xb7f7ff,
+    purpose: 'checkpoint chamber',
+    mood: 'judged'
+  },
+  {
+    id: 'wrong-department',
+    label: 'Wrong Department',
+    x1: 24,
+    y1: 4,
+    x2: 35,
+    y2: 10,
+    color: 0xa88dc4,
+    purpose: 'impossible transition',
+    mood: 'incorrect'
+  },
+  {
+    id: 'utility-break',
+    label: 'Utility Break Area',
+    x1: 18,
+    y1: 22,
+    x2: 28,
+    y2: 28,
+    color: 0x89a07b,
+    purpose: 'quiet detour',
+    mood: 'stale'
+  },
+  {
+    id: 'crusher-corridor',
+    label: 'Emergency Records Hall',
+    x1: 25,
+    y1: 14,
+    x2: 37,
+    y2: 16,
+    color: 0xc43c24,
+    purpose: 'fair threat corridor',
+    mood: 'warning'
+  },
+  {
+    id: 'fake-exit',
+    label: 'Public Exit',
+    x1: 37,
+    y1: 12,
+    x2: 42,
+    y2: 18,
+    color: 0x86f7b2,
+    purpose: 'false hope',
+    mood: 'too clean'
+  },
+  {
+    id: 'final-route',
+    label: 'Department Afterimage',
+    x1: 34,
+    y1: 21,
+    x2: 42,
+    y2: 28,
+    color: 0x6bc7dc,
+    purpose: 'final route',
+    mood: 'psychologically wrong'
+  }
+];
+
+const connectors = [
+  { id: 'entry-to-hub', label: 'Employee Intake Hall', x1: 6, y1: 15, x2: 10, y2: 17, from: 'entry', to: 'orientation-hub' },
+  { id: 'hub-to-cubicles', label: 'North Admin Connector', x1: 10, y1: 9, x2: 12, y2: 12, from: 'orientation-hub', to: 'cubicle-sector' },
+  { id: 'hub-to-archive', label: 'Archive Connector', x1: 10, y1: 20, x2: 12, y2: 23, from: 'orientation-hub', to: 'archive' },
+  { id: 'hub-to-review', label: 'Review Intake', x1: 15, y1: 14, x2: 18, y2: 17, from: 'orientation-hub', to: 'checkpoint-chamber' },
+  { id: 'review-to-wrong-dept', label: 'Department Transfer', x1: 21, y1: 9, x2: 25, y2: 13, from: 'checkpoint-chamber', to: 'wrong-department' },
+  { id: 'review-to-break', label: 'Utility Bend', x1: 21, y1: 19, x2: 23, y2: 23, from: 'checkpoint-chamber', to: 'utility-break' },
+  { id: 'review-to-records', label: 'Emergency Records Intake', x1: 24, y1: 14, x2: 26, y2: 16, from: 'checkpoint-chamber', to: 'crusher-corridor' },
+  { id: 'fake-exit-afterimage', label: 'Exit Afterimage', x1: 39, y1: 18, x2: 41, y2: 24, from: 'fake-exit', to: 'final-route' },
+  { id: 'final-bend', label: 'Department Afterimage Bend', x1: 36, y1: 24, x2: 42, y2: 28, from: 'final-route', to: 'final-route' }
+];
+
+const objectives = [
+  { id: 'orientation', type: 'task', label: 'Orientation Task', x: 12, y: 15, radius: 2.5, roomId: 'orientation-hub' },
+  { id: 'assigned-desks', type: 'task', label: 'Assigned Desk Task', x: 7, y: 7, radius: 2.45, roomId: 'cubicle-sector' },
+  { id: 'server-archive', type: 'task', label: 'Archive Task', x: 7, y: 25, radius: 2.45, height: -0.03, roomId: 'archive' },
+  { id: 'review-chamber', type: 'task', label: 'Review Chamber Task', x: 21, y: 15, radius: 2.7, height: 0.08, roomId: 'checkpoint-chamber' },
+  { id: 'wrong-dept', type: 'task', label: 'Wrong Department Task', x: 31, y: 7, radius: 2.5, height: 0.04, roomId: 'wrong-department' },
+  {
+    id: 'final-access-door',
+    type: 'finalExit',
+    label: 'Final Access Door',
+    x: 41,
+    y: 27,
+    height: -0.04,
+    roomId: 'final-route',
+    requiresState: 'finalRouteUnlocked',
+    lockTriggerId: 'fake-exit-pressure'
+  }
+];
+
+const hazards = [
+  {
+    id: 'fake-exit-pressure',
+    type: 'fakeExitTrigger',
+    x: 36,
+    y: 15,
+    radius: 2.7,
+    height: -0.08,
+    requiresCheckpointInactive: true,
+    routeId: 'records-hall'
+  },
+  {
+    id: 'records-hall-crusher',
+    type: 'crusher',
+    triggerId: 'fake-exit-pressure',
+    start: { x: 37, y: 15 },
+    end: { x: 25, y: 15 },
+    delay: 3.2,
+    speed: 2.1,
+    killRadius: 0.72,
+    laneCoverage: 0.58,
+    telegraphWidth: 0.42
+  }
+];
+
+const storyBeats = [
+  { id: 'first-task', roomId: 'orientation-hub', tone: 'ordinary', text: 'Assigned work begins as routine verification.' },
+  { id: 'wrong-department-reveal', roomId: 'wrong-department', tone: 'incorrect', text: 'Department signage stops matching the floor plan.' },
+  { id: 'fake-exit', roomId: 'fake-exit', tone: 'false-hope', text: 'The public exit appears before the department accepts the employee.' },
+  { id: 'afterimage', roomId: 'final-route', tone: 'impossible', text: 'The office repeats itself as an afterimage.' }
+];
+
+const manipulationNodes = [
+  { id: 'records-hall-lock', type: 'routeLock', routeId: 'records-hall', x: 25, y: 15 },
+  { id: 'fake-exit-signage', type: 'signage', channelId: 'department-labels', x: 38.5, y: 13 },
+  { id: 'afterimage-light', type: 'lighting', channelId: 'ai-cyan', x: 40, y: 24 }
+];
+
+const lightingZones = [
+  { id: 'normal-office', channelId: 'normal-office', rooms: ['entry', 'orientation-hub', 'cubicle-sector'], mood: 'sterile' },
+  { id: 'review-cyan', channelId: 'ai-cyan', rooms: ['checkpoint-chamber', 'final-route'], mood: 'observed' },
+  { id: 'records-warning', channelId: 'emergency', rooms: ['crusher-corridor'], mood: 'danger' },
+  { id: 'wrong-department-muted', channelId: 'wrongness', rooms: ['wrong-department', 'archive'], mood: 'incorrect' }
+];
+
+const collisionVolumes = [
+  { id: 'reception-desk', x: 5.5, y: 15.1, width: 2.4, depth: 0.45 },
+  { id: 'archive-racks-north', x: 7.0, y: 24.0, width: 4.8, depth: 0.5 },
+  { id: 'archive-racks-south', x: 7.0, y: 27.0, width: 4.8, depth: 0.5 },
+  { id: 'review-table', x: 21, y: 16.2, width: 2.3, depth: 1.0 },
+  { id: 'utility-copier', x: 20, y: 25, width: 0.9, depth: 0.62 },
+  { id: 'wrong-department-monolith', x: 31, y: 7.9, width: 0.44, depth: 0.2 }
+];
+
+function createGrid() {
+  return OfficeMazeGenerator.buildCollisionGrid({
+    width: W,
+    height: H,
+    spaces: rooms,
+    connectors,
+    objectives,
+    hazards
+  });
+}
+
+const collisionGrid = createGrid();
+
 export const level1 = {
-  grid: [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
-    [0, 0, 0, 1, 1, 1, 1, 4, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 4, 1, 1, 1, 0, 0],
-    [0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-    [0, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 4, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-  ],
-  playerStart: { x: 3, y: 9 },
-  goals: [
-    {
-      id: 'exit-door',
-      x: 23,
-      y: 9,
-      height: -0.05,
-      requiresAllCheckpoints: true,
-      lockTriggerId: 'exit-pressure-plate'
-    }
-  ],
-  checkpoints: [
-    { id: 'reception', label: 'Reception Hub', x: 4, y: 8, radius: 2.15 },
-    { id: 'pantry', label: 'Pantry Detour', x: 7, y: 4, radius: 2.15, height: 0.03 },
-    { id: 'meeting-room', label: 'Checkpoint Chamber', x: 12, y: 9, radius: 2.35, height: 0.12 },
-    { id: 'ceo-office', label: 'CEO Overlook', x: 19, y: 5, radius: 2.2, height: 0.08 },
-    { id: 'server-room', label: 'Server Archive', x: 6, y: 14, radius: 2.2, height: -0.04 }
-  ],
-  triggers: [
-    { id: 'exit-pressure-plate', x: 20, y: 9, radius: 2.25, height: -0.12, requiresCheckpointInactive: true }
-  ],
-  crushers: [
-    {
-      id: 'exit-route-crusher',
-      triggerId: 'exit-pressure-plate',
-      start: { x: 24, y: 9 },
-      end: { x: 16, y: 9 },
-      delay: 2.05,
-      speed: 2.95,
-      killRadius: 1.0,
-      laneCoverage: 0.64,
-      telegraphWidth: 0.5
-    }
-  ],
+  schemaVersion: 1,
+  id: 'department-incorrect',
+  title: 'Department Incorrect',
+  estimatedMinutes: 20,
+  spaces: rooms,
+  connectors,
+  objectives,
+  hazards,
+  storyBeats,
+  manipulationNodes,
+  lightingZones,
+  collisionVolumes,
+  collisionGrid,
+  grid: collisionGrid,
+  rooms,
+  playerStart: { x: 4, y: 16, yaw: -Math.PI / 2, pitch: 0 },
+  goals: objectives.filter(objective => objective.type === 'finalExit').map(objective => ({
+    id: objective.id,
+    x: objective.x,
+    y: objective.y,
+    height: objective.height,
+    requiresAllCheckpoints: true,
+    lockTriggerId: objective.lockTriggerId
+  })),
+  checkpoints: objectives.filter(objective => objective.type === 'task'),
+  triggers: hazards.filter(hazard => hazard.type === 'fakeExitTrigger'),
+  crushers: hazards.filter(hazard => hazard.type === 'crusher'),
   sentientObjects: [
-    { id: 'reception-chair-a', kind: 'chair', x: 2, y: 8, rotation: 0.2, triggerRadius: 5.3 },
-    { id: 'reception-chair-b', kind: 'chair', x: 6, y: 10, rotation: -0.55, triggerRadius: 5.3 },
-    { id: 'pantry-dispenser', kind: 'dispenser', x: 5, y: 4, height: 0.03, triggerRadius: 6.1, attackRadius: 2.1 },
-    { id: 'pantry-table', kind: 'table', x: 9, y: 5, height: 0.03, rotation: Math.PI / 2, triggerRadius: 5.4 },
-    { id: 'meeting-table', kind: 'table', x: 13, y: 9, height: 0.12, attackSpeed: 3.5, collisionRadius: 0.9 },
-    { id: 'meeting-chair-a', kind: 'chair', x: 11, y: 8, height: 0.12, rotation: Math.PI / 2 },
-    { id: 'meeting-chair-b', kind: 'chair', x: 14, y: 10, height: 0.12, rotation: -Math.PI / 2 },
-    { id: 'ceo-desk', kind: 'table', x: 19, y: 6, height: 0.08, attackSpeed: 3.5, collisionRadius: 0.95 },
-    { id: 'ceo-chair', kind: 'chair', x: 21, y: 5, height: 0.08, rotation: Math.PI },
-    { id: 'server-rack-a', kind: 'table', x: 4, y: 14, height: -0.04, rotation: Math.PI / 2, triggerRadius: 5.7 },
-    { id: 'server-rack-b', kind: 'table', x: 8, y: 15, height: -0.04, rotation: Math.PI / 2, triggerRadius: 5.7 },
-    { id: 'exit-chair', kind: 'chair', x: 22, y: 10, height: -0.12, rotation: -0.2, triggerRadius: 5.0 }
+    { id: 'entry-chair', kind: 'chair', x: 6, y: 17, rotation: 0.35, triggerRadius: 4.2, attackRadius: 0 },
+    { id: 'cubicle-chair-a', kind: 'chair', x: 6, y: 6, rotation: Math.PI, triggerRadius: 4.8, attackRadius: 0 },
+    { id: 'cubicle-chair-b', kind: 'chair', x: 12, y: 8, rotation: -0.2, triggerRadius: 4.8, attackRadius: 0 },
+    { id: 'archive-cart', kind: 'table', x: 12, y: 26, height: -0.03, rotation: Math.PI / 2, triggerRadius: 5.2, attackRadius: 0 },
+    { id: 'review-table', kind: 'table', x: 21, y: 16, height: 0.08, triggerRadius: 5.0, attackRadius: 0 },
+    { id: 'wrong-chair', kind: 'chair', x: 33, y: 8, height: 0.04, rotation: -Math.PI / 2, triggerRadius: 5.0, attackRadius: 0 },
+    { id: 'break-dispenser', kind: 'dispenser', x: 20, y: 25, triggerRadius: 4.2, attackRadius: 0 }
   ],
   floorZones: [
-    { id: 'spawn-hub', x1: 1, y1: 7, x2: 8, y2: 11, color: 0x1b3342, emissive: 0x06151f, height: 0 },
-    { id: 'pantry-detour', x1: 3, y1: 2, x2: 10, y2: 6, color: 0x25332b, emissive: 0x06120b, height: 0.03 },
-    { id: 'checkpoint-chamber', x1: 10, y1: 7, x2: 15, y2: 11, color: 0x173a47, emissive: 0x082633, emissiveIntensity: 0.18, height: 0.12 },
-    { id: 'ceo-overlook', x1: 16, y1: 3, x2: 22, y2: 7, color: 0x2f293e, emissive: 0x10081d, height: 0.08 },
-    { id: 'server-archive', x1: 2, y1: 13, x2: 8, y2: 16, color: 0x26223a, emissive: 0x0b0920, height: -0.04 },
-    { id: 'crusher-lane', x1: 17, y1: 8, x2: 23, y2: 10, color: 0x3e1d18, emissive: 0x1c0603, emissiveIntensity: 0.16, height: -0.12 },
-    { id: 'exit-threshold', x1: 22, y1: 8, x2: 23, y2: 10, color: 0x173a2d, emissive: 0x002513, emissiveIntensity: 0.2, height: -0.05 }
+    { id: 'entry', x1: 2, y1: 14, x2: 8, y2: 18, color: 0x2a3035, emissive: 0x010203, height: 0 },
+    { id: 'orientation-hub', x1: 8, y1: 11, x2: 16, y2: 20, color: 0x29323a, emissive: 0x061014, emissiveIntensity: 0.06, height: 0 },
+    { id: 'cubicle-sector', x1: 3, y1: 4, x2: 15, y2: 10, color: 0x343631, emissive: 0x020302, height: 0 },
+    { id: 'archive', x1: 3, y1: 22, x2: 15, y2: 28, color: 0x252934, emissive: 0x050714, emissiveIntensity: 0.09, height: -0.03 },
+    { id: 'checkpoint-chamber', x1: 17, y1: 11, x2: 24, y2: 19, color: 0x253840, emissive: 0x061b20, emissiveIntensity: 0.14, height: 0.08 },
+    { id: 'wrong-department', x1: 24, y1: 4, x2: 35, y2: 10, color: 0x302b3a, emissive: 0x0b0615, emissiveIntensity: 0.08, height: 0.04 },
+    { id: 'utility-break', x1: 18, y1: 22, x2: 28, y2: 28, color: 0x30342a, emissive: 0x050702, height: 0 },
+    { id: 'crusher-corridor', x1: 25, y1: 14, x2: 37, y2: 16, color: 0x3c2723, emissive: 0x150302, emissiveIntensity: 0.14, height: -0.08 },
+    { id: 'fake-exit', x1: 37, y1: 12, x2: 42, y2: 18, color: 0x28382f, emissive: 0x07150d, emissiveIntensity: 0.12, height: -0.04 },
+    { id: 'final-route', x1: 34, y1: 21, x2: 42, y2: 28, color: 0x1f3337, emissive: 0x06191d, emissiveIntensity: 0.2, height: -0.04 }
   ],
   guideStrips: [
-    { x: 6.5, y: 9, axis: 'x', length: 4, opacity: 0.1 },
-    { x: 12, y: 9, axis: 'x', length: 5, opacity: 0.16 },
-    { x: 20.5, y: 9, axis: 'x', length: 7, color: 0xff7a1a, opacity: 0.18, width: 0.22 },
-    { x: 7, y: 5.5, axis: 'z', length: 4, color: 0x79d7ff, opacity: 0.08 },
-    { x: 6, y: 14.5, axis: 'x', length: 5, color: 0x7afcff, opacity: 0.08 }
+    { x: 8, y: 16, axis: 'x', length: 7, color: 0xcfe9e8, opacity: 0.08, width: 0.18 },
+    { x: 12, y: 12, axis: 'z', length: 5, color: 0x8bdcff, opacity: 0.1, width: 0.18 },
+    { x: 12, y: 22, axis: 'z', length: 6, color: 0x8bdcff, opacity: 0.08, width: 0.18 },
+    { x: 20, y: 15, axis: 'x', length: 7, color: 0xb7f7ff, opacity: 0.15, width: 0.2 },
+    { x: 31, y: 10, axis: 'x', length: 7, color: 0xa88dc4, opacity: 0.09, width: 0.16 },
+    { x: 31, y: 15, axis: 'x', length: 12, color: 0xc43c24, opacity: 0.18, width: 0.22 },
+    { x: 40, y: 22, axis: 'z', length: 8, color: 0x6bc7dc, opacity: 0.13, width: 0.2 }
   ],
   navigationNodes: [
-    { x: 4, y: 8, intensity: 0.46, distance: 9 },
-    { x: 7, y: 4, color: 0x79d7ff, intensity: 0.34, distance: 8 },
-    { x: 12, y: 9, color: 0x7afcff, intensity: 0.72, distance: 11 },
-    { x: 19, y: 5, color: 0xb28dff, intensity: 0.44, distance: 9 },
-    { x: 6, y: 14, color: 0x7afcff, intensity: 0.42, distance: 8 },
-    { x: 20, y: 9, color: 0xff7a1a, intensity: 0.55, distance: 9 },
-    { x: 23, y: 9, color: 0x00ff88, intensity: 0.72, distance: 9 }
+    { x: 4, y: 16, color: 0xcfe9e8, intensity: 0.22, distance: 8 },
+    { x: 12, y: 15, color: 0x6bc7dc, intensity: 0.42, distance: 10 },
+    { x: 7, y: 7, color: 0xcfe9e8, intensity: 0.28, distance: 9 },
+    { x: 7, y: 25, color: 0x8ca2ff, intensity: 0.28, distance: 9 },
+    { x: 21, y: 15, color: 0xb7f7ff, intensity: 0.58, distance: 11 },
+    { x: 31, y: 7, color: 0xa88dc4, intensity: 0.32, distance: 9 },
+    { x: 36, y: 15, color: 0xc43c24, intensity: 0.48, distance: 12 },
+    { x: 41, y: 27, color: 0x86f7b2, intensity: 0.55, distance: 9 }
   ],
   areaLights: [
-    { x: 4, y: 9, color: 0x28d8ff, intensity: 0.35, distance: 10, height: 2.2 },
-    { x: 12, y: 9, color: 0x7afcff, intensity: 0.68, distance: 12, height: 2.5 },
-    { x: 6, y: 14, color: 0x766bff, intensity: 0.32, distance: 8, height: 2.1 },
-    { x: 19, y: 5, color: 0xb28dff, intensity: 0.38, distance: 9, height: 2.4 },
-    { x: 20.5, y: 9, color: 0xff3300, intensity: 0.5, distance: 11, height: 1.7 }
+    { x: 5, y: 16, color: 0xcfe9e8, intensity: 0.18, distance: 8, height: 2.65 },
+    { x: 12, y: 15, color: 0x6bc7dc, intensity: 0.34, distance: 11, height: 2.7 },
+    { x: 21, y: 15, color: 0xb7f7ff, intensity: 0.55, distance: 12, height: 2.75 },
+    { x: 31, y: 7, color: 0xa88dc4, intensity: 0.3, distance: 10, height: 2.65 },
+    { x: 31, y: 15, color: 0xc43c24, intensity: 0.5, distance: 14, height: 2.25 },
+    { x: 40, y: 24, color: 0x6bc7dc, intensity: 0.38, distance: 11, height: 2.45 }
   ],
+  ceilingLights: [
+    { x: 5, y: 16, width: 1.6, depth: 0.18, color: 0xcfe9e8, intensity: 0.34 },
+    { x: 10, y: 14, width: 1.6, depth: 0.18, color: 0xcfe9e8, intensity: 0.28 },
+    { x: 13, y: 18, width: 1.6, depth: 0.18, color: 0xcfe9e8, intensity: 0.28 },
+    { x: 7, y: 7, width: 1.5, depth: 0.18, color: 0xcfe9e8, intensity: 0.3 },
+    { x: 12, y: 7, width: 1.2, depth: 0.18, color: 0xcfe9e8, intensity: 0.22, flicker: true },
+    { x: 7, y: 25, width: 1.5, depth: 0.18, color: 0xaebcff, intensity: 0.26 },
+    { x: 21, y: 15, width: 1.8, depth: 0.2, color: 0xb7f7ff, intensity: 0.46 },
+    { x: 31, y: 7, width: 1.5, depth: 0.18, color: 0xd5c2ff, intensity: 0.28, flicker: true },
+    { x: 28, y: 15, width: 1.4, depth: 0.18, color: 0xc43c24, intensity: 0.34 },
+    { x: 34, y: 15, width: 1.4, depth: 0.18, color: 0xc43c24, intensity: 0.34 },
+    { x: 40, y: 15, width: 1.2, depth: 0.18, color: 0xcfe9e8, intensity: 0.32 },
+    { x: 40, y: 25, width: 1.4, depth: 0.18, color: 0x6bc7dc, intensity: 0.36, flicker: true }
+  ],
+  routes: [
+    {
+      id: 'critical-path',
+      label: 'Critical Route',
+      color: 0x86f7b2,
+      points: [
+        { x: 4, y: 16 },
+        { x: 12, y: 15 },
+        { x: 7, y: 7 },
+        { x: 7, y: 25 },
+        { x: 21, y: 15 },
+        { x: 31, y: 7 },
+        { x: 36, y: 15 },
+        { x: 40, y: 24 },
+        { x: 41, y: 27 }
+      ]
+    },
+    {
+      id: 'crusher-path',
+      label: 'Crusher Travel',
+      color: 0xc43c24,
+      points: [
+        { x: 37, y: 15 },
+        { x: 25, y: 15 }
+      ]
+    }
+  ],
+  aiManipulation: {
+    controllerId: 'department-intelligence',
+    lockableRoutes: [
+      { id: 'entry-loop', from: 'entry', to: 'orientation-hub', anchor: { x: 8, y: 16 } },
+      { id: 'records-hall', from: 'checkpoint-chamber', to: 'fake-exit', anchor: { x: 25, y: 15 } },
+      { id: 'final-afterimage', from: 'fake-exit', to: 'final-route', anchor: { x: 40, y: 19 } }
+    ],
+    lightChannels: [
+      { id: 'normal-office', rooms: ['entry', 'orientation-hub', 'cubicle-sector'] },
+      { id: 'ai-cyan', rooms: ['checkpoint-chamber', 'final-route'] },
+      { id: 'emergency', rooms: ['crusher-corridor'] },
+      { id: 'wrongness', rooms: ['wrong-department', 'archive'] }
+    ],
+    signageChannels: [
+      { id: 'department-labels', rooms: ['orientation-hub', 'wrong-department', 'fake-exit'] }
+    ],
+    fakeExits: [
+      { id: 'public-exit', room: 'fake-exit', triggerId: 'fake-exit-pressure' }
+    ],
+    loopCandidates: [
+      { id: 'archive-return-loop', rooms: ['archive', 'orientation-hub'] }
+    ]
+  },
   architecture: [
-    { type: 'platform', x: 12, y: 9, width: 3.35, depth: 3.35, height: 0.18, color: 0x16495a, emissive: 0x0a2f3d },
-    { type: 'platform', x: 20.5, y: 9, width: 6.5, depth: 2.75, height: 0.08, yOffset: -0.16, color: 0x4a211b, emissive: 0x260702 },
-    { type: 'frame', x: 9.5, y: 9, axis: 'x', width: 2.6, color: 0x3e435f },
-    { type: 'frame', x: 16.5, y: 9, axis: 'x', width: 2.9, color: 0x55444f },
-    { type: 'frame', x: 22.5, y: 9, axis: 'x', width: 2.4, color: 0x2d5a47, emissive: 0x002513 },
-    { type: 'beam', x: 19, y: 8, axis: 'x', length: 4, color: 0x58322d, emissive: 0x210503 },
-    { type: 'beam', x: 21, y: 10, axis: 'x', length: 4, color: 0x58322d, emissive: 0x210503 },
-    { type: 'column', x: 1.7, y: 7.5, radius: 0.16, height: 2.15, color: 0x3d4663 },
-    { type: 'column', x: 7.4, y: 7.5, radius: 0.16, height: 2.15, color: 0x3d4663 },
-    { type: 'column', x: 1.7, y: 10.5, radius: 0.16, height: 2.15, color: 0x3d4663 },
-    { type: 'column', x: 7.4, y: 10.5, radius: 0.16, height: 2.15, color: 0x3d4663 },
-    { type: 'column', x: 10.4, y: 7.4, radius: 0.14, height: 2.35, color: 0x315063, emissive: 0x062430 },
-    { type: 'column', x: 14.6, y: 7.4, radius: 0.14, height: 2.35, color: 0x315063, emissive: 0x062430 },
-    { type: 'column', x: 10.4, y: 10.6, radius: 0.14, height: 2.35, color: 0x315063, emissive: 0x062430 },
-    { type: 'column', x: 14.6, y: 10.6, radius: 0.14, height: 2.35, color: 0x315063, emissive: 0x062430 },
-    { type: 'column', x: 3.1, y: 13.4, radius: 0.12, height: 1.7, color: 0x3b365d, emissive: 0x080520 },
-    { type: 'column', x: 8.0, y: 15.8, radius: 0.12, height: 1.7, color: 0x3b365d, emissive: 0x080520 },
-    { type: 'monolith', x: 5.2, y: 14.8, width: 0.34, depth: 0.18, height: 1.4, color: 0x1c6173, emissive: 0x28d8ff },
-    { type: 'monolith', x: 19.5, y: 5.2, width: 0.5, depth: 0.22, height: 1.1, color: 0x3e2f5a, emissive: 0x8c6bff }
+    { type: 'receptionDesk', x: 5.5, y: 15.1, width: 2.4, depth: 0.45, rotation: 0, color: 0x4b4f4f },
+    { type: 'sign', id: 'entry-sign', channelId: 'department-labels', x: 5.5, y: 14.1, text: 'NIGHT SHIFT ENTRY', color: 0xcfe9e8, width: 2.2 },
+    { type: 'sign', id: 'orientation-sign', channelId: 'department-labels', x: 12, y: 12.1, text: 'ORIENTATION', color: 0x8bdcff, width: 2.0 },
+    { type: 'sign', id: 'wrong-dept-sign', channelId: 'department-labels', x: 31, y: 10.1, text: 'DEPARTMENT NOT FOUND', color: 0xd5c2ff, width: 2.6 },
+    { type: 'sign', id: 'fake-exit-sign', channelId: 'department-labels', x: 38.5, y: 13, text: 'PUBLIC EXIT', color: 0x86f7b2, width: 2.1 },
+    { type: 'taskTerminal', x: 12, y: 15, color: 0x6bc7dc },
+    { type: 'taskTerminal', x: 7, y: 7, color: 0xcfe9e8 },
+    { type: 'taskTerminal', x: 7, y: 25, color: 0x8ca2ff },
+    { type: 'taskTerminal', x: 21, y: 15, color: 0xb7f7ff },
+    { type: 'taskTerminal', x: 31, y: 7, color: 0xa88dc4 },
+    { type: 'cubicleCluster', x: 6, y: 6, columns: 2, rows: 2, color: 0x4b5358 },
+    { type: 'cubicleCluster', x: 11, y: 6, columns: 2, rows: 2, color: 0x4b5358 },
+    { type: 'serverRackRow', x: 5, y: 24, count: 4, axis: 'x', color: 0x222832, emissive: 0x182a4a },
+    { type: 'serverRackRow', x: 5, y: 27, count: 4, axis: 'x', color: 0x222832, emissive: 0x182a4a },
+    { type: 'meetingTable', x: 21, y: 16.2, width: 2.3, depth: 1.0, color: 0x4a4f52 },
+    { type: 'glassWall', x: 17, y: 15, axis: 'z', length: 4, color: 0x8ac7d9 },
+    { type: 'glassWall', x: 24, y: 15, axis: 'z', length: 4, color: 0x8ac7d9 },
+    { type: 'copyMachine', x: 20, y: 25, color: 0x6d746f },
+    { type: 'monolith', x: 31, y: 7.9, width: 0.44, depth: 0.2, height: 1.25, color: 0x3a3148, emissive: 0xa88dc4 },
+    { type: 'frame', x: 25, y: 15, axis: 'z', width: 2.7, color: 0x5a443f, emissive: 0x1b0603 },
+    { type: 'frame', x: 37, y: 15, axis: 'z', width: 2.7, color: 0x375443, emissive: 0x07150d },
+    { type: 'beam', x: 31, y: 14, axis: 'x', length: 12, color: 0x4b3430, emissive: 0x150302 },
+    { type: 'beam', x: 31, y: 16, axis: 'x', length: 12, color: 0x4b3430, emissive: 0x150302 },
+    { type: 'column', x: 9, y: 12, radius: 0.13, height: 2.65, color: 0x4a5358 },
+    { type: 'column', x: 15, y: 19, radius: 0.13, height: 2.65, color: 0x4a5358 },
+    { type: 'column', x: 18, y: 12, radius: 0.13, height: 2.85, color: 0x315063, emissive: 0x061b20 },
+    { type: 'column', x: 24, y: 18, radius: 0.13, height: 2.85, color: 0x315063, emissive: 0x061b20 },
+    { type: 'windowBand', x: 40, y: 24, axis: 'z', length: 5, color: 0x6bc7dc },
+    { type: 'doorSlab', x: 41, y: 27.8, width: 1.6, color: 0x2d5645, emissive: 0x0a2013 }
   ]
 };

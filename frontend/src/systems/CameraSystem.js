@@ -13,32 +13,41 @@ export class CameraSystem {
     this.lastPlayerPosition = new THREE.Vector3();
     this.shakeTime = 0;
     this.shakeStrength = 0;
+    this.shakePhase = 0;
   }
 
   applyMouseLook(mouseDelta) {
-    this.yaw -= mouseDelta.x * CONSTANTS.MOUSE_SENSITIVITY;
-    this.pitch -= mouseDelta.y * CONSTANTS.MOUSE_SENSITIVITY;
-    this.pitch = THREE.MathUtils.clamp(this.pitch, -1.2, 1.2);
+    const dx = THREE.MathUtils.clamp(mouseDelta.x, -CONSTANTS.MAX_MOUSE_DELTA, CONSTANTS.MAX_MOUSE_DELTA);
+    const dy = THREE.MathUtils.clamp(mouseDelta.y, -CONSTANTS.MAX_MOUSE_DELTA, CONSTANTS.MAX_MOUSE_DELTA);
+    this.yaw -= dx * CONSTANTS.MOUSE_SENSITIVITY;
+    this.pitch -= dy * CONSTANTS.MOUSE_SENSITIVITY;
+    this.pitch = THREE.MathUtils.clamp(this.pitch, -1.18, 1.18);
   }
 
   update(playerPos, delta = 0) {
-    const horizontalSpeed = this.lastPlayerPosition.distanceTo(playerPos) / Math.max(delta, 0.0001);
+    const cappedDelta = Math.min(delta, CONSTANTS.MAX_DELTA);
+    const horizontalDistance = Math.hypot(
+      playerPos.x - this.lastPlayerPosition.x,
+      playerPos.z - this.lastPlayerPosition.z
+    );
+    const horizontalSpeed = horizontalDistance / Math.max(cappedDelta, 0.0001);
     this.lastPlayerPosition.copy(playerPos);
-    this.headBobTime += horizontalSpeed > 0.1 ? delta * CONSTANTS.HEAD_BOB_SPEED : 0;
+    this.headBobTime += horizontalSpeed > 0.08 ? cappedDelta * CONSTANTS.HEAD_BOB_SPEED : 0;
 
     const bobOffset = Math.sin(this.headBobTime) * CONSTANTS.HEAD_BOB_AMOUNT * Math.min(1, horizontalSpeed / CONSTANTS.PLAYER_SPEED);
     this.eyePosition.set(
       playerPos.x,
-      CONSTANTS.PLAYER_EYE_HEIGHT + bobOffset,
+      (playerPos.y ?? 0) + CONSTANTS.PLAYER_EYE_HEIGHT + bobOffset,
       playerPos.z
     );
 
     if (this.shakeTime > 0) {
-      this.shakeTime = Math.max(0, this.shakeTime - delta);
+      this.shakeTime = Math.max(0, this.shakeTime - cappedDelta);
+      this.shakePhase += cappedDelta * 38;
       const falloff = this.shakeTime * CONSTANTS.CAMERA_SHAKE_DECAY;
       const shake = this.shakeStrength * Math.min(1, falloff);
-      this.eyePosition.x += (Math.random() - 0.5) * shake;
-      this.eyePosition.y += (Math.random() - 0.5) * shake * 0.35;
+      this.eyePosition.x += Math.sin(this.shakePhase) * shake * 0.35;
+      this.eyePosition.y += Math.cos(this.shakePhase * 1.37) * shake * 0.12;
     }
 
     this.camera.position.copy(this.eyePosition);
@@ -62,7 +71,19 @@ export class CameraSystem {
   // Snap instantly (e.g. on start/restart)
   snap(playerPos) {
     this.lastPlayerPosition.copy(playerPos);
+    this.headBobTime = 0;
+    this.shakeTime = 0;
+    this.shakeStrength = 0;
     this.update(playerPos, 0);
+  }
+
+  reset(yaw = 0, pitch = 0) {
+    this.yaw = yaw;
+    this.pitch = pitch;
+    this.headBobTime = 0;
+    this.shakeTime = 0;
+    this.shakeStrength = 0;
+    this.shakePhase = 0;
   }
 
   shake(strength = 0.25, duration = 0.5) {
@@ -80,5 +101,13 @@ export class CameraSystem {
       Math.sin(this.pitch),
       -Math.cos(this.yaw) * Math.cos(this.pitch)
     ).normalize();
+  }
+
+  getPlanarForwardVector() {
+    return new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw)).normalize();
+  }
+
+  getPlanarRightVector() {
+    return new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw)).normalize();
   }
 }

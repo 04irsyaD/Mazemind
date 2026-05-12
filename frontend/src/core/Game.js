@@ -5,19 +5,18 @@ import { InputManager } from './InputManager.js';
 import { EventBus } from './EventBus.js';
 import { EntityManager } from './EntityManager.js';
 import { GameManager } from './GameManager.js';
+import { LevelRuntime } from './LevelRuntime.js';
+import { getTaskObjectives } from './LevelDefinition.js';
 import { devLog, sceneDiagnostics } from './Debug.js';
 import { MazeBuilder } from '../entities/MazeBuilder.js';
 import { Player } from '../entities/Player.js';
-import { Goal } from '../entities/Goal.js';
-import { Trap } from '../entities/Trap.js';
-import { Checkpoint } from '../entities/Checkpoint.js';
-import { TriggerZone } from '../entities/TriggerZone.js';
-import { CrusherWall } from '../entities/CrusherWall.js';
-import { SentientObject } from '../entities/SentientObject.js';
-import { CollisionSystem } from '../systems/CollisionSystem.js';
 import { CameraSystem } from '../systems/CameraSystem.js';
 import { GameStateSystem } from '../systems/GameStateSystem.js';
 import { DeveloperExploreSystem } from '../systems/DeveloperExploreSystem.js';
+import { DepartmentControlSystem } from '../systems/DepartmentControlSystem.js';
+import { LightingSystem } from '../systems/LightingSystem.js';
+import { ProgressionSystem } from '../systems/ProgressionSystem.js';
+import { AudioSystem } from '../systems/AudioSystem.js';
 import { UIManager } from '../ui/UIManager.js';
 
 // Map Data
@@ -37,10 +36,25 @@ export class Game {
     this.player = new Player(this.sceneManager.scene);
     this.cameraSystem = new CameraSystem(this.sceneManager.camera);
     this.developerExploreSystem = new DeveloperExploreSystem(this.sceneManager.scene);
+    this.departmentControlSystem = new DepartmentControlSystem(this.eventBus);
+    this.lightingSystem = new LightingSystem(this.sceneManager.scene);
+    this.audioSystem = new AudioSystem();
+    this.progressionSystem = new ProgressionSystem(this.eventBus, this.uiManager, this.departmentControlSystem);
+    this.levelRuntime = new LevelRuntime({
+      scene: this.sceneManager.scene,
+      eventBus: this.eventBus,
+      entityManager: this.entityManager,
+      mazeBuilder: this.mazeBuilder,
+      lightingSystem: this.lightingSystem,
+      departmentControlSystem: this.departmentControlSystem
+    });
     
-    this.goal = null;
     this.checkpointActive = false;
     this.levelEnding = false;
+    this.running = false;
+    this.animationFrame = null;
+    this.eventUnsubscribers = [];
+    this.lastDelta = 0;
     
     this.clock = new THREE.Clock();
     this.setupEvents();
@@ -49,24 +63,34 @@ export class Game {
   }
 
   setupEvents() {
-    this.eventBus.on(CONSTANTS.EVENTS.CHECKPOINT_ACTIVATED, payload => {
+    this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.CHECKPOINT_ACTIVATED, payload => {
       this.gameManager.collectCheckpoint(payload);
       this.checkpointActive = this.gameManager.hasAllCheckpoints();
       devLog('Game: Checkpoint activated');
-    });
+    }));
 
-    this.eventBus.on(CONSTANTS.EVENTS.CRUSHER_WARNING, () => {
+    this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.FINAL_ROUTE_UNLOCKED, () => {
+      if (this.isFreeExplore()) return;
+      this.uiManager.updateStatus('The department accepted the route. The public exit is no longer pretending.');
+    }));
+
+    this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.FAKE_EXIT_ATTEMPTED, () => {
+      if (this.isFreeExplore()) return;
+      this.uiManager.updateStatus('Public exit rejected. The department is rearranging records.');
+    }));
+
+    this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.CRUSHER_WARNING, () => {
       if (this.isFreeExplore()) return;
       this.cameraSystem.shake(0.22, 0.8);
-      this.uiManager.showWarning('Crusher moving. Back up.');
-    });
+      this.uiManager.showWarning('Emergency wall moving. Use the side lane.');
+    }));
 
-    this.eventBus.on(CONSTANTS.EVENTS.CRUSHER_ACTIVATED, () => {
+    this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.CRUSHER_ACTIVATED, () => {
       if (this.isFreeExplore()) return;
       this.cameraSystem.shake(0.32, 0.55);
-    });
+    }));
 
-    this.eventBus.on(CONSTANTS.EVENTS.PLAYER_KILLED, payload => {
+    this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.PLAYER_KILLED, payload => {
       if (this.isFreeExplore()) return;
       if (this.levelEnding) return;
       if (payload?.respawn !== false) {
@@ -79,16 +103,16 @@ export class Game {
 
       this.levelEnding = true;
       this.stateSystem.setState(CONSTANTS.STATE_LOSE, payload);
-    });
+    }));
 
-    this.eventBus.on(CONSTANTS.EVENTS.GOAL_REACHED, () => {
+    this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.GOAL_REACHED, () => {
       if (this.isFreeExplore()) return;
       if (this.levelEnding) return;
       this.levelEnding = true;
       this.stateSystem.setState(CONSTANTS.STATE_WIN);
-    });
+    }));
 
-    this.eventBus.on(CONSTANTS.EVENTS.GOAL_LOCKED, payload => {
+    this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.GOAL_LOCKED, payload => {
       if (this.isFreeExplore()) return;
       this.cameraSystem.shake(0.18, 0.45);
       if (payload.triggerId) {
@@ -96,7 +120,7 @@ export class Game {
       }
       this.uiManager.updateStatus(payload?.taunt || 'Exit is locked.');
       devLog('Game: Goal locked until checkpoint is active', payload);
-    });
+    }));
   }
 
   areDeveloperToolsEnabled() {
@@ -110,60 +134,37 @@ export class Game {
   startLevel(options = {}) {
     const freeExplore = !!options.freeExplore && this.areDeveloperToolsEnabled();
     this.inputManager.requestPointerLock(this.sceneManager.renderer.domElement);
+    void this.audioSystem.start();
     devLog('Game: Starting level...');
     this.eventBus.emit(CONSTANTS.EVENTS.LEVEL_RESET);
     this.entityManager.clear();
-    this.goal = null;
+    this.inputManager.resetTransient();
     this.checkpointActive = false;
     this.levelEnding = false;
+    const runtime = this.levelRuntime.load(level1);
+    const level = runtime.level;
+    this.collisionSystem = runtime.collisionSystem;
+    const startWorldX = level.playerStart.x * CONSTANTS.CELL_SIZE;
+    const startWorldZ = level.playerStart.y * CONSTANTS.CELL_SIZE;
+    const startHeight = this.collisionSystem.getFloorHeightAt(startWorldX, startWorldZ);
+    const playerStart = { ...level.playerStart, height: startHeight };
     this.gameManager.reset({
-      totalCheckpoints: level1.checkpoints?.length ?? 0,
-      playerStart: level1.playerStart,
+      totalCheckpoints: getTaskObjectives(level).length,
+      playerStart,
     });
+    this.progressionSystem.reset(level);
 
-    // Load Map
-    this.mazeBuilder.build(level1);
-    this.collisionSystem = new CollisionSystem(level1);
-
-    // Setup Goal and Traps
-    for (let y = 0; y < level1.grid.length; y++) {
-      for (let x = 0; x < level1.grid[y].length; x++) {
-        const cell = level1.grid[y][x];
-        if (cell === CONSTANTS.CELL_GOAL) {
-          const goalConfig = level1.goals?.find(goal => goal.x === x && goal.y === y) ?? {};
-          this.goal = this.entityManager.add(new Goal(this.sceneManager.scene, x, y, this.eventBus, goalConfig));
-        } else if (cell === CONSTANTS.CELL_TRAP) {
-          this.entityManager.add(new Trap(this.sceneManager.scene, x, y));
-        }
-      }
-    }
-
-    level1.checkpoints?.forEach(config => {
-      this.entityManager.add(new Checkpoint(this.sceneManager.scene, this.eventBus, config));
-    });
-
-    level1.triggers?.forEach(config => {
-      this.entityManager.add(new TriggerZone(this.sceneManager.scene, this.eventBus, config));
-    });
-
-    level1.crushers?.forEach(config => {
-      this.entityManager.add(new CrusherWall(this.sceneManager.scene, this.eventBus, config));
-    });
-
-    level1.sentientObjects?.forEach(config => {
-      this.entityManager.add(new SentientObject(this.sceneManager.scene, this.eventBus, config));
-    });
-
-    this.developerExploreSystem.reset(level1, this.entityManager);
+    this.developerExploreSystem.reset(level, this.entityManager);
 
     // Setup Player
-    this.player.setPosition(level1.playerStart.x, level1.playerStart.y);
+    this.player.setPosition(level.playerStart.x, level.playerStart.y, startHeight);
+    this.cameraSystem.reset(level.playerStart.yaw ?? 0, level.playerStart.pitch ?? 0);
     this.cameraSystem.snap(this.player.mesh.position);
 
     this.stateSystem.setState(freeExplore ? CONSTANTS.STATE_DEV_EXPLORE : CONSTANTS.STATE_PLAYING);
     if (freeExplore) {
-      this.uiManager.updateProgress(0, level1.checkpoints?.length ?? 0);
-      this.uiManager.updateDebugPanel(this.developerExploreSystem.getState());
+      this.uiManager.updateProgress(0, getTaskObjectives(level).length);
+      this.uiManager.updateDebugPanel(this.createDebugPanelState());
     }
     devLog('Game: State changed to PLAYING.', sceneDiagnostics(
       this.sceneManager.scene,
@@ -172,10 +173,19 @@ export class Game {
     ));
   }
 
-  update() {
-    requestAnimationFrame(this.update.bind(this));
+  start() {
+    if (this.running) return;
+    this.running = true;
+    this.clock.start();
+    this.update();
+  }
 
-    const delta = this.clock.getDelta();
+  update() {
+    if (!this.running) return;
+    this.animationFrame = requestAnimationFrame(this.update.bind(this));
+
+    const delta = Math.min(this.clock.getDelta(), CONSTANTS.MAX_DELTA);
+    this.lastDelta = delta;
 
     if (this.stateSystem.isState(CONSTANTS.STATE_PLAYING)) {
       this.updateGameplay(delta);
@@ -185,7 +195,7 @@ export class Game {
           if (!trap.triggered && trap.checkCollision(this.player.position.x, this.player.position.z)) {
             this.eventBus.emit(CONSTANTS.EVENTS.PLAYER_KILLED, {
               reason: 'trap',
-              taunt: 'Kamu pikir bisa kabur dari sini? Hahaha!'
+              taunt: 'The floor filing system rejected your route.'
             });
           }
         }
@@ -196,6 +206,7 @@ export class Game {
       // Continue updating goal/traps animation even if not playing
       this.cameraSystem.update(this.player.mesh.position, delta);
       this.updateDebugHelpers();
+      this.levelRuntime.update(delta);
       this.entityManager.update(delta, this.createUpdateContext());
     }
 
@@ -210,6 +221,8 @@ export class Game {
     this.player.update(delta, inputVec, this.collisionSystem, this.cameraSystem.getYaw());
     this.cameraSystem.update(this.player.mesh.position, delta);
     this.updateDebugHelpers();
+    this.monitorFinalRouteEntry();
+    this.levelRuntime.update(delta);
     this.entityManager.update(delta, this.createUpdateContext());
   }
 
@@ -217,6 +230,7 @@ export class Game {
     const inputVec = this.inputManager.getMovementVector();
     this.cameraSystem.applyMouseLook(this.inputManager.consumeMouseDelta());
     this.developerExploreSystem.update(delta, this.inputManager, this.cameraSystem, this.player, this.uiManager);
+    this.uiManager.updateDebugPanel(this.createDebugPanelState());
 
     if (!this.developerExploreSystem.flyMode) {
       const collisionSystem = this.developerExploreSystem.getCollisionSystem(this.collisionSystem);
@@ -225,17 +239,22 @@ export class Game {
     }
 
     this.updateDebugHelpers();
+    this.levelRuntime.update(delta);
     this.entityManager.update(delta, this.createUpdateContext());
   }
 
   createUpdateContext() {
     return {
       player: this.player,
-      checkpointActive: this.checkpointActive,
+      checkpointActive: this.gameManager.hasAllCheckpoints(),
       isFreeExplore: this.isFreeExplore(),
       eventBus: this.eventBus,
       collisionSystem: this.collisionSystem,
       gameManager: this.gameManager,
+      departmentControl: this.departmentControlSystem,
+      progressionSystem: this.progressionSystem,
+      progressionState: this.progressionSystem.getState(),
+      level: this.levelRuntime.level,
     };
   }
 
@@ -247,5 +266,49 @@ export class Game {
     }
 
     this.sceneManager.cameraFrustumHelper?.update();
+  }
+
+  createDebugPanelState() {
+    const gridX = this.collisionSystem?.worldToGrid(this.player.position.x) ?? 0;
+    const gridY = this.collisionSystem?.worldToGrid(this.player.position.z) ?? 0;
+    const progression = this.progressionSystem.getState();
+    const department = this.departmentControlSystem.getState();
+    const runtime = this.levelRuntime.getState();
+    return {
+      ...this.developerExploreSystem.getState(),
+      checkpointsCollected: progression.completedTasks,
+      totalCheckpoints: progression.totalTasks,
+      exitUnlocked: progression.finalRouteUnlocked,
+      progressionState: progression.state,
+      playerGrid: `${gridX},${gridY}`,
+      departmentController: department.controllerId,
+      lightChannels: runtime.lights?.channels ?? [],
+      routeBlockers: runtime.routeBlockers ?? 0,
+      collisionVolumes: runtime.collisionVolumes ?? 0,
+      fps: this.lastDelta > 0 ? Math.round(1 / this.lastDelta) : 0
+    };
+  }
+
+  monitorFinalRouteEntry() {
+    if (!this.progressionSystem.finalRouteUnlocked || this.progressionSystem.finalRouteEntered) return;
+    const room = this.collisionSystem?.worldToRoom(this.levelRuntime.level, this.player.position.x, this.player.position.z);
+    if (room?.id === 'final-route') {
+      this.progressionSystem.enterFinalRoute();
+    }
+  }
+
+  dispose() {
+    this.running = false;
+    if (this.animationFrame !== null) cancelAnimationFrame(this.animationFrame);
+    this.eventUnsubscribers.forEach(unsub => unsub());
+    this.eventUnsubscribers = [];
+    this.levelRuntime.dispose();
+    this.developerExploreSystem.dispose();
+    this.progressionSystem.dispose();
+    this.audioSystem.dispose();
+    this.uiManager.dispose?.();
+    this.inputManager.dispose();
+    this.sceneManager.dispose();
+    this.eventBus.clear();
   }
 }

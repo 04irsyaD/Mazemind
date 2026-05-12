@@ -103,7 +103,7 @@ export class CrusherWall {
       if (this.isPlayerCrushed(context.player)) {
         this.eventBus.emit(CONSTANTS.EVENTS.PLAYER_KILLED, {
           reason: 'crusher',
-          taunt: 'Terlalu cepat masuk jalur akhir? Dindingnya juga ikut cepat.',
+          taunt: 'Emergency Records Hall closed before clearance was granted.',
         });
       }
 

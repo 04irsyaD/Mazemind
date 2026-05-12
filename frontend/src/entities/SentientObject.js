@@ -14,7 +14,8 @@ export class SentientObject {
     this.attackSpeed = config.attackSpeed ?? 4.5;
     this.returnSpeed = config.returnSpeed ?? 5;
     this.shakeIntensity = config.shakeIntensity ?? 0.12;
-    this.time = Math.random() * Math.PI * 2;
+    this.canKill = config.canKill ?? false;
+    this.time = this.seedTime(config.id);
     this.state = 'idle';
     this.hasKilledDuringAttack = false;
 
@@ -28,6 +29,14 @@ export class SentientObject {
     this.originalPosition = this.group.position.clone();
     this.originalRotation = this.group.rotation.clone();
     this.attackTarget = new THREE.Vector3();
+  }
+
+  seedTime(id = '') {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+    }
+    return (hash % 628) / 100;
   }
 
   update(delta, context) {
@@ -51,7 +60,7 @@ export class SentientObject {
       return;
     }
 
-    if (distanceToPlayer <= this.attackRadius) {
+    if (this.attackRadius > 0 && distanceToPlayer <= this.attackRadius) {
       this.state = 'attacking';
       this.attackPlayer(delta, playerPosition, context.player);
       return;
@@ -76,7 +85,7 @@ export class SentientObject {
     this.setAlertMaterial(true);
 
     // Only moving furniture kills. Idle/warning furniture is readable pressure, not unfair damage.
-    if (!player.isInvulnerable() && !this.hasKilledDuringAttack && this.group.position.distanceTo(player.position) <= this.collisionRadius) {
+    if (this.canKill && !player.isInvulnerable() && !this.hasKilledDuringAttack && this.group.position.distanceTo(player.position) <= this.collisionRadius) {
       this.hasKilledDuringAttack = true;
       this.eventBus.emit(CONSTANTS.EVENTS.PLAYER_KILLED, {
         reason: 'sentient-object',

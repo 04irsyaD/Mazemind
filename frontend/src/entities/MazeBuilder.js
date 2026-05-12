@@ -8,27 +8,35 @@ export class MazeBuilder {
     this.wallMesh = null;
     this.floorMeshes = [];
     this.guideMeshes = [];
+    this.signageHandles = [];
     this.floorZoneMats = new Map();
     
     // Materials
     this.wallMat = new THREE.MeshStandardMaterial({ 
       color: CONSTANTS.COLORS.WALL,
       emissive: CONSTANTS.COLORS.WALL_EMISSIVE,
-      emissiveIntensity: 0.35,
-      roughness: 0.72,
-      metalness: 0.12
+      emissiveIntensity: 0.08,
+      roughness: 0.82,
+      metalness: 0.06
     });
     
     this.pathMat = new THREE.MeshStandardMaterial({ 
       color: CONSTANTS.COLORS.PATH,
-      roughness: 0.84,
-      metalness: 0.1
+      roughness: 0.88,
+      metalness: 0.04
     });
 
     this.pathAccentMat = new THREE.MeshStandardMaterial({
       color: CONSTANTS.COLORS.PATH_ACCENT,
       roughness: 0.84,
-      metalness: 0.1
+      metalness: 0.04
+    });
+
+    this.ceilingMat = new THREE.MeshStandardMaterial({
+      color: 0x151a1f,
+      roughness: 0.92,
+      metalness: 0.02,
+      side: THREE.DoubleSide
     });
 
     this.checkpointFloorMat = new THREE.MeshStandardMaterial({
@@ -100,7 +108,7 @@ export class MazeBuilder {
           
           // Slight color variation
           color.setHex(CONSTANTS.COLORS.WALL);
-          color.offsetHSL(0, 0, (Math.random() - 0.5) * 0.05);
+          color.offsetHSL(0, 0, (((x * 17 + y * 31) % 7) - 3) * 0.008);
           this.wallMesh.setColorAt(wallIndex, color);
           
           wallIndex++;
@@ -126,7 +134,6 @@ export class MazeBuilder {
   clear() {
     if (this.wallMesh) {
       this.scene.remove(this.wallMesh);
-      this.wallMesh.dispose();
       this.wallMesh = null;
     }
     
@@ -137,10 +144,12 @@ export class MazeBuilder {
 
     this.guideMeshes.forEach(mesh => {
       this.scene.remove(mesh);
+      mesh.material?.map?.dispose?.();
       mesh.geometry?.dispose?.();
       mesh.material?.dispose?.();
     });
     this.guideMeshes = [];
+    this.signageHandles = [];
   }
 
   getFloorMaterial(cellType, x, y, mapData) {
@@ -178,6 +187,8 @@ export class MazeBuilder {
   }
 
   addNavigationGuides(mapData) {
+    this.addCeiling(mapData);
+
     mapData.guideStrips?.forEach(config => {
       const length = (config.length ?? 1) * CONSTANTS.CELL_SIZE;
       const width = config.width ?? 0.16;
@@ -223,18 +234,62 @@ export class MazeBuilder {
       this.scene.add(node);
       this.guideMeshes.push(node);
 
-      const light = new THREE.PointLight(
-        color,
-        config.intensity ?? 0.38,
-        config.distance ?? 7.5
+    });
+
+    this.addArchitecture(mapData);
+  }
+
+  addCeiling(mapData) {
+    const width = mapData.grid[0].length;
+    const height = mapData.grid.length;
+    const ceiling = new THREE.Mesh(
+      new THREE.PlaneGeometry(width * CONSTANTS.CELL_SIZE, height * CONSTANTS.CELL_SIZE),
+      this.ceilingMat.clone()
+    );
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.set(
+      ((width - 1) * CONSTANTS.CELL_SIZE) / 2,
+      CONSTANTS.WALL_HEIGHT,
+      ((height - 1) * CONSTANTS.CELL_SIZE) / 2
+    );
+    ceiling.receiveShadow = true;
+    this.scene.add(ceiling);
+    this.guideMeshes.push(ceiling);
+  }
+
+  addCeilingLights(mapData) {
+    mapData.ceilingLights?.forEach(config => {
+      const fixture = new THREE.Mesh(
+        new THREE.BoxGeometry(
+          (config.width ?? 1.4) * CONSTANTS.CELL_SIZE,
+          0.045,
+          (config.depth ?? 0.16) * CONSTANTS.CELL_SIZE
+        ),
+        new THREE.MeshStandardMaterial({
+          color: config.color ?? CONSTANTS.COLORS.FLUORESCENT,
+          emissive: config.color ?? CONSTANTS.COLORS.FLUORESCENT,
+          emissiveIntensity: config.flicker ? 0.42 : 0.62,
+          roughness: 0.3,
+          metalness: 0.02
+        })
       );
-      light.position.set(node.position.x, floorHeight + 1.45, node.position.z);
+      fixture.position.set(
+        config.x * CONSTANTS.CELL_SIZE,
+        CONSTANTS.WALL_HEIGHT - 0.035,
+        config.y * CONSTANTS.CELL_SIZE
+      );
+      this.scene.add(fixture);
+      this.guideMeshes.push(fixture);
+
+      const light = new THREE.PointLight(
+        config.color ?? CONSTANTS.COLORS.FLUORESCENT,
+        config.intensity ?? 0.28,
+        config.distance ?? 8
+      );
+      light.position.set(fixture.position.x, CONSTANTS.WALL_HEIGHT - 0.35, fixture.position.z);
       this.scene.add(light);
       this.guideMeshes.push(light);
     });
-
-    this.addAreaLights(mapData);
-    this.addArchitecture(mapData);
   }
 
   addAreaLights(mapData) {
@@ -274,7 +329,18 @@ export class MazeBuilder {
       }
       if (config.type === 'monolith') {
         this.addMonolith(config);
+        return;
       }
+      if (config.type === 'receptionDesk') this.addReceptionDesk(config);
+      if (config.type === 'taskTerminal') this.addTaskTerminal(config);
+      if (config.type === 'cubicleCluster') this.addCubicleCluster(config);
+      if (config.type === 'serverRackRow') this.addServerRackRow(config);
+      if (config.type === 'meetingTable') this.addMeetingTable(config);
+      if (config.type === 'glassWall') this.addGlassWall(config);
+      if (config.type === 'copyMachine') this.addCopyMachine(config);
+      if (config.type === 'windowBand') this.addWindowBand(config);
+      if (config.type === 'doorSlab') this.addDoorSlab(config);
+      if (config.type === 'sign') this.addSign(config);
     });
   }
 
@@ -394,6 +460,204 @@ export class MazeBuilder {
     mesh.receiveShadow = true;
     this.scene.add(mesh);
     this.guideMeshes.push(mesh);
+  }
+
+  addReceptionDesk(config) {
+    const material = this.createArchitectureMaterial(config, 0x4b4f4f);
+    this.addPropBox(config.x, 0.48, config.y, config.width ?? 2.2, 0.28, config.depth ?? 0.45, material);
+    this.addPropBox(config.x, 0.9, config.y - 0.18, (config.width ?? 2.2) * 0.86, 0.18, 0.14, material);
+  }
+
+  addTaskTerminal(config) {
+    const baseMaterial = this.createArchitectureMaterial(config, 0x303941);
+    const screenMaterial = new THREE.MeshStandardMaterial({
+      color: 0x081114,
+      emissive: config.color ?? CONSTANTS.COLORS.AI_CYAN,
+      emissiveIntensity: 0.55,
+      roughness: 0.28,
+      metalness: 0.05
+    });
+
+    this.addPropBox(config.x, 0.48, config.y + 0.22, 0.42, 0.55, 0.32, baseMaterial);
+    const screen = this.addPropBox(config.x, 0.95, config.y - 0.08, 0.58, 0.36, 0.08, screenMaterial);
+    screen.rotation.x = -0.12;
+  }
+
+  addCubicleCluster(config) {
+    const material = this.createArchitectureMaterial(config, 0x4b5358);
+    const deskMaterial = this.createArchitectureMaterial({ color: 0x5c574e }, 0x5c574e);
+    const columns = config.columns ?? 2;
+    const rows = config.rows ?? 2;
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < columns; col++) {
+        const x = config.x + col * 2.1;
+        const y = config.y + row * 2.0;
+        this.addPropBox(x, 0.58, y, 0.95, 0.08, 0.58, deskMaterial);
+        this.addPropBox(x + 0.48, 0.82, y, 0.04, 0.86, 0.78, material);
+        this.addPropBox(x, 0.82, y + 0.46, 0.94, 0.86, 0.04, material);
+      }
+    }
+  }
+
+  addServerRackRow(config) {
+    const count = config.count ?? 3;
+    const material = this.createArchitectureMaterial(config, 0x222832);
+    const lightMaterial = new THREE.MeshBasicMaterial({
+      color: config.emissive ?? CONSTANTS.COLORS.AI_CYAN,
+      transparent: true,
+      opacity: 0.55
+    });
+
+    for (let i = 0; i < count; i++) {
+      const x = config.x + (config.axis === 'z' ? 0 : i * 1.35);
+      const y = config.y + (config.axis === 'z' ? i * 1.35 : 0);
+      this.addPropBox(x, 1.05, y, 0.72, 1.9, 0.34, material);
+      this.addPropBox(x, 1.28, y - 0.18, 0.5, 0.04, 0.025, lightMaterial);
+      this.addPropBox(x, 0.86, y - 0.18, 0.5, 0.04, 0.025, lightMaterial);
+    }
+  }
+
+  addMeetingTable(config) {
+    const material = this.createArchitectureMaterial(config, 0x4a4f52);
+    this.addPropBox(config.x, 0.72, config.y, config.width ?? 2.2, 0.14, config.depth ?? 1.0, material);
+    this.addPropBox(config.x - 0.65, 0.36, config.y, 0.08, 0.72, 0.08, material);
+    this.addPropBox(config.x + 0.65, 0.36, config.y, 0.08, 0.72, 0.08, material);
+  }
+
+  addGlassWall(config) {
+    const length = (config.length ?? 2) * CONSTANTS.CELL_SIZE;
+    const material = new THREE.MeshStandardMaterial({
+      color: config.color ?? CONSTANTS.COLORS.OFFICE_GLASS,
+      emissive: config.color ?? CONSTANTS.COLORS.OFFICE_GLASS,
+      emissiveIntensity: 0.08,
+      transparent: true,
+      opacity: 0.28,
+      roughness: 0.08,
+      metalness: 0.02
+    });
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(
+        config.axis === 'z' ? 0.06 : length,
+        1.9,
+        config.axis === 'z' ? length : 0.06
+      ),
+      material
+    );
+    mesh.position.set(config.x * CONSTANTS.CELL_SIZE, 1.1, config.y * CONSTANTS.CELL_SIZE);
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+    this.scene.add(mesh);
+    this.guideMeshes.push(mesh);
+  }
+
+  addCopyMachine(config) {
+    const material = this.createArchitectureMaterial(config, 0x6d746f);
+    const darkMaterial = this.createArchitectureMaterial({ color: 0x25292b }, 0x25292b);
+    this.addPropBox(config.x, 0.55, config.y, 0.9, 0.75, 0.62, material);
+    this.addPropBox(config.x, 1.02, config.y - 0.12, 0.78, 0.18, 0.45, darkMaterial);
+  }
+
+  addWindowBand(config) {
+    const material = new THREE.MeshStandardMaterial({
+      color: config.color ?? CONSTANTS.COLORS.OFFICE_GLASS,
+      emissive: config.color ?? CONSTANTS.COLORS.OFFICE_GLASS,
+      emissiveIntensity: 0.18,
+      transparent: true,
+      opacity: 0.24,
+      roughness: 0.05,
+      metalness: 0.02
+    });
+    const length = (config.length ?? 3) * CONSTANTS.CELL_SIZE;
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(
+        config.axis === 'z' ? 0.05 : length,
+        1.15,
+        config.axis === 'z' ? length : 0.05
+      ),
+      material
+    );
+    mesh.position.set(config.x * CONSTANTS.CELL_SIZE, 1.55, config.y * CONSTANTS.CELL_SIZE);
+    this.scene.add(mesh);
+    this.guideMeshes.push(mesh);
+  }
+
+  addDoorSlab(config) {
+    const material = this.createArchitectureMaterial(config, 0x2d5645);
+    this.addPropBox(config.x, 1.12, config.y, config.width ?? 1.5, 2.15, 0.12, material);
+    this.addPropBox(config.x + 0.52, 1.08, config.y - 0.08, 0.08, 0.16, 0.04, new THREE.MeshStandardMaterial({
+      color: CONSTANTS.COLORS.GOAL,
+      emissive: CONSTANTS.COLORS.GOAL,
+      emissiveIntensity: 0.55
+    }));
+  }
+
+  addSign(config) {
+    const createMaterial = text => new THREE.MeshBasicMaterial({
+      map: this.createTextTexture(text, config.color ?? 0xcfe9e8),
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const material = createMaterial(config.text ?? 'SIGN');
+    const handle = {
+      id: config.id ?? config.text,
+      channelId: config.channelId ?? 'department-labels',
+      setText: text => {
+        material.map?.dispose?.();
+        material.map = this.createTextTexture(text, config.color ?? 0xcfe9e8);
+        material.needsUpdate = true;
+      }
+    };
+    const mesh = new THREE.Mesh(
+      new THREE.PlaneGeometry((config.width ?? 1.8) * CONSTANTS.CELL_SIZE, 0.52),
+      material
+    );
+    mesh.position.set(
+      config.x * CONSTANTS.CELL_SIZE,
+      config.height ?? 2.08,
+      config.y * CONSTANTS.CELL_SIZE
+    );
+    mesh.rotation.y = config.rotation ?? 0;
+    this.scene.add(mesh);
+    this.guideMeshes.push(mesh);
+    this.signageHandles.push(handle);
+  }
+
+  getSignageHandles() {
+    return this.signageHandles;
+  }
+
+  addPropBox(gridX, centerY, gridY, widthCells, height, depthCells, material) {
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(widthCells * CONSTANTS.CELL_SIZE, height, depthCells * CONSTANTS.CELL_SIZE),
+      material
+    );
+    mesh.position.set(gridX * CONSTANTS.CELL_SIZE, centerY, gridY * CONSTANTS.CELL_SIZE);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    this.scene.add(mesh);
+    this.guideMeshes.push(mesh);
+    return mesh;
+  }
+
+  createTextTexture(text, color) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 256;
+    const context = canvas.getContext('2d');
+    context.fillStyle = 'rgba(4, 8, 10, 0.78)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.strokeStyle = `#${color.toString(16).padStart(6, '0')}`;
+    context.lineWidth = 8;
+    context.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+    context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+    context.font = '700 72px Arial, sans-serif';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(text, canvas.width / 2, canvas.height / 2);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
   }
 
   createArchitectureMaterial(config, fallbackColor) {

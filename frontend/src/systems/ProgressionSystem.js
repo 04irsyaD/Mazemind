@@ -79,7 +79,7 @@ export class ProgressionSystem {
     this.crusherArmed = true;
     this.departmentControlSystem?.setRouteLocked('records-hall', true, 'fake-exit-attempted');
     this.departmentControlSystem?.setLightChannelScale('emergency', 1.28);
-    this.departmentControlSystem?.setSignageText('department-labels', 'PUBLIC EXIT / ACCESS DENIED', 'fake-exit-attempted');
+    this.departmentControlSystem?.setSignageText('department-labels', 'PUBLIC EXIT DENIED\nTRANSFER INCOMPLETE', 'fake-exit-attempted');
     this.setState('crusherArmed');
     this.eventBus.emit(CONSTANTS.EVENTS.FAKE_EXIT_ATTEMPTED, { triggerId, ...this.getState() });
     this.eventBus.emit(CONSTANTS.EVENTS.CRUSHER_ARMED, { triggerId, ...this.getState() });

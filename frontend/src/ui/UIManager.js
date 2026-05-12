@@ -75,7 +75,7 @@ export class UIManager {
 
   updateProgress(current, total) {
     if (this.checkpointCounter) {
-      this.checkpointCounter.innerText = `Tasks ${current}/${total}`;
+      this.checkpointCounter.innerText = `Documents ${current}/${total}`;
     }
   }
 
@@ -129,7 +129,7 @@ export class UIManager {
 
     if (this.debugStateLine) {
       this.debugStateLine.innerText = [
-        `Tasks ${state.checkpointsCollected ?? 0}/${state.totalCheckpoints ?? 0}`,
+        `Documents ${state.checkpointsCollected ?? 0}/${state.totalCheckpoints ?? 0}`,
         `Flow ${state.progressionState ?? 'unknown'}`,
         `Exit ${state.exitUnlocked ? 'Unlocked' : 'Locked'}`,
         `Player ${state.playerGrid ?? '-'}`,

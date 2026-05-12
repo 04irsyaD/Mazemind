@@ -90,7 +90,7 @@ export class SentientObject {
       this.eventBus.emit(CONSTANTS.EVENTS.PLAYER_KILLED, {
         reason: 'sentient-object',
         respawn: true,
-        taunt: `${this.getDisplayName()} knocked you back to your last checkpoint.`,
+        taunt: `${this.getDisplayName()} returned you to the last verified document.`,
       });
     }
   }

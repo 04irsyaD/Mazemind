@@ -33,7 +33,7 @@ export class MazeBuilder {
     });
 
     this.ceilingMat = new THREE.MeshStandardMaterial({
-      color: 0x151a1f,
+      color: 0x2d3438,
       roughness: 0.92,
       metalness: 0.02,
       side: THREE.DoubleSide
@@ -144,9 +144,23 @@ export class MazeBuilder {
 
     this.guideMeshes.forEach(mesh => {
       this.scene.remove(mesh);
-      mesh.material?.map?.dispose?.();
-      mesh.geometry?.dispose?.();
-      mesh.material?.dispose?.();
+      mesh.traverse?.(node => {
+        node.geometry?.dispose?.();
+        if (Array.isArray(node.material)) {
+          node.material.forEach(material => {
+            material.map?.dispose?.();
+            material.dispose?.();
+          });
+        } else {
+          node.material?.map?.dispose?.();
+          node.material?.dispose?.();
+        }
+      });
+      if (!mesh.traverse) {
+        mesh.material?.map?.dispose?.();
+        mesh.geometry?.dispose?.();
+        mesh.material?.dispose?.();
+      }
     });
     this.guideMeshes = [];
     this.signageHandles = [];
@@ -333,6 +347,10 @@ export class MazeBuilder {
       }
       if (config.type === 'receptionDesk') this.addReceptionDesk(config);
       if (config.type === 'taskTerminal') this.addTaskTerminal(config);
+      if (config.type === 'waitingChairs') this.addWaitingChairs(config);
+      if (config.type === 'sofa') this.addSofa(config);
+      if (config.type === 'coffeeTable') this.addCoffeeTable(config);
+      if (config.type === 'plant') this.addPlant(config);
       if (config.type === 'cubicleCluster') this.addCubicleCluster(config);
       if (config.type === 'serverRackRow') this.addServerRackRow(config);
       if (config.type === 'meetingTable') this.addMeetingTable(config);
@@ -464,11 +482,17 @@ export class MazeBuilder {
 
   addReceptionDesk(config) {
     const material = this.createArchitectureMaterial(config, 0x4b4f4f);
+    const trimMaterial = this.createArchitectureMaterial({ color: config.trimColor ?? 0x2f3436 }, 0x2f3436);
     this.addPropBox(config.x, 0.48, config.y, config.width ?? 2.2, 0.28, config.depth ?? 0.45, material);
-    this.addPropBox(config.x, 0.9, config.y - 0.18, (config.width ?? 2.2) * 0.86, 0.18, 0.14, material);
+    this.addPropBox(config.x, 0.9, config.y - 0.18, (config.width ?? 2.2) * 0.86, 0.18, 0.14, trimMaterial);
   }
 
   addTaskTerminal(config) {
+    if (config.desktop) {
+      this.addDesktopTerminal(config);
+      return;
+    }
+
     const baseMaterial = this.createArchitectureMaterial(config, 0x303941);
     const screenMaterial = new THREE.MeshStandardMaterial({
       color: 0x081114,
@@ -483,6 +507,107 @@ export class MazeBuilder {
     screen.rotation.x = -0.12;
   }
 
+  addDesktopTerminal(config) {
+    const baseMaterial = this.createArchitectureMaterial(config, 0x2e363b);
+    const screenMaterial = new THREE.MeshStandardMaterial({
+      color: 0x071013,
+      emissive: config.color ?? CONSTANTS.COLORS.AI_CYAN,
+      emissiveIntensity: 0.48,
+      roughness: 0.22,
+      metalness: 0.04
+    });
+    const surfaceHeight = config.surfaceHeight ?? 0.9;
+
+    this.addMeterBox(config.x, surfaceHeight + 0.055, config.y, 0.34, 0.08, 0.2, baseMaterial);
+    this.addMeterBox(config.x, surfaceHeight + 0.22, config.y - 0.08, 0.08, 0.28, 0.08, baseMaterial);
+    const screen = this.addMeterBox(config.x, surfaceHeight + 0.43, config.y - 0.1, 0.82, 0.46, 0.06, screenMaterial);
+    screen.rotation.x = -0.08;
+
+    if (config.text) {
+      const textScreen = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.74, 0.38),
+        new THREE.MeshBasicMaterial({
+          map: this.createTerminalTexture(config.text, config.color ?? CONSTANTS.COLORS.AI_CYAN),
+          transparent: true,
+          side: THREE.DoubleSide,
+          depthWrite: false
+        })
+      );
+      textScreen.position.set(
+        config.x * CONSTANTS.CELL_SIZE,
+        surfaceHeight + 0.43,
+        (config.y - 0.087) * CONSTANTS.CELL_SIZE
+      );
+      textScreen.rotation.x = -0.08;
+      this.scene.add(textScreen);
+      this.guideMeshes.push(textScreen);
+    }
+  }
+
+  addWaitingChairs(config) {
+    const count = config.count ?? 3;
+    const spacing = config.spacing ?? 0.72;
+    for (let index = 0; index < count; index++) {
+      this.addStaticChair(
+        config.x + (config.axis === 'z' ? 0 : index * spacing),
+        config.y + (config.axis === 'z' ? index * spacing : 0),
+        config.rotation ?? 0,
+        config.color ?? 0x4b5256
+      );
+    }
+  }
+
+  addSofa(config) {
+    const material = this.createArchitectureMaterial(config, 0x596064);
+    const width = config.width ?? 2.1;
+    this.addMeterBox(config.x, 0.46, config.y, width, 0.32, 0.82, material);
+    this.addMeterBox(config.x, 0.9, config.y + 0.32, width, 0.76, 0.16, material);
+    this.addMeterBox(config.x - width / CONSTANTS.CELL_SIZE / 2 - 0.04, 0.68, config.y, 0.16, 0.5, 0.82, material);
+    this.addMeterBox(config.x + width / CONSTANTS.CELL_SIZE / 2 + 0.04, 0.68, config.y, 0.16, 0.5, 0.82, material);
+  }
+
+  addCoffeeTable(config) {
+    const material = this.createArchitectureMaterial(config, 0x7b725f);
+    const legMaterial = this.createArchitectureMaterial({ color: 0x33393c }, 0x33393c);
+    this.addMeterBox(config.x, 0.42, config.y, config.width ?? 1.25, 0.1, config.depth ?? 0.72, material);
+    for (const x of [-0.42, 0.42]) {
+      for (const z of [-0.24, 0.24]) {
+        this.addMeterBox(
+          config.x + x / CONSTANTS.CELL_SIZE,
+          0.22,
+          config.y + z / CONSTANTS.CELL_SIZE,
+          0.08,
+          0.36,
+          0.08,
+          legMaterial
+        );
+      }
+    }
+  }
+
+  addPlant(config) {
+    const potMaterial = this.createArchitectureMaterial({ color: config.potColor ?? 0x6d6457 }, 0x6d6457);
+    const leafMaterial = this.createArchitectureMaterial({
+      color: config.color ?? 0x3f654d,
+      emissive: 0x020503,
+      emissiveIntensity: 0.03,
+      roughness: 0.8
+    }, 0x3f654d);
+    const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.24, 0.32, 16), potMaterial);
+    pot.position.set(config.x * CONSTANTS.CELL_SIZE, 0.16, config.y * CONSTANTS.CELL_SIZE);
+    pot.castShadow = true;
+    pot.receiveShadow = true;
+    this.scene.add(pot);
+    this.guideMeshes.push(pot);
+
+    const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 8), leafMaterial);
+    leaves.position.set(config.x * CONSTANTS.CELL_SIZE, 0.78, config.y * CONSTANTS.CELL_SIZE);
+    leaves.scale.set(0.86, 1.05, 0.78);
+    leaves.castShadow = true;
+    this.scene.add(leaves);
+    this.guideMeshes.push(leaves);
+  }
+
   addCubicleCluster(config) {
     const material = this.createArchitectureMaterial(config, 0x4b5358);
     const deskMaterial = this.createArchitectureMaterial({ color: 0x5c574e }, 0x5c574e);
@@ -495,6 +620,13 @@ export class MazeBuilder {
         this.addPropBox(x, 0.58, y, 0.95, 0.08, 0.58, deskMaterial);
         this.addPropBox(x + 0.48, 0.82, y, 0.04, 0.86, 0.78, material);
         this.addPropBox(x, 0.82, y + 0.46, 0.94, 0.86, 0.04, material);
+        this.addMeterBox(x - 0.18, 0.76, y - 0.14, 0.56, 0.34, 0.05, new THREE.MeshStandardMaterial({
+          color: 0x071013,
+          emissive: config.monitorColor ?? 0x8da6a8,
+          emissiveIntensity: 0.16,
+          roughness: 0.24
+        }));
+        this.addStaticChair(x - 0.18, y + 0.48, Math.PI, config.chairColor ?? 0x25282a);
       }
     }
   }
@@ -640,6 +772,41 @@ export class MazeBuilder {
     return mesh;
   }
 
+  addMeterBox(gridX, centerY, gridY, width, height, depth, material) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+    mesh.position.set(gridX * CONSTANTS.CELL_SIZE, centerY, gridY * CONSTANTS.CELL_SIZE);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    this.scene.add(mesh);
+    this.guideMeshes.push(mesh);
+    return mesh;
+  }
+
+  addStaticChair(gridX, gridY, rotation = 0, color = 0x303336) {
+    const group = new THREE.Group();
+    group.position.set(gridX * CONSTANTS.CELL_SIZE, 0, gridY * CONSTANTS.CELL_SIZE);
+    group.rotation.y = rotation;
+    const chairMaterial = this.createArchitectureMaterial({ color, roughness: 0.72 }, color);
+    const metalMaterial = this.createArchitectureMaterial({ color: 0x2f3438, metalness: 0.18 }, 0x2f3438);
+    this.addBoxToGroup(group, [0, 0.43, 0], [0.72, 0.16, 0.68], chairMaterial);
+    this.addBoxToGroup(group, [0, 0.86, 0.29], [0.72, 0.72, 0.12], chairMaterial);
+    for (const x of [-0.24, 0.24]) {
+      for (const z of [-0.2, 0.2]) {
+        this.addBoxToGroup(group, [x, 0.2, z], [0.08, 0.4, 0.08], metalMaterial);
+      }
+    }
+    this.scene.add(group);
+    this.guideMeshes.push(group);
+  }
+
+  addBoxToGroup(group, position, scale, material) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(scale[0], scale[1], scale[2]), material);
+    mesh.position.set(position[0], position[1], position[2]);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+  }
+
   createTextTexture(text, color) {
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
@@ -651,10 +818,39 @@ export class MazeBuilder {
     context.lineWidth = 8;
     context.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
     context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
-    context.font = '700 72px Arial, sans-serif';
+    const lines = `${text}`.split('\n');
+    const longestLine = lines.reduce((longest, line) => Math.max(longest, line.length), 0);
+    const fontSize = lines.length > 1 ? 52 : longestLine > 22 ? 58 : 72;
+    context.font = `700 ${fontSize}px Arial, sans-serif`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    context.fillText(text, canvas.width / 2, canvas.height / 2);
+    const lineHeight = fontSize * 1.08;
+    const firstY = canvas.height / 2 - ((lines.length - 1) * lineHeight) / 2;
+    lines.forEach((line, index) => {
+      context.fillText(line, canvas.width / 2, firstY + index * lineHeight);
+    });
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  createTerminalTexture(text, color) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 768;
+    canvas.height = 432;
+    const context = canvas.getContext('2d');
+    context.fillStyle = 'rgba(4, 10, 12, 0.96)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.strokeStyle = `#${color.toString(16).padStart(6, '0')}`;
+    context.lineWidth = 6;
+    context.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
+    context.fillStyle = '#d9eee9';
+    context.font = '700 34px Arial, sans-serif';
+    context.textAlign = 'left';
+    context.textBaseline = 'top';
+    text.split('\n').forEach((line, index) => {
+      context.fillText(line, 44, 64 + index * 52);
+    });
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     return texture;

@@ -14,10 +14,10 @@
       <!-- Start Screen -->
       <div id="start-screen" class="screen glass-panel active">
         <h1>MazeMind</h1>
-        <p class="subtitle">Night shift task verification in a department that keeps correcting itself.</p>
+        <p class="subtitle">Night shift document retrieval in a department that keeps correcting itself.</p>
         <div class="instructions">
           <p>Use <strong>W A S D</strong> to move and <strong>mouse</strong> to look.</p>
-          <p>Complete all <strong>5 assigned office tasks</strong>, then reach the public exit.</p>
+          <p>Retrieve all <strong>5 Records Department documents</strong>, then reach the public exit.</p>
           <p>The department controls routes, lights, and signage. It does not need a body.</p>
           <p>Click Start to lock the mouse. Press <strong>Esc</strong> to release it.</p>
         </div>
@@ -32,8 +32,8 @@
       <!-- HUD -->
       <div id="hud" class="hidden">
         <div class="level-indicator">Level 1</div>
-        <div id="checkpoint-counter" class="hud-pill">Tasks 0/5</div>
-        <div id="status-text" class="hud-pill status">Complete assigned office tasks.</div>
+        <div id="checkpoint-counter" class="hud-pill">Documents 0/5</div>
+        <div id="status-text" class="hud-pill status">Retrieve Shift Assignment Form.</div>
       </div>
 
       <div id="crosshair" aria-hidden="true"></div>
@@ -43,15 +43,15 @@
         <div class="debug-title">Developer Explore</div>
         <div id="debug-mode-line">Sandbox active</div>
         <div id="debug-tools-line">F1 Helpers On | F2 Fly Off | F3 Collision On</div>
-        <div id="debug-state-line">Tasks 0/5 | Exit Locked | Player -</div>
+        <div id="debug-state-line">Documents 0/5 | Exit Locked | Player -</div>
         <div id="debug-room-line">Room: -</div>
         <div class="debug-help">1-5 tasks | 0 exit | R reset | F4 crushers | F5 solids | F6 rooms | F7 route</div>
       </div>
 
       <!-- Win Screen -->
       <div id="win-screen" class="screen glass-panel hidden">
-        <h2 class="text-glow-green">Level Complete!</h2>
-        <p>The exit accepted your route.</p>
+        <h2 class="text-glow-green">TRANSFER APPROVED.</h2>
+        <p>NEXT DEPARTMENT: UNASSIGNED.</p>
         <button id="btn-next" class="btn primary">Play Again</button>
       </div>
 
@@ -59,7 +59,7 @@
       <div id="lose-screen" class="screen glass-panel hidden">
         <h2 class="text-glow-red">Route Rejected</h2>
         <div class="villain-dialog">
-          <p id="villain-text">"Public exit rejected. Assigned tasks remain unverified."</p>
+          <p id="villain-text">"PUBLIC EXIT DENIED. TRANSFER INCOMPLETE."</p>
         </div>
         <button id="btn-retry" class="btn primary">Try Again</button>
       </div>

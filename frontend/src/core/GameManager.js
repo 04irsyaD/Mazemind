@@ -19,7 +19,7 @@ export class GameManager {
     this.exitUnlocked = false;
     this.respawnPoint.set(playerStart.x * CONSTANTS.CELL_SIZE, playerStart.height ?? 0, playerStart.y * CONSTANTS.CELL_SIZE);
     this.uiManager.updateProgress(this.checkpointsCollected, this.totalCheckpoints);
-    this.uiManager.updateStatus('Complete assigned office tasks before using the public exit.');
+    this.uiManager.updateStatus('Retrieve Shift Assignment Form.');
   }
 
   collectCheckpoint(checkpoint) {
@@ -30,7 +30,7 @@ export class GameManager {
     this.checkpointsCollected += 1;
     this.respawnPoint.copy(checkpoint.respawnPoint);
     this.uiManager.updateProgress(this.checkpointsCollected, this.totalCheckpoints);
-    this.uiManager.updateStatus(`${checkpoint.label} secured. Respawn point updated.`);
+    this.uiManager.updateStatus(`${checkpoint.label} collected. Records pending.`);
 
     this.eventBus.emit(CONSTANTS.EVENTS.CHECKPOINT_COLLECTED, {
       ...checkpoint,
@@ -40,7 +40,7 @@ export class GameManager {
 
     if (this.hasAllCheckpoints()) {
       this.exitUnlocked = true;
-      this.uiManager.updateStatus('All assigned tasks verified. Public exit route accepted.');
+      this.uiManager.updateStatus('All documents verified. Public exit route accepted.');
     }
 
     return true;

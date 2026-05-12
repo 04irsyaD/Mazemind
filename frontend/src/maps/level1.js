@@ -6,41 +6,41 @@ const H = 31;
 
 const rooms = [
   {
-    id: 'entry',
-    label: 'Office Entry',
+    id: 'front-reception',
+    label: 'Reception / Waiting Area',
+    x1: 2,
+    y1: 18,
+    x2: 12,
+    y2: 22,
+    color: 0x9aa3a1,
+    purpose: 'spawn',
+    mood: 'quiet corporate'
+  },
+  {
+    id: 'employee-intake',
+    label: 'Employee Intake Desk',
     x1: 2,
     y1: 14,
-    x2: 8,
-    y2: 18,
-    color: 0x637079,
-    purpose: 'spawn',
-    mood: 'calm'
+    x2: 12,
+    y2: 17,
+    color: 0xcfe9e8,
+    purpose: 'first document',
+    mood: 'administrative'
   },
   {
-    id: 'orientation-hub',
-    label: 'Orientation Hub',
-    x1: 8,
-    y1: 11,
-    x2: 16,
-    y2: 20,
-    color: 0x6bc7dc,
-    purpose: 'route reading',
-    mood: 'clinical'
-  },
-  {
-    id: 'cubicle-sector',
-    label: 'Assigned Desks',
-    x1: 3,
+    id: 'main-workstation-hall',
+    label: 'Main Workstation Hall',
+    x1: 2,
     y1: 4,
-    x2: 15,
-    y2: 10,
-    color: 0x93a4a7,
+    x2: 20,
+    y2: 13,
+    color: 0x93a4b2,
     purpose: 'exploration',
-    mood: 'ordinary'
+    mood: 'empty night office'
   },
   {
     id: 'archive',
-    label: 'Server Archive',
+    label: 'Records Archive',
     x1: 3,
     y1: 22,
     x2: 15,
@@ -51,29 +51,29 @@ const rooms = [
   },
   {
     id: 'checkpoint-chamber',
-    label: 'Task Review Chamber',
+    label: 'Counsellor / Review Room',
     x1: 17,
     y1: 11,
     x2: 24,
     y2: 19,
     color: 0xb7f7ff,
-    purpose: 'checkpoint chamber',
+    purpose: 'document review',
     mood: 'judged'
   },
   {
     id: 'wrong-department',
-    label: 'Wrong Department',
+    label: 'Accounts / Records Office',
     x1: 24,
     y1: 4,
     x2: 35,
     y2: 10,
-    color: 0xa88dc4,
-    purpose: 'impossible transition',
-    mood: 'incorrect'
+    color: 0x9c9b86,
+    purpose: 'right department wing',
+    mood: 'too orderly'
   },
   {
     id: 'utility-break',
-    label: 'Utility Break Area',
+    label: 'Staff Room',
     x1: 18,
     y1: 22,
     x2: 28,
@@ -106,7 +106,7 @@ const rooms = [
   },
   {
     id: 'final-route',
-    label: 'Department Afterimage',
+    label: 'Unknown Department Transfer Corridor',
     x1: 34,
     y1: 21,
     x2: 42,
@@ -118,10 +118,10 @@ const rooms = [
 ];
 
 const connectors = [
-  { id: 'entry-to-hub', label: 'Employee Intake Hall', x1: 6, y1: 15, x2: 10, y2: 17, from: 'entry', to: 'orientation-hub' },
-  { id: 'hub-to-cubicles', label: 'North Admin Connector', x1: 10, y1: 9, x2: 12, y2: 12, from: 'orientation-hub', to: 'cubicle-sector' },
-  { id: 'hub-to-archive', label: 'Archive Connector', x1: 10, y1: 20, x2: 12, y2: 23, from: 'orientation-hub', to: 'archive' },
-  { id: 'hub-to-review', label: 'Review Intake', x1: 15, y1: 14, x2: 18, y2: 17, from: 'orientation-hub', to: 'checkpoint-chamber' },
+  { id: 'reception-to-intake', label: 'Employee Intake Hall', x1: 4, y1: 17, x2: 10, y2: 18, from: 'front-reception', to: 'employee-intake' },
+  { id: 'intake-to-workstations', label: 'Main Workstation Entry', x1: 6, y1: 12, x2: 10, y2: 14, from: 'employee-intake', to: 'main-workstation-hall' },
+  { id: 'intake-to-archive', label: 'Archive Connector', x1: 10, y1: 17, x2: 12, y2: 24, from: 'employee-intake', to: 'archive' },
+  { id: 'workstation-to-review', label: 'Review Intake', x1: 17, y1: 11, x2: 20, y2: 15, from: 'main-workstation-hall', to: 'checkpoint-chamber' },
   { id: 'review-to-wrong-dept', label: 'Department Transfer', x1: 21, y1: 9, x2: 25, y2: 13, from: 'checkpoint-chamber', to: 'wrong-department' },
   { id: 'review-to-break', label: 'Utility Bend', x1: 21, y1: 19, x2: 23, y2: 23, from: 'checkpoint-chamber', to: 'utility-break' },
   { id: 'review-to-records', label: 'Emergency Records Intake', x1: 24, y1: 14, x2: 26, y2: 16, from: 'checkpoint-chamber', to: 'crusher-corridor' },
@@ -130,11 +130,23 @@ const connectors = [
 ];
 
 const objectives = [
-  { id: 'orientation', type: 'task', label: 'Orientation Task', x: 12, y: 15, radius: 2.5, roomId: 'orientation-hub' },
-  { id: 'assigned-desks', type: 'task', label: 'Assigned Desk Task', x: 7, y: 7, radius: 2.45, roomId: 'cubicle-sector' },
-  { id: 'server-archive', type: 'task', label: 'Archive Task', x: 7, y: 25, radius: 2.45, height: -0.03, roomId: 'archive' },
-  { id: 'review-chamber', type: 'task', label: 'Review Chamber Task', x: 21, y: 15, radius: 2.7, height: 0.08, roomId: 'checkpoint-chamber' },
-  { id: 'wrong-dept', type: 'task', label: 'Wrong Department Task', x: 31, y: 7, radius: 2.5, height: 0.04, roomId: 'wrong-department' },
+  {
+    id: 'shift-assignment-form',
+    type: 'task',
+    label: 'Shift Assignment Form',
+    x: 5.35,
+    y: 16.16,
+    radius: 2.35,
+    roomId: 'employee-intake',
+    visualType: 'document',
+    documentTitle: 'SHIFT ASSIGNMENT\nFORM',
+    surfaceHeight: 0.92,
+    markFloor: false
+  },
+  { id: 'assigned-desk-file', type: 'task', label: 'Assigned Desk File', x: 8, y: 7, radius: 2.45, roomId: 'main-workstation-hall' },
+  { id: 'archive-index-packet', type: 'task', label: 'Archive Index Packet', x: 7, y: 25, radius: 2.45, height: -0.03, roomId: 'archive' },
+  { id: 'review-ledger', type: 'task', label: 'Review Ledger', x: 21, y: 15, radius: 2.7, height: 0.08, roomId: 'checkpoint-chamber' },
+  { id: 'transfer-notice', type: 'task', label: 'Transfer Notice', x: 31, y: 7, radius: 2.5, height: 0.04, roomId: 'wrong-department' },
   {
     id: 'final-access-door',
     type: 'finalExit',
@@ -174,7 +186,7 @@ const hazards = [
 ];
 
 const storyBeats = [
-  { id: 'first-task', roomId: 'orientation-hub', tone: 'ordinary', text: 'Assigned work begins as routine verification.' },
+  { id: 'first-task', roomId: 'employee-intake', tone: 'ordinary', text: 'Assigned work begins with a form on the intake desk.' },
   { id: 'wrong-department-reveal', roomId: 'wrong-department', tone: 'incorrect', text: 'Department signage stops matching the floor plan.' },
   { id: 'fake-exit', roomId: 'fake-exit', tone: 'false-hope', text: 'The public exit appears before the department accepts the employee.' },
   { id: 'afterimage', roomId: 'final-route', tone: 'impossible', text: 'The office repeats itself as an afterimage.' }
@@ -187,14 +199,15 @@ const manipulationNodes = [
 ];
 
 const lightingZones = [
-  { id: 'normal-office', channelId: 'normal-office', rooms: ['entry', 'orientation-hub', 'cubicle-sector'], mood: 'sterile' },
+  { id: 'normal-office', channelId: 'normal-office', rooms: ['front-reception', 'employee-intake', 'main-workstation-hall'], mood: 'sterile' },
   { id: 'review-cyan', channelId: 'ai-cyan', rooms: ['checkpoint-chamber', 'final-route'], mood: 'observed' },
   { id: 'records-warning', channelId: 'emergency', rooms: ['crusher-corridor'], mood: 'danger' },
   { id: 'wrong-department-muted', channelId: 'wrongness', rooms: ['wrong-department', 'archive'], mood: 'incorrect' }
 ];
 
 const collisionVolumes = [
-  { id: 'reception-desk', x: 5.5, y: 15.1, width: 2.4, depth: 0.45 },
+  { id: 'front-reception-desk', x: 4.2, y: 21.05, width: 2.25, depth: 0.5 },
+  { id: 'employee-intake-desk', x: 5.35, y: 16.25, width: 3.15, depth: 0.78 },
   { id: 'archive-racks-north', x: 7.0, y: 24.0, width: 4.8, depth: 0.5 },
   { id: 'archive-racks-south', x: 7.0, y: 27.0, width: 4.8, depth: 0.5 },
   { id: 'review-table', x: 21, y: 16.2, width: 2.3, depth: 1.0 },
@@ -231,7 +244,7 @@ export const level1 = {
   collisionGrid,
   grid: collisionGrid,
   rooms,
-  playerStart: { x: 4.2, y: 16.15, yaw: -Math.PI / 2 + 0.12, pitch: 0 },
+  playerStart: { x: 8.2, y: 20.65, yaw: 0.03, pitch: -0.045 },
   goals: objectives.filter(objective => objective.type === 'finalExit').map(objective => ({
     id: objective.id,
     x: objective.x,
@@ -243,61 +256,40 @@ export const level1 = {
   checkpoints: objectives.filter(objective => objective.type === 'task'),
   triggers: hazards.filter(hazard => hazard.type === 'fakeExitTrigger'),
   crushers: hazards.filter(hazard => hazard.type === 'crusher'),
-  sentientObjects: [
-    { id: 'entry-chair', kind: 'chair', x: 6, y: 17, rotation: 0.35, triggerRadius: 4.2, attackRadius: 0 },
-    { id: 'cubicle-chair-a', kind: 'chair', x: 6, y: 6, rotation: Math.PI, triggerRadius: 4.8, attackRadius: 0 },
-    { id: 'cubicle-chair-b', kind: 'chair', x: 12, y: 8, rotation: -0.2, triggerRadius: 4.8, attackRadius: 0 },
-    { id: 'archive-cart', kind: 'table', x: 12, y: 26, height: -0.03, rotation: Math.PI / 2, triggerRadius: 5.2, attackRadius: 0 },
-    { id: 'review-table', kind: 'table', x: 21, y: 16, height: 0.08, triggerRadius: 5.0, attackRadius: 0 },
-    { id: 'wrong-chair', kind: 'chair', x: 33, y: 8, height: 0.04, rotation: -Math.PI / 2, triggerRadius: 5.0, attackRadius: 0 },
-    { id: 'break-dispenser', kind: 'dispenser', x: 20, y: 25, triggerRadius: 4.2, attackRadius: 0 }
-  ],
+  sentientObjects: [],
   floorZones: [
-    { id: 'entry', x1: 2, y1: 14, x2: 8, y2: 18, color: 0x2a3035, emissive: 0x010203, height: 0 },
-    { id: 'orientation-hub', x1: 8, y1: 11, x2: 16, y2: 20, color: 0x29323a, emissive: 0x061014, emissiveIntensity: 0.06, height: 0 },
-    { id: 'cubicle-sector', x1: 3, y1: 4, x2: 15, y2: 10, color: 0x343631, emissive: 0x020302, height: 0 },
-    { id: 'archive', x1: 3, y1: 22, x2: 15, y2: 28, color: 0x252934, emissive: 0x050714, emissiveIntensity: 0.09, height: -0.03 },
-    { id: 'checkpoint-chamber', x1: 17, y1: 11, x2: 24, y2: 19, color: 0x253840, emissive: 0x061b20, emissiveIntensity: 0.14, height: 0.08 },
-    { id: 'wrong-department', x1: 24, y1: 4, x2: 35, y2: 10, color: 0x302b3a, emissive: 0x0b0615, emissiveIntensity: 0.08, height: 0.04 },
-    { id: 'utility-break', x1: 18, y1: 22, x2: 28, y2: 28, color: 0x30342a, emissive: 0x050702, height: 0 },
+    { id: 'front-reception', x1: 2, y1: 18, x2: 12, y2: 22, color: 0x5f6766, emissive: 0x070908, emissiveIntensity: 0.045, roughness: 0.82, height: 0 },
+    { id: 'employee-intake', x1: 2, y1: 14, x2: 12, y2: 17, color: 0x68706d, emissive: 0x080a09, emissiveIntensity: 0.05, roughness: 0.8, height: 0 },
+    { id: 'main-workstation-hall', x1: 2, y1: 4, x2: 20, y2: 13, color: 0x3e4b55, emissive: 0x020506, emissiveIntensity: 0.035, roughness: 0.88, height: 0 },
+    { id: 'archive', x1: 3, y1: 22, x2: 15, y2: 28, color: 0x2a3037, emissive: 0x050714, emissiveIntensity: 0.08, height: -0.03 },
+    { id: 'checkpoint-chamber', x1: 17, y1: 11, x2: 24, y2: 19, color: 0x2f4248, emissive: 0x061b20, emissiveIntensity: 0.11, height: 0.08 },
+    { id: 'wrong-department', x1: 24, y1: 4, x2: 35, y2: 10, color: 0x414139, emissive: 0x070705, emissiveIntensity: 0.055, height: 0.04 },
+    { id: 'utility-break', x1: 18, y1: 22, x2: 28, y2: 28, color: 0x373b32, emissive: 0x050702, height: 0 },
     { id: 'crusher-corridor', x1: 25, y1: 14, x2: 37, y2: 16, color: 0x3c2723, emissive: 0x150302, emissiveIntensity: 0.14, height: -0.08 },
     { id: 'fake-exit', x1: 37, y1: 12, x2: 42, y2: 18, color: 0x28382f, emissive: 0x07150d, emissiveIntensity: 0.12, height: -0.04 },
     { id: 'final-route', x1: 34, y1: 21, x2: 42, y2: 28, color: 0x1f3337, emissive: 0x06191d, emissiveIntensity: 0.2, height: -0.04 }
   ],
-  guideStrips: [
-    { x: 8, y: 16, axis: 'x', length: 7, color: 0xcfe9e8, opacity: 0.08, width: 0.18 },
-    { x: 12, y: 12, axis: 'z', length: 5, color: 0x8bdcff, opacity: 0.1, width: 0.18 },
-    { x: 12, y: 22, axis: 'z', length: 6, color: 0x8bdcff, opacity: 0.08, width: 0.18 },
-    { x: 20, y: 15, axis: 'x', length: 7, color: 0xb7f7ff, opacity: 0.15, width: 0.2 },
-    { x: 31, y: 10, axis: 'x', length: 7, color: 0xa88dc4, opacity: 0.09, width: 0.16 },
-    { x: 31, y: 15, axis: 'x', length: 12, color: 0xc43c24, opacity: 0.18, width: 0.22 },
-    { x: 40, y: 22, axis: 'z', length: 8, color: 0x6bc7dc, opacity: 0.13, width: 0.2 }
-  ],
-  navigationNodes: [
-    { x: 4, y: 16, color: 0xcfe9e8, intensity: 0.3, distance: 9 },
-    { x: 12, y: 15, color: 0x6bc7dc, intensity: 0.42, distance: 10 },
-    { x: 7, y: 7, color: 0xcfe9e8, intensity: 0.28, distance: 9 },
-    { x: 7, y: 25, color: 0x8ca2ff, intensity: 0.28, distance: 9 },
-    { x: 21, y: 15, color: 0xb7f7ff, intensity: 0.58, distance: 11 },
-    { x: 31, y: 7, color: 0xa88dc4, intensity: 0.32, distance: 9 },
-    { x: 36, y: 15, color: 0xc43c24, intensity: 0.48, distance: 12 },
-    { x: 41, y: 27, color: 0x86f7b2, intensity: 0.55, distance: 9 }
-  ],
+  guideStrips: [],
+  navigationNodes: [],
   areaLights: [
-    { x: 5, y: 16, color: 0xcfe9e8, intensity: 0.34, distance: 10.5, height: 2.65 },
-    { x: 4.1, y: 16.4, color: 0xd9f1ef, intensity: 0.14, distance: 5.5, height: 1.45 },
-    { x: 12, y: 15, color: 0x6bc7dc, intensity: 0.34, distance: 11, height: 2.7 },
-    { x: 21, y: 15, color: 0xb7f7ff, intensity: 0.55, distance: 12, height: 2.75 },
-    { x: 31, y: 7, color: 0xa88dc4, intensity: 0.3, distance: 10, height: 2.65 },
+    { x: 7.6, y: 19.2, color: 0xd6e9e5, intensity: 0.52, distance: 12.5, height: 2.55 },
+    { x: 5.45, y: 16.25, color: 0xcfe9e8, intensity: 0.42, distance: 8.8, height: 2.45 },
+    { x: 5.6, y: 16.55, color: 0x7fcbd4, intensity: 0.18, distance: 5.2, height: 1.2 },
+    { x: 8.2, y: 11.5, color: 0xcfe9e8, intensity: 0.28, distance: 11, height: 2.65 },
+    { x: 13.5, y: 8.2, color: 0xb8d2d5, intensity: 0.18, distance: 9, height: 2.55 },
+    { x: 21, y: 15, color: 0xb7f7ff, intensity: 0.48, distance: 12, height: 2.75 },
+    { x: 31, y: 7, color: 0xd0d1bd, intensity: 0.26, distance: 10, height: 2.65 },
     { x: 31, y: 15, color: 0xc43c24, intensity: 0.5, distance: 14, height: 2.25 },
     { x: 40, y: 24, color: 0x6bc7dc, intensity: 0.38, distance: 11, height: 2.45 }
   ],
   ceilingLights: [
-    { x: 5, y: 16, width: 1.6, depth: 0.18, color: 0xcfe9e8, intensity: 0.5, distance: 9.5 },
-    { x: 10, y: 14, width: 1.6, depth: 0.18, color: 0xcfe9e8, intensity: 0.28 },
-    { x: 13, y: 18, width: 1.6, depth: 0.18, color: 0xcfe9e8, intensity: 0.28 },
-    { x: 7, y: 7, width: 1.5, depth: 0.18, color: 0xcfe9e8, intensity: 0.3 },
-    { x: 12, y: 7, width: 1.2, depth: 0.18, color: 0xcfe9e8, intensity: 0.22, flicker: true },
+    { x: 7.3, y: 19.05, width: 1.1, depth: 0.18, color: 0xd6e9e5, intensity: 0.42, distance: 9.5 },
+    { x: 5.8, y: 16.05, width: 1.0, depth: 0.16, color: 0xcfe9e8, intensity: 0.36, distance: 8.5 },
+    { x: 9.2, y: 15.0, width: 1.0, depth: 0.16, color: 0xcfe9e8, intensity: 0.28, distance: 7.5 },
+    { x: 7.2, y: 11.2, width: 1.2, depth: 0.16, color: 0xcfe9e8, intensity: 0.24, distance: 8.5 },
+    { x: 7, y: 7, width: 1.5, depth: 0.18, color: 0xcfe9e8, intensity: 0.24, distance: 8.5 },
+    { x: 13, y: 11, width: 1.4, depth: 0.18, color: 0xcfe9e8, intensity: 0.18, distance: 8, flicker: true },
+    { x: 14, y: 7, width: 1.2, depth: 0.18, color: 0xcfe9e8, intensity: 0.16, distance: 7.5 },
     { x: 7, y: 25, width: 1.5, depth: 0.18, color: 0xaebcff, intensity: 0.26 },
     { x: 21, y: 15, width: 1.8, depth: 0.2, color: 0xb7f7ff, intensity: 0.46 },
     { x: 31, y: 7, width: 1.5, depth: 0.18, color: 0xd5c2ff, intensity: 0.28, flicker: true },
@@ -312,9 +304,9 @@ export const level1 = {
       label: 'Critical Route',
       color: 0x86f7b2,
       points: [
-        { x: 4, y: 16 },
-        { x: 12, y: 15 },
-        { x: 7, y: 7 },
+        { x: 8.2, y: 20.65 },
+        { x: 5.35, y: 16.16 },
+        { x: 8, y: 7 },
         { x: 7, y: 25 },
         { x: 21, y: 15 },
         { x: 31, y: 7 },
@@ -336,39 +328,59 @@ export const level1 = {
   aiManipulation: {
     controllerId: 'department-intelligence',
     lockableRoutes: [
-      { id: 'entry-loop', from: 'entry', to: 'orientation-hub', anchor: { x: 8, y: 16 } },
+      { id: 'entry-loop', from: 'front-reception', to: 'employee-intake', anchor: { x: 8, y: 17 } },
       { id: 'records-hall', from: 'checkpoint-chamber', to: 'fake-exit', anchor: { x: 25, y: 15 } },
       { id: 'final-afterimage', from: 'fake-exit', to: 'final-route', anchor: { x: 40, y: 19 } }
     ],
     lightChannels: [
-      { id: 'normal-office', rooms: ['entry', 'orientation-hub', 'cubicle-sector'] },
+      { id: 'normal-office', rooms: ['front-reception', 'employee-intake', 'main-workstation-hall'] },
       { id: 'ai-cyan', rooms: ['checkpoint-chamber', 'final-route'] },
       { id: 'emergency', rooms: ['crusher-corridor'] },
       { id: 'wrongness', rooms: ['wrong-department', 'archive'] }
     ],
     signageChannels: [
-      { id: 'department-labels', rooms: ['orientation-hub', 'wrong-department', 'fake-exit'] }
+      { id: 'department-labels', rooms: ['front-reception', 'employee-intake', 'main-workstation-hall', 'wrong-department', 'fake-exit'] }
     ],
     fakeExits: [
       { id: 'public-exit', room: 'fake-exit', triggerId: 'fake-exit-pressure' }
     ],
     loopCandidates: [
-      { id: 'archive-return-loop', rooms: ['archive', 'orientation-hub'] }
+      { id: 'archive-return-loop', rooms: ['archive', 'employee-intake'] }
     ]
   },
   architecture: [
-    { type: 'receptionDesk', x: 5.5, y: 15.1, width: 2.4, depth: 0.45, rotation: 0, color: 0x4b4f4f },
-    { type: 'sign', id: 'entry-sign', channelId: 'department-labels', x: 5.5, y: 14.1, text: 'NIGHT SHIFT ENTRY', color: 0xcfe9e8, width: 2.2 },
-    { type: 'sign', id: 'orientation-sign', channelId: 'department-labels', x: 12, y: 12.1, text: 'ORIENTATION', color: 0x8bdcff, width: 2.0 },
-    { type: 'sign', id: 'wrong-dept-sign', channelId: 'department-labels', x: 31, y: 10.1, text: 'DEPARTMENT NOT FOUND', color: 0xd5c2ff, width: 2.6 },
+    { type: 'receptionDesk', x: 4.2, y: 21.05, width: 2.25, depth: 0.5, color: 0x8a7a62, trimColor: 0x30383a, roughness: 0.76 },
+    { type: 'receptionDesk', x: 5.35, y: 16.25, width: 3.15, depth: 0.78, color: 0x9a8568, trimColor: 0x2d3436, roughness: 0.74 },
+    { type: 'sofa', x: 3.8, y: 19.18, width: 2.1, color: 0x596064 },
+    { type: 'waitingChairs', x: 11.05, y: 19.05, count: 2, axis: 'z', spacing: 0.7, rotation: -Math.PI / 2, color: 0x3d4347 },
+    { type: 'coffeeTable', x: 5.15, y: 19.32, color: 0x7a715f },
+    { type: 'plant', x: 2.7, y: 18.35, color: 0x41684f },
+    { type: 'plant', x: 11.55, y: 21.55, color: 0x3e6049 },
+    { type: 'sign', id: 'records-sign', channelId: 'department-labels', x: 6.2, y: 14.08, text: 'RECORDS DEPARTMENT', color: 0xd8ebe7, width: 2.45 },
+    { type: 'sign', id: 'night-entry-sign', channelId: 'department-labels', x: 4.2, y: 22.1, text: 'NIGHT SHIFT ENTRY', color: 0xcfe9e8, width: 2.0, height: 1.85, rotation: Math.PI },
+    { type: 'sign', id: 'intake-sign', channelId: 'department-labels', x: 5.35, y: 16.78, text: 'EMPLOYEE INTAKE', color: 0xd8ebe7, width: 1.55, height: 1.18 },
+    { type: 'sign', id: 'main-hall-sign', channelId: 'department-labels', x: 8.2, y: 13.1, text: 'MAIN WORKSTATION HALL', color: 0xcfe9e8, width: 2.65 },
+    {
+      type: 'taskTerminal',
+      x: 5.85,
+      y: 16.35,
+      color: 0x8bdcff,
+      desktop: true,
+      surfaceHeight: 0.92,
+      text: 'Welcome to Records Department.\nRetrieve your Shift Assignment Form.'
+    },
+    { type: 'sign', id: 'wrong-dept-sign', channelId: 'department-labels', x: 31, y: 10.1, text: 'ACCOUNTS / RECORDS OFFICE', color: 0xd0d1bd, width: 2.7 },
     { type: 'sign', id: 'fake-exit-sign', channelId: 'department-labels', x: 38.5, y: 13, text: 'PUBLIC EXIT', color: 0x86f7b2, width: 2.1 },
-    { type: 'taskTerminal', x: 12, y: 15, color: 0x6bc7dc },
-    { type: 'taskTerminal', x: 7, y: 7, color: 0xcfe9e8 },
+    { type: 'sign', id: 'archive-sign', channelId: 'department-labels', x: 7, y: 22.1, text: 'RECORDS ARCHIVE', color: 0xaebcff, width: 2.0 },
+    { type: 'sign', id: 'review-sign', channelId: 'department-labels', x: 21, y: 11.1, text: 'COUNSELLOR / REVIEW', color: 0xb7f7ff, width: 2.35 },
+    { type: 'sign', id: 'staff-sign', channelId: 'department-labels', x: 22.5, y: 22.1, text: 'STAFF ROOM', color: 0xc5d0b6, width: 1.7 },
+    { type: 'taskTerminal', x: 8, y: 7, color: 0xcfe9e8 },
     { type: 'taskTerminal', x: 7, y: 25, color: 0x8ca2ff },
     { type: 'taskTerminal', x: 21, y: 15, color: 0xb7f7ff },
-    { type: 'taskTerminal', x: 31, y: 7, color: 0xa88dc4 },
-    { type: 'cubicleCluster', x: 6, y: 6, columns: 2, rows: 2, color: 0x4b5358 },
-    { type: 'cubicleCluster', x: 11, y: 6, columns: 2, rows: 2, color: 0x4b5358 },
+    { type: 'taskTerminal', x: 31, y: 7, color: 0xd0d1bd },
+    { type: 'cubicleCluster', x: 4.2, y: 6.6, columns: 2, rows: 2, color: 0x566066, monitorColor: 0x607b82, chairColor: 0x25282a },
+    { type: 'cubicleCluster', x: 13.0, y: 6.6, columns: 2, rows: 2, color: 0x566066, monitorColor: 0x5f777d, chairColor: 0x25282a },
+    { type: 'glassWall', x: 10.8, y: 13.2, axis: 'x', length: 3.0, color: 0x8ac7d9 },
     { type: 'serverRackRow', x: 5, y: 24, count: 4, axis: 'x', color: 0x222832, emissive: 0x182a4a },
     { type: 'serverRackRow', x: 5, y: 27, count: 4, axis: 'x', color: 0x222832, emissive: 0x182a4a },
     { type: 'meetingTable', x: 21, y: 16.2, width: 2.3, depth: 1.0, color: 0x4a4f52 },

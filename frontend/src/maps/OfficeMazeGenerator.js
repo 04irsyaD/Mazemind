@@ -16,7 +16,7 @@ export class OfficeMazeGenerator {
     spaces.forEach(space => carveRect(space));
     connectors.forEach(connector => carveRect(connector));
 
-    objectives.filter(objective => objective.type === 'task').forEach(objective => {
+    objectives.filter(objective => objective.type === 'task' && objective.markFloor !== false).forEach(objective => {
       this.setCell(grid, objective.x, objective.y, CONSTANTS.CELL_CHECKPOINT);
     });
     objectives.filter(objective => objective.type === 'finalExit').forEach(objective => {

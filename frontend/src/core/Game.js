@@ -71,12 +71,12 @@ export class Game {
 
     this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.FINAL_ROUTE_UNLOCKED, () => {
       if (this.isFreeExplore()) return;
-      this.uiManager.updateStatus('The department accepted the route. The public exit is no longer pretending.');
+      this.uiManager.updateStatus('Transfer chain verified. The public exit is no longer pretending.');
     }));
 
     this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.FAKE_EXIT_ATTEMPTED, () => {
       if (this.isFreeExplore()) return;
-      this.uiManager.updateStatus('Public exit rejected. The department is rearranging records.');
+      this.uiManager.updateStatus('PUBLIC EXIT DENIED. TRANSFER INCOMPLETE.');
     }));
 
     this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.CRUSHER_WARNING, () => {
@@ -95,7 +95,7 @@ export class Game {
       if (this.levelEnding) return;
       if (payload?.respawn !== false) {
         this.cameraSystem.shake(0.32, 0.55);
-        this.uiManager.updateStatus(payload?.taunt || 'Knocked out. Respawning at last checkpoint.');
+        this.uiManager.updateStatus(payload?.taunt || 'Returning to the last verified document.');
         this.gameManager.respawnPlayer(this.player);
         this.cameraSystem.snap(this.player.mesh.position);
         return;
@@ -119,7 +119,7 @@ export class Game {
         this.eventBus.emit(CONSTANTS.EVENTS.TRIGGER_ENTERED, { id: payload.triggerId });
       }
       this.uiManager.updateStatus(payload?.taunt || 'Exit is locked.');
-      devLog('Game: Goal locked until checkpoint is active', payload);
+      devLog('Game: Goal locked until documents are verified', payload);
     }));
   }
 

@@ -126,7 +126,7 @@ export class Goal {
     this.eventBus?.emit(CONSTANTS.EVENTS.GOAL_LOCKED, {
       id: this.id,
       triggerId: this.lockTriggerId,
-      taunt: 'Public exit rejected. Assigned tasks remain unverified.'
+      taunt: 'PUBLIC EXIT DENIED. TRANSFER INCOMPLETE.'
     });
   }
 

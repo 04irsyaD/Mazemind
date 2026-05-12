@@ -31,6 +31,7 @@ export class LightingSystem {
 
   addCeilingLight(config, departmentControlSystem) {
     const channelId = config.channelId ?? this.resolveLightChannel(config.x, config.y);
+    const fixtureColor = config.fixtureColor ?? this.resolveFixtureColor(config.color ?? CONSTANTS.COLORS.FLUORESCENT);
     const fixture = new THREE.Mesh(
       new THREE.BoxGeometry(
         (config.width ?? 1.4) * CONSTANTS.CELL_SIZE,
@@ -38,10 +39,10 @@ export class LightingSystem {
         (config.depth ?? 0.16) * CONSTANTS.CELL_SIZE
       ),
       new THREE.MeshStandardMaterial({
-        color: config.color ?? CONSTANTS.COLORS.FLUORESCENT,
+        color: fixtureColor,
         emissive: config.color ?? CONSTANTS.COLORS.FLUORESCENT,
-        emissiveIntensity: config.flicker ? 0.36 : 0.52,
-        roughness: 0.34,
+        emissiveIntensity: config.emissiveIntensity ?? (config.flicker ? 0.16 : 0.24),
+        roughness: 0.58,
         metalness: 0.02
       })
     );
@@ -141,6 +142,10 @@ export class LightingSystem {
     ));
     const zone = this.level?.lightingZones?.find(candidate => candidate.rooms?.includes(room?.id));
     return zone?.channelId ?? 'normal-office';
+  }
+
+  resolveFixtureColor(color) {
+    return new THREE.Color(color).lerp(new THREE.Color(0x89928f), 0.42);
   }
 
   seedPhase(seed) {

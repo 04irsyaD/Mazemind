@@ -15,7 +15,7 @@ export class MazeBuilder {
     this.wallMat = new THREE.MeshStandardMaterial({ 
       color: CONSTANTS.COLORS.WALL,
       emissive: CONSTANTS.COLORS.WALL_EMISSIVE,
-      emissiveIntensity: 0.08,
+      emissiveIntensity: 0.11,
       roughness: 0.82,
       metalness: 0.06
     });
@@ -33,7 +33,9 @@ export class MazeBuilder {
     });
 
     this.ceilingMat = new THREE.MeshStandardMaterial({
-      color: 0x2d3438,
+      color: 0x363f43,
+      emissive: 0x020404,
+      emissiveIntensity: 0.035,
       roughness: 0.92,
       metalness: 0.02,
       side: THREE.DoubleSide
@@ -280,10 +282,11 @@ export class MazeBuilder {
           (config.depth ?? 0.16) * CONSTANTS.CELL_SIZE
         ),
         new THREE.MeshStandardMaterial({
-          color: config.color ?? CONSTANTS.COLORS.FLUORESCENT,
+          color: config.fixtureColor ?? new THREE.Color(config.color ?? CONSTANTS.COLORS.FLUORESCENT)
+            .lerp(new THREE.Color(0x89928f), 0.42),
           emissive: config.color ?? CONSTANTS.COLORS.FLUORESCENT,
-          emissiveIntensity: config.flicker ? 0.42 : 0.62,
-          roughness: 0.3,
+          emissiveIntensity: config.emissiveIntensity ?? (config.flicker ? 0.16 : 0.24),
+          roughness: 0.58,
           metalness: 0.02
         })
       );

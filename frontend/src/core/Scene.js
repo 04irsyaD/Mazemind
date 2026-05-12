@@ -9,8 +9,8 @@ export class Scene {
     // Scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(CONSTANTS.COLORS.BACKGROUND);
-    this.scene.fog = new THREE.FogExp2(CONSTANTS.COLORS.BACKGROUND, 0.01);
-    devLog('Scene: Initialized FPS scene fog exp2 0.01');
+    this.scene.fog = new THREE.FogExp2(CONSTANTS.COLORS.BACKGROUND, 0.0085);
+    devLog('Scene: Initialized FPS scene fog exp2 0.0085');
 
     // First-person camera. Camera transform is owned by CameraSystem, not parented to the player mesh.
     const aspect = window.innerWidth / window.innerHeight;
@@ -58,13 +58,13 @@ export class Scene {
   }
 
   setupLights() {
-    const ambientLight = new THREE.AmbientLight(0xb9c4c8, 0.24);
+    const ambientLight = new THREE.AmbientLight(0xb9c4c8, 0.27);
     this.scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xd9f1ef, 0x08090b, 0.34);
+    const hemiLight = new THREE.HemisphereLight(0xd9f1ef, 0x0d0f11, 0.37);
     this.scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xe8f8f4, 0.18);
+    const dirLight = new THREE.DirectionalLight(0xe8f8f4, 0.16);
     dirLight.position.set(12, 18, -16);
     dirLight.castShadow = true;
     

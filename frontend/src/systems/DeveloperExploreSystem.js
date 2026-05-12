@@ -5,15 +5,16 @@ export class DeveloperExploreSystem {
   constructor(scene) {
     this.scene = scene;
     this.debugGroup = new THREE.Group();
+    this.debugGroup.visible = false;
     this.scene.add(this.debugGroup);
 
-    this.debugVisible = true;
+    this.debugVisible = false;
     this.flyMode = false;
     this.collisionEnabled = true;
     this.crushersVisible = true;
     this.collisionVisible = false;
-    this.roomsVisible = true;
-    this.routeVisible = true;
+    this.roomsVisible = false;
+    this.routeVisible = false;
     this.activeRoom = null;
     this.freeFlyPosition = new THREE.Vector3();
     this.mapData = null;
@@ -23,31 +24,29 @@ export class DeveloperExploreSystem {
     this.routeGroup = null;
   }
 
-  reset(mapData, entityManager) {
+  reset(mapData, entityManager, options = {}) {
+    const debugVisible = !!options.debugVisible;
+    const roomsVisible = options.roomsVisible ?? debugVisible;
+    const routeVisible = options.routeVisible ?? debugVisible;
+
     this.mapData = mapData;
     this.entityManager = entityManager;
-    this.debugVisible = true;
+    this.debugVisible = debugVisible;
     this.flyMode = false;
     this.collisionEnabled = true;
     this.crushersVisible = true;
     this.collisionVisible = false;
-    this.roomsVisible = true;
-    this.routeVisible = true;
+    this.roomsVisible = roomsVisible;
+    this.routeVisible = routeVisible;
     this.activeRoom = null;
     this.clearDebugHelpers();
     this.createDebugHelpers(mapData);
-    this.setDebugVisibility(true);
+    this.setDebugVisibility(debugVisible);
     this.setCrushersVisible(true);
   }
 
   update(delta, inputManager, cameraSystem, player, uiManager) {
-    if (inputManager.wasKeyPressed('F1')) this.setDebugVisibility(!this.debugVisible);
-    if (inputManager.wasKeyPressed('F2')) this.setFlyMode(!this.flyMode, cameraSystem, player);
-    if (inputManager.wasKeyPressed('F3')) this.collisionEnabled = !this.collisionEnabled;
-    if (inputManager.wasKeyPressed('F4')) this.setCrushersVisible(!this.crushersVisible);
-    if (inputManager.wasKeyPressed('F5')) this.setCollisionVisible(!this.collisionVisible);
-    if (inputManager.wasKeyPressed('F6')) this.setRoomsVisible(!this.roomsVisible);
-    if (inputManager.wasKeyPressed('F7')) this.setRouteVisible(!this.routeVisible);
+    this.handleDebugToggleInput(inputManager, cameraSystem, player, { allowExploreControls: true });
     if (inputManager.wasKeyPressed('KeyR')) this.teleportToStart(player, cameraSystem);
 
     this.handleTeleportKeys(inputManager, player, cameraSystem);
@@ -158,6 +157,10 @@ export class DeveloperExploreSystem {
   setDebugVisibility(isVisible) {
     this.debugVisible = isVisible;
     this.debugGroup.visible = isVisible;
+    this.setCollisionVisible(this.collisionVisible);
+    this.setRoomsVisible(this.roomsVisible);
+    this.setRouteVisible(this.routeVisible);
+    this.setCrusherDebugPathsVisible(isVisible);
   }
 
   setCrushersVisible(isVisible) {
@@ -165,7 +168,13 @@ export class DeveloperExploreSystem {
     this.entityManager?.findByType('crusher').forEach(crusher => {
       crusher.mesh.visible = isVisible;
       if (crusher.telegraphStrip) crusher.telegraphStrip.visible = isVisible;
-      if (crusher.debugPath) crusher.debugPath.visible = isVisible;
+      if (crusher.debugPath) crusher.debugPath.visible = isVisible && this.debugVisible;
+    });
+  }
+
+  setCrusherDebugPathsVisible(isVisible) {
+    this.entityManager?.findByType('crusher').forEach(crusher => {
+      if (crusher.debugPath) crusher.debugPath.visible = isVisible && this.crushersVisible;
     });
   }
 
@@ -182,6 +191,49 @@ export class DeveloperExploreSystem {
   setRouteVisible(isVisible) {
     this.routeVisible = isVisible;
     if (this.routeGroup) this.routeGroup.visible = isVisible && this.debugVisible;
+  }
+
+  handleDebugToggleInput(inputManager, cameraSystem = null, player = null, options = {}) {
+    const allowExploreControls = options.allowExploreControls ?? false;
+    let changed = false;
+
+    if (inputManager.wasKeyPressed('F1')) {
+      this.setDebugVisibility(!this.debugVisible);
+      changed = true;
+    }
+
+    if (allowExploreControls) {
+      if (inputManager.wasKeyPressed('F2')) {
+        this.setFlyMode(!this.flyMode, cameraSystem, player);
+        changed = true;
+      }
+      if (inputManager.wasKeyPressed('F3')) {
+        this.collisionEnabled = !this.collisionEnabled;
+        changed = true;
+      }
+      if (inputManager.wasKeyPressed('F4')) {
+        this.setCrushersVisible(!this.crushersVisible);
+        changed = true;
+      }
+    }
+
+    if (inputManager.wasKeyPressed('F5')) {
+      this.setCollisionVisible(!this.collisionVisible);
+      if (this.collisionVisible && !this.debugVisible) this.setDebugVisibility(true);
+      changed = true;
+    }
+    if (inputManager.wasKeyPressed('F6')) {
+      this.setRoomsVisible(!this.roomsVisible);
+      if (this.roomsVisible && !this.debugVisible) this.setDebugVisibility(true);
+      changed = true;
+    }
+    if (inputManager.wasKeyPressed('F7')) {
+      this.setRouteVisible(!this.routeVisible);
+      if (this.routeVisible && !this.debugVisible) this.setDebugVisibility(true);
+      changed = true;
+    }
+
+    return changed;
   }
 
   clearDebugHelpers() {

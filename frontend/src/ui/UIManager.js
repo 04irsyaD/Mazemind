@@ -110,7 +110,9 @@ export class UIManager {
     if (this.debugModeLine) {
       this.debugModeLine.innerText = state.flyMode
         ? 'Fly camera active. Space up, Shift down.'
-        : 'FPS inspect mode. Gameplay restrictions disabled.';
+        : state.freeExplore
+          ? 'FPS inspect mode. Gameplay restrictions disabled.'
+          : 'Gameplay debug visuals. Progression remains active.';
     }
 
     if (this.debugToolsLine) {

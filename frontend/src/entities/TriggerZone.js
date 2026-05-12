@@ -18,7 +18,7 @@ export class TriggerZone {
     const markerMat = new THREE.MeshBasicMaterial({
       color: CONSTANTS.COLORS.TRIGGER,
       transparent: true,
-      opacity: CONSTANTS.DEV_MODE ? 0.35 : 0.08,
+      opacity: config.opacity ?? 0.08,
       side: THREE.DoubleSide,
       depthWrite: false,
     });

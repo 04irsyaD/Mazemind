@@ -154,7 +154,11 @@ export class Game {
     });
     this.progressionSystem.reset(level);
 
-    this.developerExploreSystem.reset(level, this.entityManager);
+    this.developerExploreSystem.reset(level, this.entityManager, {
+      debugVisible: freeExplore,
+      roomsVisible: freeExplore,
+      routeVisible: freeExplore
+    });
 
     // Setup Player
     this.player.setPosition(level.playerStart.x, level.playerStart.y, startHeight);
@@ -162,9 +166,12 @@ export class Game {
     this.cameraSystem.snap(this.player.mesh.position);
 
     this.stateSystem.setState(freeExplore ? CONSTANTS.STATE_DEV_EXPLORE : CONSTANTS.STATE_PLAYING);
+    this.syncDeveloperVisuals();
     if (freeExplore) {
       this.uiManager.updateProgress(0, getTaskObjectives(level).length);
       this.uiManager.updateDebugPanel(this.createDebugPanelState());
+    } else {
+      this.uiManager.hideDebugPanel();
     }
     devLog('Game: State changed to PLAYING.', sceneDiagnostics(
       this.sceneManager.scene,
@@ -216,6 +223,7 @@ export class Game {
   }
 
   updateGameplay(delta) {
+    this.handleGameplayDebugToggles();
     const inputVec = this.inputManager.getMovementVector();
     this.cameraSystem.applyMouseLook(this.inputManager.consumeMouseDelta());
     this.player.update(delta, inputVec, this.collisionSystem, this.cameraSystem.getYaw());
@@ -230,6 +238,7 @@ export class Game {
     const inputVec = this.inputManager.getMovementVector();
     this.cameraSystem.applyMouseLook(this.inputManager.consumeMouseDelta());
     this.developerExploreSystem.update(delta, this.inputManager, this.cameraSystem, this.player, this.uiManager);
+    this.syncDeveloperVisuals();
     this.uiManager.updateDebugPanel(this.createDebugPanelState());
 
     if (!this.developerExploreSystem.flyMode) {
@@ -268,6 +277,30 @@ export class Game {
     this.sceneManager.cameraFrustumHelper?.update();
   }
 
+  handleGameplayDebugToggles() {
+    if (!this.areDeveloperToolsEnabled()) return;
+
+    const changed = this.developerExploreSystem.handleDebugToggleInput(this.inputManager, null, null, {
+      allowExploreControls: false
+    });
+    if (!changed) return;
+
+    this.syncDeveloperVisuals();
+    if (this.developerExploreSystem.debugVisible) {
+      this.uiManager.showDebugPanel();
+      this.uiManager.updateDebugPanel(this.createDebugPanelState());
+      return;
+    }
+
+    this.uiManager.hideDebugPanel();
+  }
+
+  syncDeveloperVisuals() {
+    const helpersVisible = this.areDeveloperToolsEnabled() && this.developerExploreSystem.debugVisible;
+    this.sceneManager.setDeveloperHelpersVisible(helpersVisible);
+    this.player.mesh.visible = helpersVisible && this.developerExploreSystem.flyMode;
+  }
+
   createDebugPanelState() {
     const gridX = this.collisionSystem?.worldToGrid(this.player.position.x) ?? 0;
     const gridY = this.collisionSystem?.worldToGrid(this.player.position.z) ?? 0;
@@ -280,6 +313,7 @@ export class Game {
       totalCheckpoints: progression.totalTasks,
       exitUnlocked: progression.finalRouteUnlocked,
       progressionState: progression.state,
+      freeExplore: this.isFreeExplore(),
       playerGrid: `${gridX},${gridY}`,
       departmentController: department.controllerId,
       lightChannels: runtime.lights?.channels ?? [],

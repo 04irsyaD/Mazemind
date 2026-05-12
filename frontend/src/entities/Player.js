@@ -17,7 +17,7 @@ export class Player {
     
     this.mesh = new THREE.Mesh(geometry, material);
     this.mesh.castShadow = true;
-    this.mesh.visible = CONSTANTS.DEV_MODE;
+    this.mesh.visible = false;
     this.scene.add(this.mesh);
 
     // Kept as an optional diagnostic handle, but disabled for the intended lonely office lighting.

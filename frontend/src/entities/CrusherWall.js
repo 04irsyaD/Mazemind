@@ -66,6 +66,7 @@ export class CrusherWall {
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       const material = new THREE.LineBasicMaterial({ color: CONSTANTS.COLORS.WARNING });
       this.debugPath = new THREE.Line(geometry, material);
+      this.debugPath.visible = false;
       this.scene.add(this.debugPath);
     }
   }

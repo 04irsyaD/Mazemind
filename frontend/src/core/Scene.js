@@ -31,21 +31,26 @@ export class Scene {
 
     this.setupLights();
     
-    if (CONSTANTS.DEV_MODE) {
+    this.developerHelperGroup = new THREE.Group();
+    this.developerHelperGroup.visible = false;
+
+    if (CONSTANTS.DEVELOPER_TOOLS_ENABLED) {
       const axesHelper = new THREE.AxesHelper(10);
-      this.scene.add(axesHelper);
+      this.developerHelperGroup.add(axesHelper);
 
       const gridHelper = new THREE.GridHelper(58, 25, 0x444444, 0x222222);
       gridHelper.position.set(24, 0, 16);
-      this.scene.add(gridHelper);
+      this.developerHelperGroup.add(gridHelper);
 
       this.cameraTargetHelper = new THREE.Mesh(
         new THREE.SphereGeometry(0.15, 8, 8),
         new THREE.MeshBasicMaterial({ color: CONSTANTS.COLORS.PLAYER })
       );
       this.cameraTargetHelper.position.y = 0.2;
-      this.scene.add(this.cameraTargetHelper);
+      this.developerHelperGroup.add(this.cameraTargetHelper);
     }
+
+    this.scene.add(this.developerHelperGroup);
 
     devLog('Scene: Renderer initialized');
     this.boundResize = this.onWindowResize.bind(this);
@@ -75,6 +80,12 @@ export class Scene {
     dirLight.shadow.camera.bottom = -d;
 
     this.scene.add(dirLight);
+  }
+
+  setDeveloperHelpersVisible(isVisible) {
+    if (this.developerHelperGroup) {
+      this.developerHelperGroup.visible = !!isVisible;
+    }
   }
 
   onWindowResize() {

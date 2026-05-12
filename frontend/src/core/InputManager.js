@@ -8,7 +8,7 @@ export class InputManager {
 
     this.handleKeyDown = (e) => {
       this.keys[e.code] = true;
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7'].includes(e.code)) {
         e.preventDefault();
       }
     };

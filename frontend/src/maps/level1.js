@@ -231,7 +231,7 @@ export const level1 = {
   collisionGrid,
   grid: collisionGrid,
   rooms,
-  playerStart: { x: 4, y: 16, yaw: -Math.PI / 2, pitch: 0 },
+  playerStart: { x: 4.2, y: 16.15, yaw: -Math.PI / 2 + 0.12, pitch: 0 },
   goals: objectives.filter(objective => objective.type === 'finalExit').map(objective => ({
     id: objective.id,
     x: objective.x,
@@ -274,7 +274,7 @@ export const level1 = {
     { x: 40, y: 22, axis: 'z', length: 8, color: 0x6bc7dc, opacity: 0.13, width: 0.2 }
   ],
   navigationNodes: [
-    { x: 4, y: 16, color: 0xcfe9e8, intensity: 0.22, distance: 8 },
+    { x: 4, y: 16, color: 0xcfe9e8, intensity: 0.3, distance: 9 },
     { x: 12, y: 15, color: 0x6bc7dc, intensity: 0.42, distance: 10 },
     { x: 7, y: 7, color: 0xcfe9e8, intensity: 0.28, distance: 9 },
     { x: 7, y: 25, color: 0x8ca2ff, intensity: 0.28, distance: 9 },
@@ -284,7 +284,8 @@ export const level1 = {
     { x: 41, y: 27, color: 0x86f7b2, intensity: 0.55, distance: 9 }
   ],
   areaLights: [
-    { x: 5, y: 16, color: 0xcfe9e8, intensity: 0.18, distance: 8, height: 2.65 },
+    { x: 5, y: 16, color: 0xcfe9e8, intensity: 0.34, distance: 10.5, height: 2.65 },
+    { x: 4.1, y: 16.4, color: 0xd9f1ef, intensity: 0.14, distance: 5.5, height: 1.45 },
     { x: 12, y: 15, color: 0x6bc7dc, intensity: 0.34, distance: 11, height: 2.7 },
     { x: 21, y: 15, color: 0xb7f7ff, intensity: 0.55, distance: 12, height: 2.75 },
     { x: 31, y: 7, color: 0xa88dc4, intensity: 0.3, distance: 10, height: 2.65 },
@@ -292,7 +293,7 @@ export const level1 = {
     { x: 40, y: 24, color: 0x6bc7dc, intensity: 0.38, distance: 11, height: 2.45 }
   ],
   ceilingLights: [
-    { x: 5, y: 16, width: 1.6, depth: 0.18, color: 0xcfe9e8, intensity: 0.34 },
+    { x: 5, y: 16, width: 1.6, depth: 0.18, color: 0xcfe9e8, intensity: 0.5, distance: 9.5 },
     { x: 10, y: 14, width: 1.6, depth: 0.18, color: 0xcfe9e8, intensity: 0.28 },
     { x: 13, y: 18, width: 1.6, depth: 0.18, color: 0xcfe9e8, intensity: 0.28 },
     { x: 7, y: 7, width: 1.5, depth: 0.18, color: 0xcfe9e8, intensity: 0.3 },

@@ -4,7 +4,7 @@ export const CONSTANTS = {
   // Grid settings
   GRID_SIZE: 45,
   CELL_SIZE: 3.6,
-  WALL_HEIGHT: 3.05,
+  WALL_HEIGHT: 3.35,
   PLAYER_EYE_HEIGHT: 1.66,
   PLAYER_COLLISION_RADIUS: 0.48,
   

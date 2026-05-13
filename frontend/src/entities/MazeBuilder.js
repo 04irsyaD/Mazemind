@@ -419,37 +419,141 @@ export class MazeBuilder {
     const zones = mapData.ceilingDetailZones ?? [];
     if (!zones.length) return;
 
-    const y = CONSTANTS.WALL_HEIGHT - 0.026;
-    const material = new THREE.LineBasicMaterial({
-      color: 0x8f999b,
+    const y = CONSTANTS.WALL_HEIGHT - 0.018;
+    const seamWidth = 0.018;
+    const seamHeight = 0.006;
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x7f898b,
       transparent: true,
-      opacity: 0.12,
+      opacity: 0.052,
       depthWrite: false
     });
-    const positions = [];
+    const xSegments = [];
+    const zSegments = [];
 
     zones.forEach(zone => {
-      const step = zone.step ?? 1;
+      const baseStep = zone.step ?? 2;
+      const tileWidth = (zone.tileWidth ?? baseStep * 1.5) * CONSTANTS.CELL_SIZE;
+      const tileDepth = (zone.tileDepth ?? baseStep) * CONSTANTS.CELL_SIZE;
+      const segmentGap = (zone.segmentGap ?? 0.12) * CONSTANTS.CELL_SIZE;
       const xStart = (zone.x1 - 0.5) * CONSTANTS.CELL_SIZE;
       const xEnd = (zone.x2 + 0.5) * CONSTANTS.CELL_SIZE;
       const zStart = (zone.y1 - 0.5) * CONSTANTS.CELL_SIZE;
       const zEnd = (zone.y2 + 0.5) * CONSTANTS.CELL_SIZE;
+      const xs = this.createCeilingTileStops(xStart, xEnd, tileWidth);
+      const zs = this.createCeilingTileStops(zStart, zEnd, tileDepth);
 
-      for (let x = zone.x1 - 0.5; x <= zone.x2 + 0.5; x += step) {
-        const worldX = x * CONSTANTS.CELL_SIZE;
-        positions.push(worldX, y, zStart, worldX, y, zEnd);
-      }
-      for (let z = zone.y1 - 0.5; z <= zone.y2 + 0.5; z += step) {
-        const worldZ = z * CONSTANTS.CELL_SIZE;
-        positions.push(xStart, y, worldZ, xEnd, y, worldZ);
-      }
+      zs.forEach(z => {
+        for (let index = 0; index < xs.length - 1; index++) {
+          const start = xs[index] + segmentGap;
+          const end = xs[index + 1] - segmentGap;
+          if (end <= start) continue;
+          xSegments.push({
+            x: (start + end) / 2,
+            z,
+            length: end - start
+          });
+        }
+      });
+
+      xs.forEach(x => {
+        for (let index = 0; index < zs.length - 1; index++) {
+          const start = zs[index] + segmentGap;
+          const end = zs[index + 1] - segmentGap;
+          if (end <= start) continue;
+          zSegments.push({
+            x,
+            z: (start + end) / 2,
+            length: end - start
+          });
+        }
+      });
     });
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    const grid = new THREE.LineSegments(geometry, material);
-    this.scene.add(grid);
-    this.guideMeshes.push(grid);
+    if (xSegments.length) {
+      const mesh = new THREE.InstancedMesh(
+        new THREE.BoxGeometry(1, seamHeight, seamWidth),
+        material.clone(),
+        xSegments.length
+      );
+      this.populateCeilingSeams(mesh, xSegments, y, 'x');
+      this.scene.add(mesh);
+      this.guideMeshes.push(mesh);
+    }
+
+    if (zSegments.length) {
+      const mesh = new THREE.InstancedMesh(
+        new THREE.BoxGeometry(seamWidth, seamHeight, 1),
+        material.clone(),
+        zSegments.length
+      );
+      this.populateCeilingSeams(mesh, zSegments, y, 'z');
+      this.scene.add(mesh);
+      this.guideMeshes.push(mesh);
+    }
+
+    material.dispose();
+  }
+
+  createCeilingTileStops(start, end, step) {
+    const stops = [start];
+    for (let value = start + step; value < end - 0.001; value += step) {
+      stops.push(value);
+    }
+    stops.push(end);
+    return stops;
+  }
+
+  populateCeilingSeams(mesh, segments, y, axis) {
+    const dummy = new THREE.Object3D();
+    segments.forEach((segment, index) => {
+      dummy.position.set(segment.x, y, segment.z);
+      dummy.scale.set(
+        axis === 'x' ? segment.length : 1,
+        1,
+        axis === 'z' ? segment.length : 1
+      );
+      dummy.updateMatrix();
+      mesh.setMatrixAt(index, dummy.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+  }
+
+  addCeilingLightFrame(group, outerWidth, outerDepth, material) {
+    const frameThickness = 0.045;
+    const frameHeight = 0.022;
+    const y = CONSTANTS.WALL_HEIGHT - 0.033;
+    const pieces = [
+      {
+        size: [outerWidth, frameHeight, frameThickness],
+        position: [0, y, -outerDepth / 2 + frameThickness / 2]
+      },
+      {
+        size: [outerWidth, frameHeight, frameThickness],
+        position: [0, y, outerDepth / 2 - frameThickness / 2]
+      },
+      {
+        size: [frameThickness, frameHeight, outerDepth],
+        position: [-outerWidth / 2 + frameThickness / 2, y, 0]
+      },
+      {
+        size: [frameThickness, frameHeight, outerDepth],
+        position: [outerWidth / 2 - frameThickness / 2, y, 0]
+      }
+    ];
+
+    pieces.forEach(piece => {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(...piece.size),
+        material
+      );
+      mesh.position.set(...piece.position);
+      mesh.castShadow = false;
+      mesh.receiveShadow = true;
+      group.add(mesh);
+    });
   }
 
   isInDetailZone(zones, x, y) {
@@ -461,35 +565,68 @@ export class MazeBuilder {
 
   addCeilingLights(mapData) {
     mapData.ceilingLights?.forEach(config => {
-      const fixture = new THREE.Mesh(
-        new THREE.BoxGeometry(
-          (config.width ?? 1.4) * CONSTANTS.CELL_SIZE,
-          0.045,
-          (config.depth ?? 0.16) * CONSTANTS.CELL_SIZE
-        ),
-        new THREE.MeshStandardMaterial({
-          color: config.fixtureColor ?? new THREE.Color(config.color ?? CONSTANTS.COLORS.FLUORESCENT)
-            .lerp(new THREE.Color(0x89928f), 0.42),
-          emissive: config.color ?? CONSTANTS.COLORS.FLUORESCENT,
-          emissiveIntensity: config.emissiveIntensity ?? (config.flicker ? 0.16 : 0.24),
-          roughness: 0.58,
-          metalness: 0.02
-        })
-      );
-      fixture.position.set(
+      const width = (config.width ?? 1.4) * CONSTANTS.CELL_SIZE;
+      const depth = Math.max((config.depth ?? 0.16) * CONSTANTS.CELL_SIZE, 0.22 * CONSTANTS.CELL_SIZE);
+      const outerWidth = width + 0.18;
+      const outerDepth = depth + 0.16;
+      const lightColor = config.color ?? CONSTANTS.COLORS.FLUORESCENT;
+      const group = new THREE.Group();
+      group.position.set(
         config.x * CONSTANTS.CELL_SIZE,
-        CONSTANTS.WALL_HEIGHT - 0.035,
+        0,
         config.y * CONSTANTS.CELL_SIZE
       );
-      this.scene.add(fixture);
-      this.guideMeshes.push(fixture);
+
+      const recess = new THREE.Mesh(
+        new THREE.BoxGeometry(outerWidth, 0.012, outerDepth),
+        new THREE.MeshStandardMaterial({
+          color: config.frameColor ?? 0x7f898b,
+          emissive: 0x070b0c,
+          emissiveIntensity: 0.02,
+          roughness: 0.72,
+          metalness: 0.08
+        })
+      );
+      recess.position.y = CONSTANTS.WALL_HEIGHT - 0.022;
+      recess.castShadow = false;
+      recess.receiveShadow = true;
+      group.add(recess);
+
+      const frameMaterial = new THREE.MeshStandardMaterial({
+        color: config.frameColor ?? 0x8d989a,
+        emissive: 0x080d0e,
+        emissiveIntensity: 0.018,
+        roughness: 0.68,
+        metalness: 0.12
+      });
+      this.addCeilingLightFrame(group, outerWidth, outerDepth, frameMaterial);
+
+      const diffuser = new THREE.Mesh(
+        new THREE.BoxGeometry(width, 0.014, depth),
+        new THREE.MeshStandardMaterial({
+          color: config.fixtureColor ?? new THREE.Color(lightColor).lerp(new THREE.Color(0x89928f), 0.42),
+          emissive: lightColor,
+          emissiveIntensity: config.emissiveIntensity ?? (config.flicker ? 0.16 : 0.24),
+          roughness: 0.62,
+          metalness: 0.01,
+          transparent: true,
+          opacity: 0.9
+        })
+      );
+      diffuser.position.y = CONSTANTS.WALL_HEIGHT - 0.041;
+      diffuser.castShadow = false;
+      diffuser.receiveShadow = false;
+      group.add(diffuser);
+
+      this.scene.add(group);
+      this.guideMeshes.push(group);
 
       const light = new THREE.PointLight(
-        config.color ?? CONSTANTS.COLORS.FLUORESCENT,
+        lightColor,
         config.intensity ?? 0.28,
         config.distance ?? 8
       );
-      light.position.set(fixture.position.x, CONSTANTS.WALL_HEIGHT - 0.35, fixture.position.z);
+      light.position.set(group.position.x, CONSTANTS.WALL_HEIGHT - 0.35, group.position.z);
       this.scene.add(light);
       this.guideMeshes.push(light);
     });

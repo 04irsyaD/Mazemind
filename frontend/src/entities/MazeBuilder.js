@@ -953,29 +953,145 @@ export class MazeBuilder {
   }
 
   addCubicleCluster(config) {
-    const material = this.createArchitectureMaterial(config, 0x4b5358);
-    const deskMaterial = this.createArchitectureMaterial({ color: config.deskColor ?? 0x5c574e }, 0x5c574e);
-    const trimMaterial = this.createArchitectureMaterial({ color: config.trimColor ?? 0x333c40 }, 0x333c40);
+    const partitionMaterial = this.createArchitectureMaterial({
+      color: config.partitionColor ?? config.color ?? 0xd2d7d8,
+      roughness: 0.82,
+      metalness: 0.03
+    }, 0xd2d7d8);
+    const frostedMaterial = new THREE.MeshStandardMaterial({
+      color: config.frostedColor ?? 0xd9eeee,
+      emissive: config.frostedEmissive ?? 0x11191a,
+      emissiveIntensity: 0.025,
+      transparent: true,
+      opacity: config.frostedOpacity ?? 0.34,
+      roughness: 0.18,
+      metalness: 0.02
+    });
+    const desktopMaterial = this.createArchitectureMaterial({
+      color: config.deskColor ?? 0xd7d1c1,
+      roughness: 0.6,
+      metalness: 0.025
+    }, 0xd7d1c1);
+    const deskBodyMaterial = this.createArchitectureMaterial({
+      color: config.deskBodyColor ?? 0xc2c8c7,
+      roughness: 0.76,
+      metalness: 0.04
+    }, 0xc2c8c7);
+    const trimMaterial = this.createArchitectureMaterial({
+      color: config.trimColor ?? 0x6f7c80,
+      roughness: 0.72,
+      metalness: 0.1
+    }, 0x6f7c80);
+    const monitorBackMaterial = this.createArchitectureMaterial({
+      color: config.monitorBackColor ?? 0x262d31,
+      roughness: 0.58,
+      metalness: 0.12
+    }, 0x262d31);
+    const screenMaterial = new THREE.MeshStandardMaterial({
+      color: 0x071013,
+      emissive: config.monitorColor ?? 0x7fb8be,
+      emissiveIntensity: config.monitorIntensity ?? 0.09,
+      roughness: 0.22,
+      metalness: 0.04
+    });
+    const keyboardMaterial = this.createArchitectureMaterial({
+      color: config.keyboardColor ?? 0x30383b,
+      roughness: 0.64,
+      metalness: 0.08
+    }, 0x30383b);
+    const trayMaterial = this.createArchitectureMaterial({
+      color: config.trayColor ?? 0x9fa9aa,
+      roughness: 0.78,
+      metalness: 0.04
+    }, 0x9fa9aa);
     const columns = config.columns ?? 2;
     const rows = config.rows ?? 2;
+    const spacingX = config.spacingX ?? 1.35;
+    const spacingY = config.spacingY ?? 1.45;
+    const rotation = config.rotation ?? 0;
+    const materials = {
+      partitionMaterial,
+      frostedMaterial,
+      desktopMaterial,
+      deskBodyMaterial,
+      trimMaterial,
+      monitorBackMaterial,
+      screenMaterial,
+      keyboardMaterial,
+      trayMaterial
+    };
+
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < columns; col++) {
-        const x = config.x + col * 2.1;
-        const y = config.y + row * 2.0;
-        this.addPropBox(x, 0.58, y, 0.95, 0.08, 0.58, deskMaterial);
-        this.addPropBox(x + 0.48, 0.82, y, 0.04, 0.86, 0.78, material);
-        this.addPropBox(x, 0.82, y + 0.46, 0.94, 0.86, 0.04, material);
-        this.addPropBox(x + 0.48, 1.27, y, 0.055, 0.045, 0.8, trimMaterial);
-        this.addPropBox(x, 1.27, y + 0.46, 0.96, 0.045, 0.055, trimMaterial);
-        this.addMeterBox(x - 0.18, 0.76, y - 0.14, 0.56, 0.34, 0.05, new THREE.MeshStandardMaterial({
-          color: 0x071013,
-          emissive: config.monitorColor ?? 0x8da6a8,
-          emissiveIntensity: config.monitorIntensity ?? 0.16,
-          roughness: 0.24
-        }));
-        this.addStaticChair(x - 0.18, y + 0.48, Math.PI, config.chairColor ?? 0x25282a);
+        const x = config.x + col * spacingX;
+        const y = config.y + row * spacingY;
+        this.addWorkstation(config, materials, x, y, rotation, { row, col });
       }
     }
+  }
+
+  addWorkstation(config, materials, gridX, gridY, rotation, context) {
+    const group = new THREE.Group();
+    const deskWidth = config.deskWidth ?? 3.05;
+    const deskDepth = config.deskDepth ?? 1.55;
+    const halfWidth = deskWidth / 2;
+    const halfDepth = deskDepth / 2;
+
+    group.position.set(gridX * CONSTANTS.CELL_SIZE, 0, gridY * CONSTANTS.CELL_SIZE);
+    group.rotation.y = rotation;
+
+    this.addBoxToGroup(group, [0, 0.74, 0], [deskWidth, 0.1, deskDepth], materials.desktopMaterial);
+    this.addBoxToGroup(group, [0, 0.48, halfDepth - 0.16], [deskWidth * 0.86, 0.42, 0.08], materials.deskBodyMaterial);
+    this.addBoxToGroup(group, [0, 0.68, halfDepth - 0.18], [deskWidth * 0.88, 0.055, 0.055], materials.trimMaterial);
+
+    for (const x of [-halfWidth + 0.22, halfWidth - 0.22]) {
+      for (const z of [-halfDepth + 0.2, halfDepth - 0.2]) {
+        this.addBoxToGroup(group, [x, 0.38, z], [0.09, 0.66, 0.09], materials.trimMaterial);
+      }
+    }
+
+    this.addBoxToGroup(group, [0, 0.88, -halfDepth - 0.07], [deskWidth + 0.28, 0.76, 0.07], materials.partitionMaterial);
+    this.addBoxToGroup(group, [0, 1.3, -halfDepth - 0.075], [deskWidth + 0.18, 0.18, 0.045], materials.frostedMaterial);
+
+    const sidePartitionDepth = deskDepth * 0.62;
+    for (const side of [-1, 1]) {
+      this.addBoxToGroup(
+        group,
+        [side * (halfWidth + 0.055), 0.84, -halfDepth + sidePartitionDepth / 2],
+        [0.07, 0.68, sidePartitionDepth],
+        materials.partitionMaterial
+      );
+      this.addBoxToGroup(
+        group,
+        [side * (halfWidth + 0.06), 1.23, -halfDepth + sidePartitionDepth / 2],
+        [0.045, 0.14, sidePartitionDepth * 0.94],
+        materials.frostedMaterial
+      );
+    }
+
+    this.addBoxToGroup(group, [0, 1.15, -0.34], [0.9, 0.48, 0.055], materials.screenMaterial);
+    this.addBoxToGroup(group, [0, 1.15, -0.37], [0.98, 0.56, 0.045], materials.monitorBackMaterial);
+    this.addBoxToGroup(group, [0, 0.88, -0.28], [0.1, 0.28, 0.08], materials.monitorBackMaterial);
+    this.addBoxToGroup(group, [0, 0.78, -0.24], [0.44, 0.04, 0.26], materials.monitorBackMaterial);
+    this.addBoxToGroup(group, [0, 0.82, 0.18], [0.96, 0.035, 0.26], materials.keyboardMaterial);
+    this.addBoxToGroup(group, [0.62, 0.825, 0.2], [0.18, 0.03, 0.18], materials.keyboardMaterial);
+
+    if ((context.row + context.col) % 3 === 1) {
+      const trayX = -halfWidth + 0.42;
+      this.addBoxToGroup(group, [trayX, 0.82, 0.2], [0.46, 0.05, 0.32], materials.trayMaterial);
+      this.addBoxToGroup(group, [trayX, 0.89, 0.2], [0.44, 0.035, 0.3], materials.trayMaterial);
+    }
+
+    this.addChairToGroup(
+      group,
+      [0, 0, halfDepth + 0.64],
+      Math.PI,
+      config.chairColor ?? 0x252c31,
+      config.chairAccentColor ?? 0x405a63
+    );
+
+    this.scene.add(group);
+    this.guideMeshes.push(group);
   }
 
   addServerRackRow(config) {
@@ -1133,17 +1249,39 @@ export class MazeBuilder {
     const group = new THREE.Group();
     group.position.set(gridX * CONSTANTS.CELL_SIZE, 0, gridY * CONSTANTS.CELL_SIZE);
     group.rotation.y = rotation;
-    const chairMaterial = this.createArchitectureMaterial({ color, roughness: 0.72 }, color);
-    const metalMaterial = this.createArchitectureMaterial({ color: 0x2f3438, metalness: 0.18 }, 0x2f3438);
-    this.addBoxToGroup(group, [0, 0.43, 0], [0.72, 0.16, 0.68], chairMaterial);
-    this.addBoxToGroup(group, [0, 0.86, 0.29], [0.72, 0.72, 0.12], chairMaterial);
-    for (const x of [-0.24, 0.24]) {
-      for (const z of [-0.2, 0.2]) {
-        this.addBoxToGroup(group, [x, 0.2, z], [0.08, 0.4, 0.08], metalMaterial);
-      }
-    }
+    this.addChairParts(group, color, 0x40545c);
     this.scene.add(group);
     this.guideMeshes.push(group);
+  }
+
+  addChairToGroup(parent, position, rotation = 0, color = 0x303336, accentColor = 0x40545c) {
+    const group = new THREE.Group();
+    group.position.set(position[0], position[1], position[2]);
+    group.rotation.y = rotation;
+    this.addChairParts(group, color, accentColor);
+    parent.add(group);
+  }
+
+  addChairParts(group, color, accentColor = 0x40545c) {
+    const chairMaterial = this.createArchitectureMaterial({ color, roughness: 0.74, metalness: 0.04 }, color);
+    const accentMaterial = this.createArchitectureMaterial({ color: accentColor, roughness: 0.7, metalness: 0.04 }, accentColor);
+    const metalMaterial = this.createArchitectureMaterial({ color: 0x242a2d, roughness: 0.58, metalness: 0.22 }, 0x242a2d);
+
+    this.addBoxToGroup(group, [0, 0.44, 0], [0.74, 0.16, 0.64], chairMaterial);
+    this.addBoxToGroup(group, [0, 0.535, -0.02], [0.58, 0.035, 0.46], accentMaterial);
+    this.addBoxToGroup(group, [0, 0.87, 0.28], [0.76, 0.68, 0.12], chairMaterial);
+    this.addBoxToGroup(group, [0, 0.9, 0.205], [0.54, 0.44, 0.035], accentMaterial);
+    this.addBoxToGroup(group, [-0.48, 0.66, 0.02], [0.08, 0.36, 0.54], chairMaterial);
+    this.addBoxToGroup(group, [0.48, 0.66, 0.02], [0.08, 0.36, 0.54], chairMaterial);
+    this.addBoxToGroup(group, [0, 0.24, 0], [0.11, 0.32, 0.11], metalMaterial);
+    this.addBoxToGroup(group, [0, 0.1, 0], [0.86, 0.06, 0.08], metalMaterial);
+    this.addBoxToGroup(group, [0, 0.1, 0], [0.08, 0.06, 0.86], metalMaterial);
+    for (const x of [-0.42, 0.42]) {
+      this.addBoxToGroup(group, [x, 0.07, 0], [0.1, 0.08, 0.14], metalMaterial);
+    }
+    for (const z of [-0.42, 0.42]) {
+      this.addBoxToGroup(group, [0, 0.07, z], [0.14, 0.08, 0.1], metalMaterial);
+    }
   }
 
   addBoxToGroup(group, position, scale, material) {

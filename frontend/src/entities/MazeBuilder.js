@@ -1009,6 +1009,7 @@ export class MazeBuilder {
     const spacingX = config.spacingX ?? 1.35;
     const spacingY = config.spacingY ?? 1.45;
     const rotation = config.rotation ?? 0;
+    const skipCells = new Set((config.skipCells ?? []).map(cell => `${cell.row}:${cell.col}`));
     const materials = {
       partitionMaterial,
       frostedMaterial,
@@ -1023,6 +1024,7 @@ export class MazeBuilder {
 
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < columns; col++) {
+        if (skipCells.has(`${row}:${col}`)) continue;
         const x = config.x + col * spacingX;
         const y = config.y + row * spacingY;
         this.addWorkstation(config, materials, x, y, rotation, { row, col });
@@ -1032,17 +1034,23 @@ export class MazeBuilder {
 
   addWorkstation(config, materials, gridX, gridY, rotation, context) {
     const group = new THREE.Group();
-    const deskWidth = config.deskWidth ?? 3.05;
-    const deskDepth = config.deskDepth ?? 1.55;
+    const deskWidth = config.deskWidth ?? 3.25;
+    const deskDepth = config.deskDepth ?? 1.62;
     const halfWidth = deskWidth / 2;
     const halfDepth = deskDepth / 2;
+    const partitionHeight = config.partitionHeight ?? 0.58;
+    const partitionCenterY = 0.78;
+    const frostedHeight = config.frostedHeight ?? 0.16;
+    const frostedCenterY = partitionCenterY + partitionHeight / 2 + frostedHeight / 2 - 0.02;
 
     group.position.set(gridX * CONSTANTS.CELL_SIZE, 0, gridY * CONSTANTS.CELL_SIZE);
     group.rotation.y = rotation;
 
-    this.addBoxToGroup(group, [0, 0.74, 0], [deskWidth, 0.1, deskDepth], materials.desktopMaterial);
-    this.addBoxToGroup(group, [0, 0.48, halfDepth - 0.16], [deskWidth * 0.86, 0.42, 0.08], materials.deskBodyMaterial);
-    this.addBoxToGroup(group, [0, 0.68, halfDepth - 0.18], [deskWidth * 0.88, 0.055, 0.055], materials.trimMaterial);
+    this.addBoxToGroup(group, [0, 0.75, 0], [deskWidth, 0.11, deskDepth], materials.desktopMaterial);
+    this.addBoxToGroup(group, [0, 0.69, 0], [deskWidth * 0.94, 0.045, deskDepth * 0.9], materials.deskBodyMaterial);
+    this.addBoxToGroup(group, [0, 0.48, halfDepth - 0.14], [deskWidth * 0.82, 0.36, 0.09], materials.deskBodyMaterial);
+    this.addBoxToGroup(group, [0, 0.68, halfDepth - 0.18], [deskWidth * 0.86, 0.055, 0.055], materials.trimMaterial);
+    this.addBoxToGroup(group, [0, 0.78, -halfDepth + 0.16], [deskWidth * 0.76, 0.035, 0.08], materials.trimMaterial);
 
     for (const x of [-halfWidth + 0.22, halfWidth - 0.22]) {
       for (const z of [-halfDepth + 0.2, halfDepth - 0.2]) {
@@ -1050,36 +1058,43 @@ export class MazeBuilder {
       }
     }
 
-    this.addBoxToGroup(group, [0, 0.88, -halfDepth - 0.07], [deskWidth + 0.28, 0.76, 0.07], materials.partitionMaterial);
-    this.addBoxToGroup(group, [0, 1.3, -halfDepth - 0.075], [deskWidth + 0.18, 0.18, 0.045], materials.frostedMaterial);
+    this.addBoxToGroup(group, [0, partitionCenterY, -halfDepth - 0.07], [deskWidth + 0.28, partitionHeight, 0.07], materials.partitionMaterial);
+    this.addBoxToGroup(group, [0, frostedCenterY, -halfDepth - 0.075], [deskWidth + 0.16, frostedHeight, 0.045], materials.frostedMaterial);
 
     const sidePartitionDepth = deskDepth * 0.62;
     for (const side of [-1, 1]) {
       this.addBoxToGroup(
         group,
-        [side * (halfWidth + 0.055), 0.84, -halfDepth + sidePartitionDepth / 2],
-        [0.07, 0.68, sidePartitionDepth],
+        [side * (halfWidth + 0.055), 0.76, -halfDepth + sidePartitionDepth / 2],
+        [0.07, 0.52, sidePartitionDepth],
         materials.partitionMaterial
       );
       this.addBoxToGroup(
         group,
-        [side * (halfWidth + 0.06), 1.23, -halfDepth + sidePartitionDepth / 2],
-        [0.045, 0.14, sidePartitionDepth * 0.94],
+        [side * (halfWidth + 0.06), 1.05, -halfDepth + sidePartitionDepth / 2],
+        [0.045, 0.12, sidePartitionDepth * 0.92],
         materials.frostedMaterial
       );
     }
 
-    this.addBoxToGroup(group, [0, 1.15, -0.34], [0.9, 0.48, 0.055], materials.screenMaterial);
-    this.addBoxToGroup(group, [0, 1.15, -0.37], [0.98, 0.56, 0.045], materials.monitorBackMaterial);
-    this.addBoxToGroup(group, [0, 0.88, -0.28], [0.1, 0.28, 0.08], materials.monitorBackMaterial);
-    this.addBoxToGroup(group, [0, 0.78, -0.24], [0.44, 0.04, 0.26], materials.monitorBackMaterial);
-    this.addBoxToGroup(group, [0, 0.82, 0.18], [0.96, 0.035, 0.26], materials.keyboardMaterial);
-    this.addBoxToGroup(group, [0.62, 0.825, 0.2], [0.18, 0.03, 0.18], materials.keyboardMaterial);
+    this.addBoxToGroup(group, [0, 1.16, -0.36], [0.96, 0.52, 0.055], materials.screenMaterial);
+    this.addBoxToGroup(group, [0, 1.16, -0.395], [1.06, 0.6, 0.05], materials.monitorBackMaterial);
+    this.addBoxToGroup(group, [0, 0.89, -0.3], [0.1, 0.3, 0.08], materials.monitorBackMaterial);
+    this.addBoxToGroup(group, [0, 0.79, -0.25], [0.46, 0.045, 0.28], materials.monitorBackMaterial);
+    this.addBoxToGroup(group, [0, 0.82, 0.2], [1.02, 0.035, 0.26], materials.keyboardMaterial);
+    this.addBoxToGroup(group, [0.67, 0.825, 0.22], [0.18, 0.03, 0.18], materials.keyboardMaterial);
+    this.addBoxToGroup(group, [-0.66, 0.825, 0.18], [0.22, 0.025, 0.16], materials.trayMaterial);
 
     if ((context.row + context.col) % 3 === 1) {
       const trayX = -halfWidth + 0.42;
       this.addBoxToGroup(group, [trayX, 0.82, 0.2], [0.46, 0.05, 0.32], materials.trayMaterial);
       this.addBoxToGroup(group, [trayX, 0.89, 0.2], [0.44, 0.035, 0.3], materials.trayMaterial);
+    }
+
+    if ((context.row + context.col) % 4 === 2) {
+      this.addBoxToGroup(group, [halfWidth - 0.5, 0.8, -0.05], [0.5, 0.04, 0.36], materials.monitorBackMaterial);
+      const laptopScreen = this.addBoxToGroup(group, [halfWidth - 0.5, 0.96, -0.24], [0.48, 0.28, 0.035], materials.screenMaterial);
+      laptopScreen.rotation.x = -0.35;
     }
 
     this.addChairToGroup(
@@ -1269,10 +1284,13 @@ export class MazeBuilder {
 
     this.addBoxToGroup(group, [0, 0.44, 0], [0.74, 0.16, 0.64], chairMaterial);
     this.addBoxToGroup(group, [0, 0.535, -0.02], [0.58, 0.035, 0.46], accentMaterial);
+    this.addBoxToGroup(group, [0, 0.43, 0.28], [0.72, 0.1, 0.12], accentMaterial);
     this.addBoxToGroup(group, [0, 0.87, 0.28], [0.76, 0.68, 0.12], chairMaterial);
     this.addBoxToGroup(group, [0, 0.9, 0.205], [0.54, 0.44, 0.035], accentMaterial);
-    this.addBoxToGroup(group, [-0.48, 0.66, 0.02], [0.08, 0.36, 0.54], chairMaterial);
-    this.addBoxToGroup(group, [0.48, 0.66, 0.02], [0.08, 0.36, 0.54], chairMaterial);
+    this.addBoxToGroup(group, [-0.35, 1.19, 0.28], [0.08, 0.22, 0.1], chairMaterial);
+    this.addBoxToGroup(group, [0.35, 1.19, 0.28], [0.08, 0.22, 0.1], chairMaterial);
+    this.addBoxToGroup(group, [-0.49, 0.66, 0.02], [0.09, 0.34, 0.54], chairMaterial);
+    this.addBoxToGroup(group, [0.49, 0.66, 0.02], [0.09, 0.34, 0.54], chairMaterial);
     this.addBoxToGroup(group, [0, 0.24, 0], [0.11, 0.32, 0.11], metalMaterial);
     this.addBoxToGroup(group, [0, 0.1, 0], [0.86, 0.06, 0.08], metalMaterial);
     this.addBoxToGroup(group, [0, 0.1, 0], [0.08, 0.06, 0.86], metalMaterial);
@@ -1290,6 +1308,7 @@ export class MazeBuilder {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     group.add(mesh);
+    return mesh;
   }
 
   createTextTexture(text, color) {

@@ -1136,28 +1136,109 @@ export class MazeBuilder {
 
   addGlassWall(config) {
     const length = (config.length ?? 2) * CONSTANTS.CELL_SIZE;
-    const material = new THREE.MeshStandardMaterial({
+    const height = config.height ?? 1.78;
+    const baseY = config.baseY ?? 0.08;
+    const glassThickness = config.glassThickness ?? 0.035;
+    const frameThickness = config.frameThickness ?? 0.055;
+    const railDepth = config.railDepth ?? 0.11;
+    const innerLength = Math.max(frameThickness, length - frameThickness * 2);
+    const group = new THREE.Group();
+
+    const glassMaterial = new THREE.MeshStandardMaterial({
       color: config.color ?? CONSTANTS.COLORS.OFFICE_GLASS,
-      emissive: config.color ?? CONSTANTS.COLORS.OFFICE_GLASS,
-      emissiveIntensity: config.emissiveIntensity ?? 0.025,
+      emissive: config.emissive ?? 0x071214,
+      emissiveIntensity: config.emissiveIntensity ?? 0.035,
       transparent: true,
-      opacity: config.opacity ?? 0.24,
-      roughness: 0.12,
-      metalness: 0.02
+      opacity: config.opacity ?? 0.17,
+      roughness: config.roughness ?? 0.22,
+      metalness: config.metalness ?? 0.02,
+      depthWrite: false,
+      side: THREE.DoubleSide
     });
-    const mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(
-        config.axis === 'z' ? 0.06 : length,
-        1.9,
-        config.axis === 'z' ? length : 0.06
-      ),
-      material
+    const frameMaterial = this.createArchitectureMaterial({
+      color: config.frameColor ?? 0x748286,
+      roughness: config.frameRoughness ?? 0.56,
+      metalness: config.frameMetalness ?? 0.34
+    }, 0x748286);
+    const frostedMaterial = new THREE.MeshStandardMaterial({
+      color: config.frostedColor ?? 0xd7e8e8,
+      emissive: config.frostedEmissive ?? 0x0c1718,
+      emissiveIntensity: config.frostedEmissiveIntensity ?? 0.025,
+      transparent: true,
+      opacity: config.frostedOpacity ?? 0.28,
+      roughness: config.frostedRoughness ?? 0.42,
+      metalness: 0.02,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+
+    const addPart = (position, scale, material, castsShadow = true, receivesShadow = castsShadow) => {
+      const mesh = this.addBoxToGroup(group, position, scale, material);
+      mesh.castShadow = castsShadow;
+      mesh.receiveShadow = receivesShadow;
+      return mesh;
+    };
+
+    addPart(
+      [0, baseY + height / 2, 0],
+      [innerLength, height, glassThickness],
+      glassMaterial,
+      false
     );
-    mesh.position.set(config.x * CONSTANTS.CELL_SIZE, 1.1, config.y * CONSTANTS.CELL_SIZE);
-    mesh.castShadow = false;
-    mesh.receiveShadow = true;
-    this.scene.add(mesh);
-    this.guideMeshes.push(mesh);
+
+    if (config.frosted !== false) {
+      const frostedHeight = config.frostedHeight ?? 0.22;
+      const frostedY = Math.min(
+        baseY + height - frostedHeight / 2 - frameThickness,
+        Math.max(
+          baseY + frostedHeight / 2 + frameThickness,
+          config.frostedY ?? baseY + height * 0.56
+        )
+      );
+      addPart(
+        [0, frostedY, 0],
+        [innerLength, frostedHeight, glassThickness + 0.018],
+        frostedMaterial,
+        false
+      );
+    }
+
+    const postHeight = height + frameThickness;
+    const postY = baseY + height / 2;
+    addPart([-length / 2, postY, 0], [frameThickness, postHeight, railDepth], frameMaterial);
+    addPart([length / 2, postY, 0], [frameThickness, postHeight, railDepth], frameMaterial);
+
+    const postSpacing = (config.postSpacing ?? 1.45) * CONSTANTS.CELL_SIZE;
+    if (postSpacing > 0 && length > postSpacing) {
+      const segmentCount = Math.ceil(length / postSpacing);
+      for (let i = 1; i < segmentCount; i++) {
+        const offset = -length / 2 + (length * i) / segmentCount;
+        addPart([offset, postY, 0], [frameThickness, postHeight, railDepth], frameMaterial);
+      }
+    }
+
+    if (config.topRail !== false) {
+      const railHeight = typeof config.topRail === 'number' ? config.topRail : frameThickness;
+      addPart(
+        [0, baseY + height - railHeight / 2, 0],
+        [length + frameThickness, railHeight, railDepth],
+        frameMaterial
+      );
+    }
+
+    if (config.baseRail !== false) {
+      const railHeight = typeof config.baseRail === 'number' ? config.baseRail : frameThickness;
+      addPart(
+        [0, baseY + railHeight / 2, 0],
+        [length + frameThickness, railHeight, railDepth],
+        frameMaterial
+      );
+    }
+
+    group.position.set(config.x * CONSTANTS.CELL_SIZE, 0, config.y * CONSTANTS.CELL_SIZE);
+    group.rotation.y = config.axis === 'z' ? Math.PI / 2 : 0;
+    this.scene.add(group);
+    this.guideMeshes.push(group);
   }
 
   addCopyMachine(config) {

@@ -18,7 +18,7 @@ const withDefaults = (defaults, config = {}) => ({
 });
 
 const signWithDefaults = (defaults, config = {}) => {
-  const maxWidth = config.maxWidth ?? defaults.maxWidth ?? 1.5;
+  const maxWidth = config.maxWidth ?? defaults.maxWidth ?? 1.4;
   const width = config.allowOversize ? (config.width ?? defaults.width) : Math.min(config.width ?? defaults.width, maxWidth);
 
   return withDefaults({
@@ -70,17 +70,19 @@ const workstationDefaults = {
 export const officeProps = {
   wallSign(config = {}) {
     return signWithDefaults({
-      width: 1.15,
-      height: 2.02,
+      width: 1.05,
+      maxWidth: 1.15,
+      height: 1.94,
       mount: 'wall',
-      purpose: 'wall-sign'
+      purpose: 'wayfinding'
     }, config);
   },
 
   departmentSign(config = {}) {
     return signWithDefaults({
-      width: 1.25,
-      height: 2.08,
+      width: 1.18,
+      maxWidth: 1.4,
+      height: 1.96,
       mount: 'wall',
       purpose: 'department-label'
     }, config);
@@ -88,21 +90,23 @@ export const officeProps = {
 
   exitSign(config = {}) {
     return signWithDefaults({
-      width: 1.15,
-      height: 2.12,
+      width: 1.0,
+      maxWidth: 1.15,
+      height: 1.96,
       color: 0x86f7b2,
       mount: 'doorway',
-      purpose: 'exit-label'
+      purpose: 'exit-wayfinding'
     }, config);
   },
 
   warningSign(config = {}) {
     return signWithDefaults({
-      width: 1.15,
-      height: 2.08,
+      width: 1.1,
+      maxWidth: 1.25,
+      height: 1.96,
       color: 0xffb2a8,
-      mount: 'ceiling-frame',
-      purpose: 'warning-label'
+      mount: 'wall',
+      purpose: 'warning'
     }, config);
   },
 

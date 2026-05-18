@@ -1821,6 +1821,10 @@ export const level1 = {
   },
   // Architecture placement contract:
   // - Use officeProps prefabs instead of raw architecture objects when possible.
+  // - Use officeProps signage prefabs for all signs.
+  // - Do not add raw sign objects unless absolutely necessary.
+  // - Signs must follow roomLayoutSpecs and future roomLayoutAnchors.
+  // - Signs should be wayfinding, not debug labels.
   // - Do not add raw glassWall/sign/frame/beam objects manually unless absolutely necessary.
   // - All future props should follow roomLayoutSpecs and roomLayoutAnchors.
   // - Empty space is allowed; do not fill empty space with random props.
@@ -1836,9 +1840,9 @@ export const level1 = {
     officeProps.coffeeTable({ x: 4.25, y: 19.32, roomId: 'front-reception', anchor: 'seatingZone' }),
     officeProps.pottedPlant({ x: 2.7, y: 18.35, roomId: 'front-reception', anchor: 'plantZones' }),
     officeProps.pottedPlant({ x: 11.45, y: 20.7, color: 0x4b6f5a, potColor: 0x8a877f, roomId: 'front-reception', anchor: 'plantZones' }),
-    officeProps.wallSign({ id: 'night-entry-sign', x: 4.2, y: 22.05, text: 'NIGHT SHIFT\nENTRY', height: 2.06, rotation: Math.PI, roomId: 'front-reception', anchor: 'entryWallSignZone', face: 'south', purpose: 'entry-label' }),
-    officeProps.departmentSign({ id: 'intake-sign', x: 5.35, y: 17.05, text: 'EMPLOYEE\nINTAKE', color: 0xd8ebe7, height: 1.94, rotation: Math.PI, roomId: 'employee-intake', anchor: 'behindIntakeDeskSignZone', face: 'south' }),
-    officeProps.departmentSign({ id: 'main-hall-sign', x: 11.2, y: 12.05, text: 'MAIN WORKSTATION\nHALL', height: 2.14, roomId: 'main-workstation-hall', anchor: 'mainHallEntryWallSignZone', face: 'south' }),
+    officeProps.wallSign({ id: 'night-entry-sign', x: 4.2, y: 22.05, text: 'NIGHT SHIFT\nENTRY', height: 1.94, rotation: Math.PI, roomId: 'front-reception', anchor: 'entryWallSignZone', face: 'south', purpose: 'entry-label' }),
+    officeProps.departmentSign({ id: 'intake-sign', x: 5.35, y: 17.05, text: 'EMPLOYEE\nINTAKE', color: 0xd8ebe7, width: 1.12, height: 1.9, rotation: Math.PI, roomId: 'employee-intake', anchor: 'behindIntakeDeskSignZone', face: 'south' }),
+    officeProps.departmentSign({ id: 'main-hall-sign', x: 11.2, y: 12.05, text: 'MAIN WORKSTATION\nHALL', width: 1.18, height: 1.92, roomId: 'main-workstation-hall', anchor: 'mainHallEntryWallSignZone', face: 'south' }),
     {
       type: 'taskTerminal',
       x: 5.85,
@@ -1848,11 +1852,11 @@ export const level1 = {
       surfaceHeight: 0.92,
       text: 'Welcome to Records Department.\nRetrieve your Shift Assignment Form.'
     },
-    officeProps.departmentSign({ id: 'wrong-dept-sign', x: 31, y: 10.05, text: 'ACCOUNTS /\nRECORDS OFFICE', color: 0xd0d1bd, height: 2.12, roomId: 'wrong-department', anchor: 'accountsFrontSignZone', face: 'south' }),
-    officeProps.exitSign({ id: 'fake-exit-sign', x: 41.85, y: 13.65, text: 'PUBLIC\nEXIT', height: 2.18, rotation: -Math.PI / 2, roomId: 'fake-exit', anchor: 'publicExitWallSignZone', face: 'east' }),
-    officeProps.departmentSign({ id: 'archive-sign', x: 7, y: 22.05, text: 'RECORDS\nARCHIVE', color: 0xaebcff, height: 2.1, rotation: Math.PI, roomId: 'archive', anchor: 'archiveEntranceSignZone', face: 'north' }),
-    officeProps.departmentSign({ id: 'review-sign', x: 19.2, y: 11.05, text: 'COUNSELLOR /\nREVIEW', color: 0xb7f7ff, height: 2.12, roomId: 'checkpoint-chamber', anchor: 'reviewDoorwaySignZone', face: 'north' }),
-    officeProps.departmentSign({ id: 'staff-sign', x: 22.5, y: 22.05, text: 'STAFF\nROOM', color: 0xc5d0b6, height: 2.1, rotation: Math.PI, roomId: 'utility-break', anchor: 'staffEntranceSignZone', face: 'north' }),
+    officeProps.departmentSign({ id: 'wrong-dept-sign', x: 31, y: 10.05, text: 'ACCOUNTS /\nRECORDS OFFICE', color: 0xd0d1bd, width: 1.18, height: 1.92, roomId: 'wrong-department', anchor: 'accountsFrontSignZone', face: 'south' }),
+    officeProps.exitSign({ id: 'fake-exit-sign', x: 41.85, y: 13.65, text: 'PUBLIC\nEXIT', height: 1.96, rotation: -Math.PI / 2, roomId: 'fake-exit', anchor: 'publicExitWallSignZone', face: 'east' }),
+    officeProps.wallSign({ id: 'archive-sign', x: 7, y: 22.05, text: 'RECORDS\nARCHIVE', color: 0xaebcff, width: 1.08, height: 1.9, rotation: Math.PI, roomId: 'archive', anchor: 'archiveEntranceSignZone', face: 'north' }),
+    officeProps.departmentSign({ id: 'review-sign', x: 19.2, y: 11.05, text: 'COUNSELLOR /\nREVIEW', color: 0xb7f7ff, width: 1.12, height: 1.9, roomId: 'checkpoint-chamber', anchor: 'reviewDoorwaySignZone', face: 'north' }),
+    officeProps.wallSign({ id: 'staff-sign', x: 22.5, y: 22.05, text: 'STAFF\nROOM', color: 0xc5d0b6, width: 1.0, height: 1.9, rotation: Math.PI, roomId: 'utility-break', anchor: 'staffEntranceSignZone', face: 'north' }),
     { type: 'taskTerminal', x: 8, y: 7, color: 0xbde1e0 },
     { type: 'taskTerminal', x: 7, y: 25, color: 0xa8bbd8 },
     { type: 'taskTerminal', x: 21, y: 15, color: 0xb7eef4 },

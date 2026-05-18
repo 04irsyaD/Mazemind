@@ -1,6 +1,6 @@
 import { CONSTANTS } from '../core/Constants.js';
 import { OfficeMazeGenerator } from './OfficeMazeGenerator.js';
-import { officeProps } from './prefabs/officeProps.js';
+import { mountToWall, normalizeAnchor, officeProps, resolveWallRotation } from './prefabs/officeProps.js';
 
 const W = 45;
 const H = 31;
@@ -585,6 +585,7 @@ const roomLayoutSpecs = {
 
 const roomLayoutAnchors = {
   'front-reception': {
+    roomId: 'front-reception',
     roomBounds: { x1: 2, y1: 18, x2: 12, y2: 21 },
     entranceSide: 'south/front spawn side',
     exitSide: 'north via reception-to-intake',
@@ -640,10 +641,17 @@ const roomLayoutAnchors = {
     signageZones: [
       {
         id: 'entryWallSignZone',
+        prefab: 'wallSign',
+        text: 'NIGHT SHIFT\nENTRY',
         allowedTypes: ['sign'],
-        bounds: { x1: 3.4, y1: 21.85, x2: 5.1, y2: 22.2 },
+        bounds: { x1: 3.4, y1: 21.35, x2: 5.1, y2: 21.58 },
         anchoredObjects: ['night-entry-sign'],
-        mount: 'south wall'
+        mount: 'wall',
+        wall: 'south',
+        offset: -2.8,
+        height: 2.02,
+        maxWidth: 1.6,
+        notes: 'Mounted on the south wall face, away from the spawn-to-intake lane.'
       }
     ],
     forbiddenZones: [
@@ -666,6 +674,7 @@ const roomLayoutAnchors = {
     ]
   },
   'employee-intake': {
+    roomId: 'employee-intake',
     roomBounds: { x1: 2, y1: 14, x2: 12, y2: 17 },
     entranceSide: 'south from reception',
     exitSide: 'north toward main-workstation-hall',
@@ -706,10 +715,17 @@ const roomLayoutAnchors = {
     signageZones: [
       {
         id: 'behindIntakeDeskSignZone',
+        prefab: 'departmentSign',
+        text: 'EMPLOYEE\nINTAKE',
         allowedTypes: ['sign'],
-        bounds: { x1: 4.7, y1: 16.9, x2: 6.1, y2: 17.2 },
+        bounds: { x1: 12.35, y1: 15.45, x2: 12.58, y2: 16.95 },
         anchoredObjects: ['intake-sign'],
-        mount: 'south wall behind intake desk'
+        mount: 'wall',
+        wall: 'east',
+        offset: 0.7,
+        height: 2.0,
+        maxWidth: 1.9,
+        notes: 'Shifted onto the east wall beside the desk so it is mounted, not floating behind the desk.'
       }
     ],
     forbiddenZones: [
@@ -732,6 +748,7 @@ const roomLayoutAnchors = {
     ]
   },
   'main-workstation-hall': {
+    roomId: 'main-workstation-hall',
     roomBounds: { x1: 2, y1: 4, x2: 19, y2: 12 },
     entranceSide: 'south from employee-intake',
     exitSide: 'east/northeast toward checkpoint-chamber',
@@ -789,10 +806,17 @@ const roomLayoutAnchors = {
     signageZones: [
       {
         id: 'mainHallEntryWallSignZone',
+        prefab: 'departmentSign',
+        text: 'MAIN WORKSTATION\nHALL',
         allowedTypes: ['sign'],
-        bounds: { x1: 10.5, y1: 11.85, x2: 12.2, y2: 12.25 },
+        bounds: { x1: 10.45, y1: 12.35, x2: 12.15, y2: 12.58 },
         anchoredObjects: ['main-hall-sign'],
-        mount: 'south entrance wall, offset from connector center'
+        mount: 'wall',
+        wall: 'south',
+        offset: 0.7,
+        height: 2.05,
+        maxWidth: 2.0,
+        notes: 'Mounted on the south entry wall just east of the connector, clear of the central aisle.'
       }
     ],
     forbiddenZones: [
@@ -821,6 +845,7 @@ const roomLayoutAnchors = {
     ]
   },
   archive: {
+    roomId: 'archive',
     roomBounds: { x1: 3, y1: 23, x2: 15, y2: 28 },
     entranceSide: 'north/service connector from intake/archive aisle',
     exitSide: 'north back toward the intake/archive service aisle',
@@ -869,10 +894,17 @@ const roomLayoutAnchors = {
     signageZones: [
       {
         id: 'archiveEntranceSignZone',
+        prefab: 'wallSign',
+        text: 'RECORDS\nARCHIVE',
         allowedTypes: ['sign'],
-        bounds: { x1: 6.2, y1: 21.85, x2: 7.8, y2: 22.25 },
+        bounds: { x1: 6.2, y1: 22.42, x2: 7.8, y2: 22.65 },
         anchoredObjects: ['archive-sign'],
-        mount: 'north entrance wall'
+        mount: 'wall',
+        wall: 'north',
+        offset: -2.0,
+        height: 2.02,
+        maxWidth: 1.6,
+        notes: 'Mounted on the archive north wall face, outside the rack aisle.'
       }
     ],
     forbiddenZones: [
@@ -895,6 +927,7 @@ const roomLayoutAnchors = {
     ]
   },
   'checkpoint-chamber': {
+    roomId: 'checkpoint-chamber',
     roomBounds: { x1: 18, y1: 12, x2: 24, y2: 18 },
     entranceSide: 'west/southwest from workstation-to-review',
     exitSide: 'east/north/south toward wrong-department, staff, and emergency route',
@@ -949,10 +982,17 @@ const roomLayoutAnchors = {
     signageZones: [
       {
         id: 'reviewDoorwaySignZone',
+        prefab: 'departmentSign',
+        text: 'COUNSELLOR /\nREVIEW',
         allowedTypes: ['sign'],
-        bounds: { x1: 18.4, y1: 10.9, x2: 20.0, y2: 11.3 },
+        bounds: { x1: 20.2, y1: 11.42, x2: 21.8, y2: 11.65 },
         anchoredObjects: ['review-sign'],
-        mount: 'northwest review doorway'
+        mount: 'wall',
+        wall: 'north',
+        offset: 0,
+        height: 2.02,
+        maxWidth: 2.0,
+        notes: 'Moved off the doorway opening onto the north wall segment beside Review intake.'
       }
     ],
     forbiddenZones: [
@@ -985,6 +1025,7 @@ const roomLayoutAnchors = {
     ]
   },
   'wrong-department': {
+    roomId: 'wrong-department',
     roomBounds: { x1: 25, y1: 4, x2: 35, y2: 10 },
     entranceSide: 'west/southwest from review-to-wrong-dept',
     exitSide: 'south/southwest back toward the emergency records route',
@@ -1047,10 +1088,17 @@ const roomLayoutAnchors = {
     signageZones: [
       {
         id: 'accountsFrontSignZone',
+        prefab: 'departmentSign',
+        text: 'ACCOUNTS /\nRECORDS OFFICE',
         allowedTypes: ['sign'],
-        bounds: { x1: 30.2, y1: 9.85, x2: 31.8, y2: 10.25 },
+        bounds: { x1: 30.2, y1: 10.35, x2: 31.8, y2: 10.58 },
         anchoredObjects: ['wrong-dept-sign'],
-        mount: 'front wall near glass boundary'
+        mount: 'wall',
+        wall: 'south',
+        offset: 1.0,
+        height: 2.05,
+        maxWidth: 2.0,
+        notes: 'Mounted on the front wall above/near the Accounts frontage without changing the glass count.'
       }
     ],
     forbiddenZones: [
@@ -1074,6 +1122,7 @@ const roomLayoutAnchors = {
     ]
   },
   'utility-break': {
+    roomId: 'utility-break',
     roomBounds: { x1: 18, y1: 23, x2: 28, y2: 28 },
     entranceSide: 'north from review-to-break connector',
     exitSide: 'north back to checkpoint-chamber',
@@ -1112,10 +1161,17 @@ const roomLayoutAnchors = {
     signageZones: [
       {
         id: 'staffEntranceSignZone',
+        prefab: 'wallSign',
+        text: 'STAFF\nROOM',
         allowedTypes: ['sign'],
-        bounds: { x1: 21.8, y1: 21.85, x2: 23.2, y2: 22.25 },
+        bounds: { x1: 23.8, y1: 22.42, x2: 25.4, y2: 22.65 },
         anchoredObjects: ['staff-sign'],
-        mount: 'north entry wall'
+        mount: 'wall',
+        wall: 'north',
+        offset: 1.6,
+        height: 2.0,
+        maxWidth: 1.6,
+        notes: 'Mounted on the north wall segment beside the staff-room connector, outside the open center.'
       }
     ],
     forbiddenZones: [
@@ -1132,12 +1188,13 @@ const roomLayoutAnchors = {
     ]
   },
   'fake-exit': {
+    roomId: 'fake-exit',
     roomBounds: { x1: 38, y1: 12, x2: 42, y2: 18 },
     entranceSide: 'west from emergency/fake exit route',
     exitSide: 'east wall false exit direction; north afterimage route after trigger',
     focalPoint: {
       id: 'public-exit-sign-and-door-direction',
-      x: 41.85,
+      x: 42.46,
       y: 13.65,
       radiusCells: 1.2,
       notes: 'The Public Exit sign reads from the wall without occupying the route to the trigger.'
@@ -1164,10 +1221,17 @@ const roomLayoutAnchors = {
     signageZones: [
       {
         id: 'publicExitWallSignZone',
+        prefab: 'exitSign',
+        text: 'PUBLIC\nEXIT',
         allowedTypes: ['sign'],
-        bounds: { x1: 41.7, y1: 13.1, x2: 42.1, y2: 14.2 },
+        bounds: { x1: 42.35, y1: 13.1, x2: 42.58, y2: 14.2 },
         anchoredObjects: ['fake-exit-sign'],
-        mount: 'east wall'
+        mount: 'wall',
+        wall: 'east',
+        offset: -1.35,
+        height: 2.04,
+        maxWidth: 1.15,
+        notes: 'Mounted on the east wall face and kept outside the trigger path.'
       }
     ],
     forbiddenZones: [
@@ -1185,9 +1249,10 @@ const roomLayoutAnchors = {
     ]
   },
   'crusher-corridor': {
+    roomId: 'crusher-corridor',
     roomBounds: { x1: 25, y1: 14, x2: 37, y2: 16 },
-    entranceSide: 'east/west corridor',
-    exitSide: 'east/west corridor',
+    entranceSide: 'west from review-to-records connector',
+    exitSide: 'east toward fake-exit route',
     focalPoint: {
       id: 'clear-crusher-lane',
       x1: 25.0,
@@ -1197,14 +1262,21 @@ const roomLayoutAnchors = {
       notes: 'The lane between x 25-37 at y 15 must remain visually and physically clear.'
     },
     mainAisle: {
-      id: 'full-crusher-lane',
+      id: 'emergency-records-main-path',
       hazardIds: ['records-hall-crusher'],
       points: [
         { x: 25.0, y: 15.0 },
         { x: 37.0, y: 15.0 }
       ],
-      widthCells: 'full corridor',
-      rule: 'The entire crusher lane is the aisle.'
+      widthCells: 2.2,
+      rule: 'Keep the full center lane clear for player movement and crusher readability.',
+      notes: 'Visual architecture must stay on thresholds, wall edges, or overhead.'
+    },
+    clearPath: {
+      id: 'crusher-clear-path',
+      bounds: { x1: 25.0, y1: 14.3, x2: 37.0, y2: 15.7 },
+      widthCells: 2.2,
+      reason: 'do not block player route or hazard readability'
     },
     furnitureZones: [
       {
@@ -1217,57 +1289,129 @@ const roomLayoutAnchors = {
     frameZones: [
       {
         id: 'westEntranceFrame',
+        prefab: 'emergencyDoorFrame',
+        mount: 'corridor-frame',
+        positionHint: 'west entry',
+        visualOnly: true,
         allowedTypes: ['frame'],
         bounds: { x1: 24.8, y1: 13.7, x2: 25.2, y2: 16.3 },
         center: { x: 25.0, y: 15.0 },
-        anchoredObjects: ['records-hall-west-frame']
+        anchoredObjects: ['records-hall-west-frame'],
+        notes: 'Threshold housing only; posts sit on corridor edges and top header stays overhead.'
       },
       {
         id: 'eastExitFrame',
+        prefab: 'emergencyDoorFrame',
+        mount: 'corridor-frame',
+        positionHint: 'east receiver',
+        visualOnly: true,
         allowedTypes: ['frame'],
         bounds: { x1: 36.8, y1: 13.7, x2: 37.2, y2: 16.3 },
         center: { x: 37.0, y: 15.0 },
-        anchoredObjects: ['records-hall-east-frame']
+        anchoredObjects: ['records-hall-east-frame'],
+        notes: 'Receiver housing for the crusher path; must not change crusher start/end.'
       }
     ],
-    beamZones: [
+    warningZones: [
       {
         id: 'northEdgeWarningBeam',
+        prefab: 'emergencyWarningTrim',
+        mount: 'corridor-edge',
+        visualOnly: true,
         allowedTypes: ['beam', 'warning trim'],
         bounds: { x1: 25.2, y1: 13.9, x2: 36.8, y2: 14.2 },
         center: { x: 31.0, y: 14.05 },
-        anchoredObjects: ['records-hall-north-beam']
+        anchoredObjects: ['records-hall-north-beam'],
+        notes: 'Overhead north-edge warning trim, not a lane rail.'
       },
       {
         id: 'southEdgeWarningBeam',
+        prefab: 'emergencyWarningTrim',
+        mount: 'corridor-edge',
+        visualOnly: true,
         allowedTypes: ['beam', 'warning trim'],
         bounds: { x1: 25.2, y1: 15.8, x2: 36.8, y2: 16.1 },
         center: { x: 31.0, y: 15.95 },
-        anchoredObjects: ['records-hall-south-beam']
+        anchoredObjects: ['records-hall-south-beam'],
+        notes: 'Overhead south-edge warning trim, not a lane rail.'
+      },
+      {
+        id: 'northWallServiceRail',
+        prefab: 'emergencyWarningTrim',
+        mount: 'wall-rail',
+        visualOnly: true,
+        allowedTypes: ['beam', 'warning trim'],
+        bounds: { x1: 25.6, y1: 14.0, x2: 36.4, y2: 14.16 },
+        center: { x: 31.0, y: 14.08 },
+        anchoredObjects: ['records-hall-north-service-rail'],
+        notes: 'Low muted wall rail on the north edge; visual only and outside the center lane.'
+      },
+      {
+        id: 'southWallServiceRail',
+        prefab: 'emergencyWarningTrim',
+        mount: 'wall-rail',
+        visualOnly: true,
+        allowedTypes: ['beam', 'warning trim'],
+        bounds: { x1: 25.6, y1: 15.84, x2: 36.4, y2: 16.0 },
+        center: { x: 31.0, y: 15.92 },
+        anchoredObjects: ['records-hall-south-service-rail'],
+        notes: 'Low muted wall rail on the south edge; visual only and outside the center lane.'
+      }
+    ],
+    hazardVisualZones: [
+      {
+        id: 'crusherStartHousing',
+        prefab: 'emergencyDoorFrame',
+        hazardId: 'records-hall-crusher',
+        anchoredObjects: ['records-hall-east-frame'],
+        bounds: { x1: 36.8, y1: 13.7, x2: 37.2, y2: 16.3 },
+        visualOnly: true,
+        notes: 'Visual receiver around the crusher start point only; gameplay start remains hazard.start.'
+      },
+      {
+        id: 'crusherReceiverHousing',
+        prefab: 'emergencyDoorFrame',
+        hazardId: 'records-hall-crusher',
+        anchoredObjects: ['records-hall-west-frame'],
+        bounds: { x1: 24.8, y1: 13.7, x2: 25.2, y2: 16.3 },
+        visualOnly: true,
+        notes: 'Visual end housing only; gameplay end remains hazard.end.'
       }
     ],
     signageZones: [
       {
         id: 'corridorEntryEdgeSignZone',
+        prefab: 'warningSign',
+        text: 'EMERGENCY\nRECORDS ACCESS',
         allowedTypes: ['sign'],
-        bounds: { x1: 25.0, y1: 13.8, x2: 26.5, y2: 14.2 },
-        notes: 'Warning signs belong near an entry edge only; no current sign is placed here.'
+        bounds: { x1: 25.0, y1: 13.42, x2: 26.6, y2: 13.65 },
+        mount: 'wall',
+        wall: 'north',
+        offset: -5.2,
+        height: 1.82,
+        maxWidth: 1.4,
+        visualOnly: true,
+        anchoredObjects: ['records-hall-warning-sign'],
+        notes: 'Wall-mounted warning panel near the entry edge, outside the crusher lane.'
       }
     ],
     forbiddenZones: [
       {
         id: 'centerLane',
         bounds: { x1: 25.0, y1: 14.3, x2: 37.0, y2: 15.7 },
+        reason: 'player clear path and hazard readability',
+        type: 'aisle',
         rule: 'Never place architecture in the center crusher lane.'
       }
     ],
-    clearPathWidthCells: 'full corridor',
+    clearPathWidthCells: 2.2,
     notes: [
       'Frames mark thresholds only.',
       'Beams stay on corridor edges and must never read as rails through the lane.'
     ]
   },
   'final-route': {
+    roomId: 'final-route',
     roomBounds: { x1: 36, y1: 22, x2: 42, y2: 28 },
     entranceSide: 'north/from fake-exit afterimage',
     exitSide: 'south/east at final access door',
@@ -1312,9 +1456,16 @@ const roomLayoutAnchors = {
     signageZones: [
       {
         id: 'finalDoorWindowSignageZone',
+        prefab: 'wallSign',
+        text: 'FINAL\nACCESS',
         allowedTypes: ['sign'],
-        bounds: { x1: 40.0, y1: 26.6, x2: 42.1, y2: 28.0 },
-        notes: 'Any final-route sign belongs near the final door or window band; no current sign is placed here.'
+        bounds: { x1: 42.35, y1: 26.4, x2: 42.58, y2: 27.4 },
+        mount: 'wall',
+        wall: 'east',
+        offset: 2.0,
+        height: 2.04,
+        maxWidth: 1.4,
+        notes: 'Reserved final-door sign anchor only; no current sign is placed here to keep the ending route minimal.'
       }
     ],
     forbiddenZones: [
@@ -1332,6 +1483,72 @@ const roomLayoutAnchors = {
     ]
   }
 };
+
+function resolveWallCoord(room, wall, offset = 0) {
+  const bounds = room.roomBounds ?? room;
+  const normalizedWall = String(wall ?? '').toLowerCase();
+  const center = normalizedWall === 'east' || normalizedWall === 'west'
+    ? (bounds.y1 + bounds.y2) / 2
+    : (bounds.x1 + bounds.x2) / 2;
+
+  return Number((center + offset).toFixed(2));
+}
+
+function mountedSignConfig(roomId, zoneId) {
+  const room = roomLayoutAnchors[roomId];
+  const zone = room?.signageZones?.find(candidate => candidate.id === zoneId);
+  if (!room || !zone) {
+    throw new Error(`Unknown signage anchor: ${roomId}/${zoneId}`);
+  }
+
+  const wall = zone.wall;
+  const mounted = mountToWall(room, wall, {
+    coord: zone.coord ?? resolveWallCoord(room, wall, zone.offset),
+    mount: zone.mount,
+    mountHeight: zone.height,
+    rotation: zone.rotation ?? resolveWallRotation(wall),
+    wallOffset: zone.wallOffset
+  });
+
+  return {
+    ...mounted,
+    room,
+    roomId,
+    text: zone.text,
+    maxWidth: zone.maxWidth,
+    visualOnly: zone.visualOnly,
+    face: zone.face ?? wall,
+    anchor: normalizeAnchor({
+      id: zone.id,
+      roomId,
+      mount: zone.mount,
+      wall
+    }, room)
+  };
+}
+
+function anchoredZoneConfig(roomId, collectionName, zoneId) {
+  const room = roomLayoutAnchors[roomId];
+  const zone = room?.[collectionName]?.find(candidate => candidate.id === zoneId);
+  if (!room || !zone) {
+    throw new Error(`Unknown layout anchor: ${roomId}/${collectionName}/${zoneId}`);
+  }
+
+  return {
+    room,
+    roomId,
+    mount: zone.mount,
+    visualOnly: zone.visualOnly ?? true,
+    anchor: normalizeAnchor({
+      id: zone.id,
+      roomId,
+      zone: collectionName,
+      prefab: zone.prefab,
+      mount: zone.mount,
+      positionHint: zone.positionHint
+    }, room)
+  };
+}
 
 const connectors = [
   { id: 'reception-to-intake', label: 'Employee Intake Hall', x1: 4, y1: 17, x2: 10, y2: 18, from: 'front-reception', to: 'employee-intake' },
@@ -1840,9 +2057,9 @@ export const level1 = {
     officeProps.coffeeTable({ x: 4.25, y: 19.32, roomId: 'front-reception', anchor: 'seatingZone' }),
     officeProps.pottedPlant({ x: 2.7, y: 18.35, roomId: 'front-reception', anchor: 'plantZones' }),
     officeProps.pottedPlant({ x: 11.45, y: 20.7, color: 0x4b6f5a, potColor: 0x8a877f, roomId: 'front-reception', anchor: 'plantZones' }),
-    officeProps.wallSign({ id: 'night-entry-sign', x: 4.2, y: 22.05, text: 'NIGHT SHIFT\nENTRY', height: 1.94, rotation: Math.PI, roomId: 'front-reception', anchor: 'entryWallSignZone', face: 'south', purpose: 'entry-label' }),
-    officeProps.departmentSign({ id: 'intake-sign', x: 5.35, y: 17.05, text: 'EMPLOYEE\nINTAKE', color: 0xd8ebe7, height: 1.9, rotation: Math.PI, roomId: 'employee-intake', anchor: 'behindIntakeDeskSignZone', face: 'south' }),
-    officeProps.departmentSign({ id: 'main-hall-sign', x: 11.2, y: 12.05, text: 'MAIN WORKSTATION\nHALL', height: 1.92, roomId: 'main-workstation-hall', anchor: 'mainHallEntryWallSignZone', face: 'south' }),
+    officeProps.wallSign({ id: 'night-entry-sign', ...mountedSignConfig('front-reception', 'entryWallSignZone'), purpose: 'entry-label' }),
+    officeProps.departmentSign({ id: 'intake-sign', ...mountedSignConfig('employee-intake', 'behindIntakeDeskSignZone'), color: 0xd8ebe7 }),
+    officeProps.departmentSign({ id: 'main-hall-sign', ...mountedSignConfig('main-workstation-hall', 'mainHallEntryWallSignZone') }),
     {
       type: 'taskTerminal',
       x: 5.85,
@@ -1852,11 +2069,11 @@ export const level1 = {
       surfaceHeight: 0.92,
       text: 'Welcome to Records Department.\nRetrieve your Shift Assignment Form.'
     },
-    officeProps.departmentSign({ id: 'wrong-dept-sign', x: 31, y: 10.05, text: 'ACCOUNTS /\nRECORDS OFFICE', color: 0xd0d1bd, height: 1.92, roomId: 'wrong-department', anchor: 'accountsFrontSignZone', face: 'south' }),
-    officeProps.exitSign({ id: 'fake-exit-sign', x: 41.85, y: 13.65, text: 'PUBLIC\nEXIT', height: 1.96, rotation: -Math.PI / 2, roomId: 'fake-exit', anchor: 'publicExitWallSignZone', face: 'east' }),
-    officeProps.wallSign({ id: 'archive-sign', x: 7, y: 22.05, text: 'RECORDS\nARCHIVE', color: 0xaebcff, height: 1.9, rotation: Math.PI, roomId: 'archive', anchor: 'archiveEntranceSignZone', face: 'north' }),
-    officeProps.departmentSign({ id: 'review-sign', x: 19.2, y: 11.05, text: 'COUNSELLOR /\nREVIEW', color: 0xb7f7ff, height: 1.9, roomId: 'checkpoint-chamber', anchor: 'reviewDoorwaySignZone', face: 'north' }),
-    officeProps.wallSign({ id: 'staff-sign', x: 22.5, y: 22.05, text: 'STAFF\nROOM', color: 0xc5d0b6, height: 1.9, rotation: Math.PI, roomId: 'utility-break', anchor: 'staffEntranceSignZone', face: 'north' }),
+    officeProps.departmentSign({ id: 'wrong-dept-sign', ...mountedSignConfig('wrong-department', 'accountsFrontSignZone'), color: 0xd0d1bd }),
+    officeProps.exitSign({ id: 'fake-exit-sign', ...mountedSignConfig('fake-exit', 'publicExitWallSignZone') }),
+    officeProps.wallSign({ id: 'archive-sign', ...mountedSignConfig('archive', 'archiveEntranceSignZone'), color: 0xaebcff }),
+    officeProps.departmentSign({ id: 'review-sign', ...mountedSignConfig('checkpoint-chamber', 'reviewDoorwaySignZone'), color: 0xb7f7ff }),
+    officeProps.wallSign({ id: 'staff-sign', ...mountedSignConfig('utility-break', 'staffEntranceSignZone'), color: 0xc5d0b6 }),
     { type: 'taskTerminal', x: 8, y: 7, color: 0xbde1e0 },
     { type: 'taskTerminal', x: 7, y: 25, color: 0xa8bbd8 },
     { type: 'taskTerminal', x: 21, y: 15, color: 0xb7eef4 },
@@ -1871,10 +2088,13 @@ export const level1 = {
     officeProps.officeFrontGlass({ x: 31, y: 10.65, axis: 'x', roomId: 'wrong-department', anchor: 'accountsFrontBoundary' }),
     officeProps.copyMachine({ x: 18.85, y: 25.15, color: 0xb1b8b4, roomId: 'utility-break', anchor: 'copyCabinetZone' }),
     officeProps.monolithTerminal({ x: 31, y: 7.9, roomId: 'wrong-department', anchor: 'monolithZone' }),
-    officeProps.emergencyDoorFrame({ x: 25, y: 15, color: 0x7a615a, emissive: 0x1b0603, emissiveIntensity: 0.12, anchor: 'westEntranceFrame' }),
-    officeProps.emergencyDoorFrame({ x: 37, y: 15, color: 0x90a79a, emissive: 0x07150d, emissiveIntensity: 0.08, anchor: 'eastExitFrame' }),
-    officeProps.emergencyWarningTrim({ x: 31, y: 14.05, anchor: 'northEdgeWarningBeam' }),
-    officeProps.emergencyWarningTrim({ x: 31, y: 15.95, anchor: 'southEdgeWarningBeam' }),
+    officeProps.emergencyDoorFrame({ id: 'records-hall-west-frame', x: 25, y: 15, ...anchoredZoneConfig('crusher-corridor', 'frameZones', 'westEntranceFrame') }),
+    officeProps.emergencyDoorFrame({ id: 'records-hall-east-frame', x: 37, y: 15, ...anchoredZoneConfig('crusher-corridor', 'frameZones', 'eastExitFrame') }),
+    officeProps.emergencyWarningTrim({ id: 'records-hall-north-beam', x: 31, y: 14.05, ...anchoredZoneConfig('crusher-corridor', 'warningZones', 'northEdgeWarningBeam') }),
+    officeProps.emergencyWarningTrim({ id: 'records-hall-south-beam', x: 31, y: 15.95, ...anchoredZoneConfig('crusher-corridor', 'warningZones', 'southEdgeWarningBeam') }),
+    officeProps.emergencyWarningTrim({ id: 'records-hall-north-service-rail', x: 31, y: 14.08, yPos: 1.12, length: 10.8, height: 0.065, depth: 0.075, color: 0x43494b, emissiveIntensity: 0.025, ...anchoredZoneConfig('crusher-corridor', 'warningZones', 'northWallServiceRail') }),
+    officeProps.emergencyWarningTrim({ id: 'records-hall-south-service-rail', x: 31, y: 15.92, yPos: 1.12, length: 10.8, height: 0.065, depth: 0.075, color: 0x43494b, emissiveIntensity: 0.025, ...anchoredZoneConfig('crusher-corridor', 'warningZones', 'southWallServiceRail') }),
+    officeProps.warningSign({ id: 'records-hall-warning-sign', ...mountedSignConfig('crusher-corridor', 'corridorEntryEdgeSignZone'), color: 0xffb2a8, channelId: 'emergency-warning' }),
     officeProps.observationWindowBand({ x: 42.05, y: 24.8, roomId: 'final-route', anchor: 'eastObservationWindowBand' }),
     officeProps.finalDoorSlab({ x: 41, y: 27.8, roomId: 'final-route', anchor: 'finalDoorZone' })
   ]

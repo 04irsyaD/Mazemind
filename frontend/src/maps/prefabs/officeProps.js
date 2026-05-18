@@ -1,6 +1,7 @@
 import { CONSTANTS } from '../../core/Constants.js';
 
 const DEFAULT_MOUNT_HEIGHT = 1.9;
+const DEFAULT_WALL_MOUNT_OFFSET = 0.465;
 
 const metersToCells = meters => Number((meters / CONSTANTS.CELL_SIZE).toFixed(3));
 
@@ -114,7 +115,7 @@ export function mountToWall(room, wall, options = {}) {
   const y2 = roomBounds.y2 ?? y1;
   const centerX = (x1 + x2) / 2;
   const centerY = (y1 + y2) / 2;
-  const offset = options.wallOffset ?? 0.05;
+  const offset = options.wallOffset ?? DEFAULT_WALL_MOUNT_OFFSET;
   const normalizedWall = String(wall ?? '').toLowerCase();
 
   const mounted = {
@@ -240,6 +241,8 @@ export function validatePrefabObject(object) {
     if ((object.size?.width ?? 0) > 2.2) errors.push('sign size.width is too large');
     if ((object.size?.height ?? 0) > 0.55) errors.push('sign size.height is too large');
     if ((object.width ?? 0) > 0.75) errors.push('sign renderer width is too large');
+    if (!object.metadata?.roomId) errors.push('sign metadata.roomId is required');
+    if (!object.metadata?.anchor?.id) errors.push('sign metadata.anchor.id is required');
   }
 
   return { valid: errors.length === 0, errors };
@@ -493,15 +496,23 @@ export const officeProps = {
     return createPrefabObject('emergencyDoorFrame', {
       type: 'frame',
       axis: 'x',
-      width: 2.45,
-      height: 2.12,
-      postWidth: 0.14,
-      color: 0x7a615a,
+      width: 2.32,
+      height: 2.18,
+      postWidth: 0.115,
+      frameDepth: 0.32,
+      headerHeight: 0.24,
+      color: 0x4f5556,
+      panelColor: 0x2f3435,
+      accentColor: 0x9f5548,
+      emissive: 0x100302,
+      emissiveIntensity: 0.04,
+      roughness: 0.76,
+      metalness: 0.24,
       roomId: 'crusher-corridor',
-      mount: 'doorway',
+      mount: 'corridor-frame',
       visualOnly: true,
-      size: { width: 2.45, height: 2.12, depth: 0.14 },
-      purpose: 'entrance-frame'
+      size: { width: 2.32, height: 2.18, depth: 0.32 },
+      purpose: 'emergency-records-housing'
     }, config);
   },
 
@@ -509,17 +520,20 @@ export const officeProps = {
     return createPrefabObject('emergencyWarningTrim', {
       type: 'beam',
       axis: 'x',
-      length: 11.4,
-      height: 0.12,
-      yPos: 2.22,
-      color: 0x72564f,
-      emissive: 0x150302,
-      emissiveIntensity: 0.1,
+      length: 11.0,
+      height: 0.085,
+      depth: 0.12,
+      yPos: 2.18,
+      color: 0x5d5551,
+      emissive: 0x100302,
+      emissiveIntensity: 0.055,
+      roughness: 0.78,
+      metalness: 0.16,
       roomId: 'crusher-corridor',
       mount: 'corridor-edge',
       edgeAligned: true,
       visualOnly: true,
-      size: { width: 11.4, height: 0.12, depth: 0.18 },
+      size: { width: 11.0, height: 0.085, depth: 0.12 },
       purpose: 'warning-trim'
     }, config);
   },

@@ -726,6 +726,11 @@ export class MazeBuilder {
   }
 
   addFrame(config) {
+    if (config.metadata?.prefab === 'emergencyDoorFrame') {
+      this.addEmergencyDoorFrame(config);
+      return;
+    }
+
     const height = config.height ?? 2.18;
     const postWidth = config.postWidth ?? 0.18;
     const span = (config.width ?? 2.4) * CONSTANTS.CELL_SIZE;
@@ -766,12 +771,62 @@ export class MazeBuilder {
     this.guideMeshes.push(beam);
   }
 
+  addEmergencyDoorFrame(config) {
+    const group = new THREE.Group();
+    const height = config.height ?? 2.18;
+    const postWidth = config.postWidth ?? 0.115;
+    const span = (config.width ?? 2.32) * CONSTANTS.CELL_SIZE;
+    const depth = config.frameDepth ?? 0.32;
+    const headerHeight = config.headerHeight ?? 0.24;
+    const acrossX = config.axis === 'z';
+    const frameMaterial = this.createArchitectureMaterial(config, 0x4f5556);
+    const panelMaterial = this.createArchitectureMaterial({
+      color: config.panelColor ?? 0x2f3435,
+      roughness: 0.82,
+      metalness: 0.18
+    }, 0x2f3435);
+    const accentMaterial = this.createArchitectureMaterial({
+      color: config.accentColor ?? 0x9f5548,
+      emissive: config.accentEmissive ?? 0x140403,
+      emissiveIntensity: config.accentEmissiveIntensity ?? 0.045,
+      roughness: 0.7,
+      metalness: 0.14
+    }, 0x9f5548);
+
+    const addFrameBox = (alongOffset, centerY, scaleAlong, scaleY, material) => {
+      const position = acrossX ? [alongOffset, centerY, 0] : [0, centerY, alongOffset];
+      const scale = acrossX ? [scaleAlong, scaleY, depth] : [depth, scaleY, scaleAlong];
+      this.addBoxToGroup(group, position, scale, material);
+    };
+
+    const postOffsets = [-span / 2, span / 2];
+    postOffsets.forEach(offset => {
+      addFrameBox(offset, height / 2, postWidth, height, frameMaterial);
+      addFrameBox(offset, 0.84, postWidth * 1.55, 0.64, panelMaterial);
+      addFrameBox(offset, 0.14, postWidth * 2.15, 0.18, panelMaterial);
+    });
+
+    addFrameBox(0, height, span + postWidth * 2.2, headerHeight, frameMaterial);
+    addFrameBox(0, height - 0.16, span * 0.62, 0.06, accentMaterial);
+    addFrameBox(-span * 0.32, height - 0.36, span * 0.16, 0.05, accentMaterial);
+    addFrameBox(span * 0.32, height - 0.36, span * 0.16, 0.05, accentMaterial);
+
+    group.position.set(
+      config.x * CONSTANTS.CELL_SIZE,
+      0,
+      config.y * CONSTANTS.CELL_SIZE
+    );
+    this.scene.add(group);
+    this.guideMeshes.push(group);
+  }
+
   addBeam(config) {
+    const beamDepth = config.depth ?? config.size?.depth ?? 0.18;
     const mesh = new THREE.Mesh(
       new THREE.BoxGeometry(
-        config.axis === 'z' ? 0.18 : (config.length ?? 1) * CONSTANTS.CELL_SIZE,
+        config.axis === 'z' ? beamDepth : (config.length ?? 1) * CONSTANTS.CELL_SIZE,
         config.height ?? 0.16,
-        config.axis === 'z' ? (config.length ?? 1) * CONSTANTS.CELL_SIZE : 0.18
+        config.axis === 'z' ? (config.length ?? 1) * CONSTANTS.CELL_SIZE : beamDepth
       ),
       this.createArchitectureMaterial(config, 0x34384f)
     );

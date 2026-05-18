@@ -1,5 +1,6 @@
 import { CONSTANTS } from '../core/Constants.js';
 import { OfficeMazeGenerator } from './OfficeMazeGenerator.js';
+import { officeProps } from './prefabs/officeProps.js';
 
 const W = 45;
 const H = 31;
@@ -1819,21 +1820,25 @@ export const level1 = {
     ]
   },
   // Architecture placement contract:
+  // - Use officeProps prefabs instead of raw architecture objects when possible.
+  // - Do not add raw glassWall/sign/frame/beam objects manually unless absolutely necessary.
+  // - All future props should follow roomLayoutSpecs and roomLayoutAnchors.
+  // - Empty space is allowed; do not fill empty space with random props.
   // - Every architecture object must belong to a roomLayoutSpecs allowed object type.
   // - Every architecture object must sit inside a roomLayoutAnchors furniture/signage/glass/frame/window zone.
   // - If an object is not tied to a zone, remove it or move it to the nearest valid zone.
   // - Do not fill empty space just because it is empty.
   architecture: [
-    { type: 'receptionDesk', x: 4.2, y: 21.05, width: 2.25, depth: 0.5, color: 0xb7bbb7, panelColor: 0xacb2af, topColor: 0xd1d3cd, trimColor: 0x8b9698, roughness: 0.72, metalness: 0.04 },
-    { type: 'receptionDesk', x: 5.35, y: 16.25, width: 3.15, depth: 0.78, color: 0xb9bdb9, panelColor: 0xaeb5b2, topColor: 0xd5d7d0, trimColor: 0x879496, roughness: 0.72, metalness: 0.04 },
-    { type: 'sofa', x: 3.35, y: 19.18, width: 2.1, color: 0x6f7d82 },
-    { type: 'waitingChairs', x: 11.05, y: 19.05, count: 2, axis: 'z', spacing: 0.7, rotation: -Math.PI / 2, color: 0x394147 },
-    { type: 'coffeeTable', x: 4.25, y: 19.32, width: 1.1, depth: 0.55, color: 0xb8b8b0 },
-    { type: 'plant', x: 2.7, y: 18.35, color: 0x4f765f, potColor: 0x8c8980 },
-    { type: 'plant', x: 11.45, y: 20.7, color: 0x4b6f5a, potColor: 0x8a877f },
-    { type: 'sign', id: 'night-entry-sign', channelId: 'department-labels', x: 4.2, y: 22.05, text: 'NIGHT SHIFT\nENTRY', color: 0xcfe9e8, width: 1.3, height: 2.06, rotation: Math.PI },
-    { type: 'sign', id: 'intake-sign', channelId: 'department-labels', x: 5.35, y: 17.05, text: 'EMPLOYEE\nINTAKE', color: 0xd8ebe7, width: 1.25, height: 1.94, rotation: Math.PI },
-    { type: 'sign', id: 'main-hall-sign', channelId: 'department-labels', x: 11.2, y: 12.05, text: 'MAIN WORKSTATION\nHALL', color: 0xcfe9e8, width: 1.25, height: 2.14 },
+    officeProps.receptionDesk({ x: 4.2, y: 21.05, roomId: 'front-reception', anchor: 'receptionDeskZone' }),
+    officeProps.intakeDesk({ x: 5.35, y: 16.25, roomId: 'employee-intake', anchor: 'intakeDeskZone' }),
+    officeProps.officeSofa({ x: 3.35, y: 19.18, roomId: 'front-reception', anchor: 'seatingZone' }),
+    officeProps.waitingChairs({ x: 11.05, y: 19.05, axis: 'z', rotation: -Math.PI / 2, roomId: 'front-reception', anchor: 'sideWaitingChairZone' }),
+    officeProps.coffeeTable({ x: 4.25, y: 19.32, roomId: 'front-reception', anchor: 'seatingZone' }),
+    officeProps.pottedPlant({ x: 2.7, y: 18.35, roomId: 'front-reception', anchor: 'plantZones' }),
+    officeProps.pottedPlant({ x: 11.45, y: 20.7, color: 0x4b6f5a, potColor: 0x8a877f, roomId: 'front-reception', anchor: 'plantZones' }),
+    officeProps.wallSign({ id: 'night-entry-sign', x: 4.2, y: 22.05, text: 'NIGHT SHIFT\nENTRY', height: 2.06, rotation: Math.PI, roomId: 'front-reception', anchor: 'entryWallSignZone', face: 'south', purpose: 'entry-label' }),
+    officeProps.departmentSign({ id: 'intake-sign', x: 5.35, y: 17.05, text: 'EMPLOYEE\nINTAKE', color: 0xd8ebe7, height: 1.94, rotation: Math.PI, roomId: 'employee-intake', anchor: 'behindIntakeDeskSignZone', face: 'south' }),
+    officeProps.departmentSign({ id: 'main-hall-sign', x: 11.2, y: 12.05, text: 'MAIN WORKSTATION\nHALL', height: 2.14, roomId: 'main-workstation-hall', anchor: 'mainHallEntryWallSignZone', face: 'south' }),
     {
       type: 'taskTerminal',
       x: 5.85,
@@ -1843,76 +1848,30 @@ export const level1 = {
       surfaceHeight: 0.92,
       text: 'Welcome to Records Department.\nRetrieve your Shift Assignment Form.'
     },
-    { type: 'sign', id: 'wrong-dept-sign', channelId: 'department-labels', x: 31, y: 10.05, text: 'ACCOUNTS /\nRECORDS OFFICE', color: 0xd0d1bd, width: 1.45, height: 2.12 },
-    { type: 'sign', id: 'fake-exit-sign', channelId: 'department-labels', x: 41.85, y: 13.65, text: 'PUBLIC\nEXIT', color: 0x86f7b2, width: 1.15, height: 2.18, rotation: -Math.PI / 2 },
-    { type: 'sign', id: 'archive-sign', channelId: 'department-labels', x: 7, y: 22.05, text: 'RECORDS\nARCHIVE', color: 0xaebcff, width: 1.35, height: 2.1, rotation: Math.PI },
-    { type: 'sign', id: 'review-sign', channelId: 'department-labels', x: 19.2, y: 11.05, text: 'COUNSELLOR /\nREVIEW', color: 0xb7f7ff, width: 1.45, height: 2.12 },
-    { type: 'sign', id: 'staff-sign', channelId: 'department-labels', x: 22.5, y: 22.05, text: 'STAFF\nROOM', color: 0xc5d0b6, width: 1.15, height: 2.1, rotation: Math.PI },
+    officeProps.departmentSign({ id: 'wrong-dept-sign', x: 31, y: 10.05, text: 'ACCOUNTS /\nRECORDS OFFICE', color: 0xd0d1bd, height: 2.12, roomId: 'wrong-department', anchor: 'accountsFrontSignZone', face: 'south' }),
+    officeProps.exitSign({ id: 'fake-exit-sign', x: 41.85, y: 13.65, text: 'PUBLIC\nEXIT', height: 2.18, rotation: -Math.PI / 2, roomId: 'fake-exit', anchor: 'publicExitWallSignZone', face: 'east' }),
+    officeProps.departmentSign({ id: 'archive-sign', x: 7, y: 22.05, text: 'RECORDS\nARCHIVE', color: 0xaebcff, height: 2.1, rotation: Math.PI, roomId: 'archive', anchor: 'archiveEntranceSignZone', face: 'north' }),
+    officeProps.departmentSign({ id: 'review-sign', x: 19.2, y: 11.05, text: 'COUNSELLOR /\nREVIEW', color: 0xb7f7ff, height: 2.12, roomId: 'checkpoint-chamber', anchor: 'reviewDoorwaySignZone', face: 'north' }),
+    officeProps.departmentSign({ id: 'staff-sign', x: 22.5, y: 22.05, text: 'STAFF\nROOM', color: 0xc5d0b6, height: 2.1, rotation: Math.PI, roomId: 'utility-break', anchor: 'staffEntranceSignZone', face: 'north' }),
     { type: 'taskTerminal', x: 8, y: 7, color: 0xbde1e0 },
     { type: 'taskTerminal', x: 7, y: 25, color: 0xa8bbd8 },
     { type: 'taskTerminal', x: 21, y: 15, color: 0xb7eef4 },
     { type: 'taskTerminal', x: 31, y: 7, color: 0xdadcc9 },
-    {
-      type: 'cubicleCluster',
-      x: 3.7,
-      y: 5.25,
-      columns: 3,
-      rows: 4,
-      spacingX: 1.45,
-      spacingY: 1.46,
-      rotation: Math.PI / 2,
-      deskWidth: 3.32,
-      deskDepth: 1.64,
-      partitionHeight: 0.56,
-      frostedOpacity: 0.28,
-      color: 0xd8dedf,
-      partitionColor: 0xdde3e3,
-      frostedColor: 0xe2f2f1,
-      deskColor: 0xe2d8c5,
-      deskBodyColor: 0xd4dbda,
-      trimColor: 0x6d777b,
-      monitorColor: 0x6fa8ad,
-      monitorIntensity: 0.058,
-      chairColor: 0x252d33,
-      chairAccentColor: 0x37535c
-    },
-    {
-      type: 'cubicleCluster',
-      x: 12.5,
-      y: 5.25,
-      columns: 3,
-      rows: 4,
-      spacingX: 1.45,
-      spacingY: 1.46,
-      rotation: -Math.PI / 2,
-      deskWidth: 3.32,
-      deskDepth: 1.64,
-      partitionHeight: 0.56,
-      frostedOpacity: 0.26,
-      color: 0xd3dadc,
-      partitionColor: 0xd8dfe0,
-      frostedColor: 0xdceeee,
-      deskColor: 0xdedfd8,
-      deskBodyColor: 0xcbd3d2,
-      trimColor: 0x667176,
-      monitorColor: 0x659da4,
-      monitorIntensity: 0.052,
-      chairColor: 0x232b31,
-      chairAccentColor: 0x344e57
-    },
-    { type: 'copyMachine', x: 18.25, y: 5.25, color: 0xc9cfcb },
-    { type: 'serverRackRow', x: 5, y: 24, count: 4, axis: 'x', color: 0x3b4650, emissive: 0x20395f, emissiveIntensity: 0.12 },
-    { type: 'serverRackRow', x: 5, y: 27, count: 4, axis: 'x', color: 0x37414a, emissive: 0x20395f, emissiveIntensity: 0.12 },
-    { type: 'meetingTable', x: 21, y: 16.2, width: 2.3, depth: 1.0, color: 0xa7afb1 },
-    { type: 'glassWall', x: 18.05, y: 16.4, axis: 'z', length: 2.8, color: 0xb7d4dc, opacity: 0.15, frameColor: 0x6f858a, frostedOpacity: 0.26 },
-    { type: 'glassWall', x: 31, y: 10.65, axis: 'x', length: 4.0, color: 0xd0d6c8, opacity: 0.16, frameColor: 0x747d7a, frostedOpacity: 0.22, postSpacing: 1.25 },
-    { type: 'copyMachine', x: 18.85, y: 25.15, color: 0xb1b8b4 },
-    { type: 'monolith', x: 31, y: 7.9, width: 0.44, depth: 0.2, height: 1.25, color: 0x625b70, emissive: 0x967fb0, emissiveIntensity: 0.16 },
-    { type: 'frame', x: 25, y: 15, axis: 'x', width: 2.45, color: 0x7a615a, emissive: 0x1b0603, emissiveIntensity: 0.12 },
-    { type: 'frame', x: 37, y: 15, axis: 'x', width: 2.45, color: 0x90a79a, emissive: 0x07150d, emissiveIntensity: 0.08 },
-    { type: 'beam', x: 31, y: 14.05, axis: 'x', length: 11.4, color: 0x72564f, emissive: 0x150302, emissiveIntensity: 0.1 },
-    { type: 'beam', x: 31, y: 15.95, axis: 'x', length: 11.4, color: 0x72564f, emissive: 0x150302, emissiveIntensity: 0.1 },
-    { type: 'windowBand', x: 42.05, y: 24.8, axis: 'z', length: 5, color: 0xa6dce4, emissiveIntensity: 0.08 },
-    { type: 'doorSlab', x: 41, y: 27.8, width: 1.6, color: 0xaebdb8, emissive: 0x0a2013, emissiveIntensity: 0.08 }
+    officeProps.workstationClusterLeft({ x: 3.7, y: 5.25, roomId: 'main-workstation-hall', anchor: 'leftWorkstationRows' }),
+    officeProps.workstationClusterRight({ x: 12.5, y: 5.25, roomId: 'main-workstation-hall', anchor: 'rightWorkstationRows' }),
+    officeProps.copyMachine({ x: 18.25, y: 5.25, roomId: 'main-workstation-hall', anchor: 'printerZone' }),
+    officeProps.serverRackRow({ x: 5, y: 24, roomId: 'archive', anchor: 'rackRowNorth' }),
+    officeProps.serverRackRow({ x: 5, y: 27, color: 0x37414a, roomId: 'archive', anchor: 'rackRowSouth' }),
+    officeProps.meetingTable({ x: 21, y: 16.2, roomId: 'checkpoint-chamber', anchor: 'meetingTableZone' }),
+    officeProps.reviewGlassPartition({ x: 18.05, y: 16.4, axis: 'z', roomId: 'checkpoint-chamber', anchor: 'westBoundaryPartition' }),
+    officeProps.officeFrontGlass({ x: 31, y: 10.65, axis: 'x', roomId: 'wrong-department', anchor: 'accountsFrontBoundary' }),
+    officeProps.copyMachine({ x: 18.85, y: 25.15, color: 0xb1b8b4, roomId: 'utility-break', anchor: 'copyCabinetZone' }),
+    officeProps.monolithTerminal({ x: 31, y: 7.9, roomId: 'wrong-department', anchor: 'monolithZone' }),
+    officeProps.emergencyDoorFrame({ x: 25, y: 15, color: 0x7a615a, emissive: 0x1b0603, emissiveIntensity: 0.12, anchor: 'westEntranceFrame' }),
+    officeProps.emergencyDoorFrame({ x: 37, y: 15, color: 0x90a79a, emissive: 0x07150d, emissiveIntensity: 0.08, anchor: 'eastExitFrame' }),
+    officeProps.emergencyWarningTrim({ x: 31, y: 14.05, anchor: 'northEdgeWarningBeam' }),
+    officeProps.emergencyWarningTrim({ x: 31, y: 15.95, anchor: 'southEdgeWarningBeam' }),
+    officeProps.observationWindowBand({ x: 42.05, y: 24.8, roomId: 'final-route', anchor: 'eastObservationWindowBand' }),
+    officeProps.finalDoorSlab({ x: 41, y: 27.8, roomId: 'final-route', anchor: 'finalDoorZone' })
   ]
 };

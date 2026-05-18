@@ -1,6 +1,6 @@
 import { CONSTANTS } from '../core/Constants.js';
 import { OfficeMazeGenerator } from './OfficeMazeGenerator.js';
-import { mountToWall, normalizeAnchor, officeProps, resolveWallRotation } from './prefabs/officeProps.js';
+import { mountToWall, normalizeAnchor, officeProps, resolveWallRotation, validatePrefabObjects } from './prefabs/officeProps.js';
 
 const W = 45;
 const H = 31;
@@ -1484,14 +1484,14 @@ const roomLayoutAnchors = {
   }
 };
 
-function resolveWallCoord(room, wall, offset = 0) {
+function resolveWallCoord(room, wall, alongWallOffset = 0) {
   const bounds = room.roomBounds ?? room;
   const normalizedWall = String(wall ?? '').toLowerCase();
   const center = normalizedWall === 'east' || normalizedWall === 'west'
     ? (bounds.y1 + bounds.y2) / 2
     : (bounds.x1 + bounds.x2) / 2;
 
-  return Number((center + offset).toFixed(2));
+  return Number((center + alongWallOffset).toFixed(2));
 }
 
 function mountedSignConfig(roomId, zoneId) {
@@ -1502,8 +1502,10 @@ function mountedSignConfig(roomId, zoneId) {
   }
 
   const wall = zone.wall;
+  // Signage zone offset means along-wall placement. wallOffset means distance away from the wall surface.
+  const alongWallOffset = zone.alongWallOffset ?? zone.offset;
   const mounted = mountToWall(room, wall, {
-    coord: zone.coord ?? resolveWallCoord(room, wall, zone.offset),
+    coord: zone.coord ?? resolveWallCoord(room, wall, alongWallOffset),
     mount: zone.mount,
     mountHeight: zone.height,
     rotation: zone.rotation ?? resolveWallRotation(wall),
@@ -2060,24 +2062,16 @@ export const level1 = {
     officeProps.wallSign({ id: 'night-entry-sign', ...mountedSignConfig('front-reception', 'entryWallSignZone'), purpose: 'entry-label' }),
     officeProps.departmentSign({ id: 'intake-sign', ...mountedSignConfig('employee-intake', 'behindIntakeDeskSignZone'), color: 0xd8ebe7 }),
     officeProps.departmentSign({ id: 'main-hall-sign', ...mountedSignConfig('main-workstation-hall', 'mainHallEntryWallSignZone') }),
-    {
-      type: 'taskTerminal',
-      x: 5.85,
-      y: 16.35,
-      color: 0xa6dce4,
-      desktop: true,
-      surfaceHeight: 0.92,
-      text: 'Welcome to Records Department.\nRetrieve your Shift Assignment Form.'
-    },
+    officeProps.taskTerminal({ id: 'shift-assignment-terminal', x: 5.85, y: 16.35, color: 0xa6dce4, desktop: true, surfaceHeight: 0.92, text: 'Welcome to Records Department.\nRetrieve your Shift Assignment Form.', roomId: 'employee-intake', anchor: 'intakeDeskZone' }),
     officeProps.departmentSign({ id: 'wrong-dept-sign', ...mountedSignConfig('wrong-department', 'accountsFrontSignZone'), color: 0xd0d1bd }),
     officeProps.exitSign({ id: 'fake-exit-sign', ...mountedSignConfig('fake-exit', 'publicExitWallSignZone') }),
     officeProps.wallSign({ id: 'archive-sign', ...mountedSignConfig('archive', 'archiveEntranceSignZone'), color: 0xaebcff }),
     officeProps.departmentSign({ id: 'review-sign', ...mountedSignConfig('checkpoint-chamber', 'reviewDoorwaySignZone'), color: 0xb7f7ff }),
     officeProps.wallSign({ id: 'staff-sign', ...mountedSignConfig('utility-break', 'staffEntranceSignZone'), color: 0xc5d0b6 }),
-    { type: 'taskTerminal', x: 8, y: 7, color: 0xbde1e0 },
-    { type: 'taskTerminal', x: 7, y: 25, color: 0xa8bbd8 },
-    { type: 'taskTerminal', x: 21, y: 15, color: 0xb7eef4 },
-    { type: 'taskTerminal', x: 31, y: 7, color: 0xdadcc9 },
+    officeProps.taskTerminal({ id: 'assigned-desk-terminal', x: 8, y: 7, color: 0xbde1e0, roomId: 'main-workstation-hall', anchor: 'assignedDeskTerminalZone' }),
+    officeProps.taskTerminal({ id: 'archive-index-terminal', x: 7, y: 25, color: 0xa8bbd8, roomId: 'archive', anchor: 'archiveIndexPacketZone' }),
+    officeProps.taskTerminal({ id: 'review-ledger-terminal', x: 21, y: 15, color: 0xb7eef4, roomId: 'checkpoint-chamber', anchor: 'terminalZone' }),
+    officeProps.taskTerminal({ id: 'transfer-notice-terminal', x: 31, y: 7, color: 0xdadcc9, roomId: 'wrong-department', anchor: 'terminalZone' }),
     officeProps.workstationClusterLeft({ x: 3.7, y: 5.25, roomId: 'main-workstation-hall', anchor: 'leftWorkstationRows' }),
     officeProps.workstationClusterRight({ x: 12.5, y: 5.25, roomId: 'main-workstation-hall', anchor: 'rightWorkstationRows' }),
     officeProps.copyMachine({ x: 18.25, y: 5.25, roomId: 'main-workstation-hall', anchor: 'printerZone' }),
@@ -2099,3 +2093,235 @@ export const level1 = {
     officeProps.finalDoorSlab({ x: 41, y: 27.8, roomId: 'final-route', anchor: 'finalDoorZone' })
   ]
 };
+
+const zoneCollections = [
+  'furnitureZones',
+  'signageZones',
+  'glassZones',
+  'frameZones',
+  'warningZones',
+  'hazardVisualZones',
+  'beamZones'
+];
+
+const fallbackCriticalBounds = {
+  'main-workstation-hall:centralAisle': { x1: 7.2, y1: 5.8, x2: 10.8, y2: 12.2 },
+  'fake-exit:pathToFakeExitTrigger': { x1: 36.0, y1: 14.0, x2: 41.4, y2: 18.4 },
+  'final-route:centerCorridor': { x1: 39.1, y1: 22.0, x2: 41.4, y2: 27.4 }
+};
+
+const criticalForbiddenZoneIds = {
+  'main-workstation-hall': ['centralAisle'],
+  'checkpoint-chamber': ['connectorExits', 'reviewEntrance'],
+  'crusher-corridor': ['centerLane'],
+  'fake-exit': ['pathToFakeExitTrigger'],
+  'final-route': ['centerCorridor']
+};
+
+const allowedCriticalOverlapAnchors = {
+  'main-workstation-hall:centralAisle': ['assignedDeskTerminalZone']
+};
+
+function asArray(value) {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function getObjectName(object, index) {
+  return object.id ?? object.metadata?.prefab ?? `${object.type ?? 'architecture'}#${index}`;
+}
+
+function getObjectRoomId(object) {
+  return object.metadata?.roomId ?? object.roomId;
+}
+
+function getObjectAnchorId(object) {
+  const anchor = object.metadata?.anchor ?? object.anchor;
+  if (!anchor) return undefined;
+  if (typeof anchor === 'string') return anchor;
+  return anchor.id;
+}
+
+function collectRoomZones(anchor) {
+  const zones = [];
+  zoneCollections.forEach(collectionName => {
+    anchor?.[collectionName]?.forEach(zone => zones.push({ ...zone, collectionName }));
+  });
+  if (anchor?.windowZone) zones.push({ ...anchor.windowZone, collectionName: 'windowZone' });
+  return zones;
+}
+
+function findAnchorZone(anchor, zoneId) {
+  return collectRoomZones(anchor).find(zone => zone.id === zoneId);
+}
+
+function zoneMatchesCollection(zone, allowedCollections) {
+  return allowedCollections.includes(zone?.collectionName);
+}
+
+function expectedAnchorCollections(object) {
+  const prefab = object.metadata?.prefab;
+  if (object.type === 'sign') return ['signageZones'];
+  if (object.type === 'glassWall') return ['glassZones'];
+  if (prefab === 'emergencyDoorFrame') return ['frameZones', 'hazardVisualZones'];
+  if (prefab === 'emergencyWarningTrim') return ['warningZones'];
+  if (object.type === 'windowBand') return ['windowZone'];
+  if (object.type === 'doorSlab') return ['furnitureZones'];
+  return zoneCollections.concat('windowZone');
+}
+
+function normalizeBounds(bounds) {
+  return asArray(bounds).filter(Boolean);
+}
+
+function boundsOverlap(a, b) {
+  return a.x1 <= b.x2 && a.x2 >= b.x1 && a.y1 <= b.y2 && a.y2 >= b.y1;
+}
+
+function getObjectBounds(object, anchorZone) {
+  if (typeof object.x !== 'number' || typeof object.y !== 'number') return null;
+
+  const prefab = object.metadata?.prefab;
+  if (prefab === 'emergencyDoorFrame') return null;
+  if (object.type !== 'sign' && anchorZone?.bounds && !Array.isArray(anchorZone.bounds)) return anchorZone.bounds;
+
+  let width = object.width ?? object.size?.width ?? 0.4;
+  let depth = object.depth ?? object.size?.depth ?? 0.4;
+
+  if (object.type === 'sign') {
+    width = object.width ?? 0.5;
+    depth = Math.max(object.depth ?? object.size?.depth ?? 0.04, 0.04);
+  }
+
+  if (object.type === 'beam') {
+    const length = object.length ?? object.size?.width ?? 1;
+    const beamDepth = object.depth ?? object.size?.depth ?? 0.18;
+    width = object.axis === 'z' ? beamDepth : length;
+    depth = object.axis === 'z' ? length : beamDepth;
+  }
+
+  return {
+    x1: object.x - width / 2,
+    x2: object.x + width / 2,
+    y1: object.y - depth / 2,
+    y2: object.y + depth / 2
+  };
+}
+
+function shouldIgnoreCriticalOverlap(object, roomId, zoneId) {
+  const anchorId = getObjectAnchorId(object);
+  const allowedAnchors = allowedCriticalOverlapAnchors[`${roomId}:${zoneId}`] ?? [];
+  if (allowedAnchors.includes(anchorId)) return true;
+  return object.metadata?.prefab === 'emergencyDoorFrame' && roomId === 'crusher-corridor';
+}
+
+export function validateArchitectureAgainstAnchors(level) {
+  const errors = [];
+  const warnings = [];
+  const architecture = level.architecture ?? [];
+  const anchors = level.roomLayoutAnchors ?? {};
+  const specs = level.roomLayoutSpecs?.rooms ?? {};
+  const prefabObjects = architecture.filter(object => object.metadata?.prefab);
+
+  validatePrefabObjects(prefabObjects).forEach(result => {
+    if (!result.valid) {
+      const object = prefabObjects[result.index];
+      errors.push(`${getObjectName(object, result.index)} prefab validation failed: ${result.errors.join('; ')}`);
+    }
+  });
+
+  architecture.forEach((object, index) => {
+    const name = getObjectName(object, index);
+    const roomId = getObjectRoomId(object);
+    const anchorId = getObjectAnchorId(object);
+
+    if (!object.metadata?.prefab) {
+      warnings.push(`${name} is raw architecture without metadata.prefab`);
+    }
+
+    if (!roomId) {
+      warnings.push(`${name} is missing roomId metadata`);
+      return;
+    }
+
+    const roomAnchor = anchors[roomId];
+    if (!roomAnchor) {
+      errors.push(`${name} references unknown roomLayoutAnchors entry "${roomId}"`);
+      return;
+    }
+
+    if (!anchorId) {
+      warnings.push(`${name} is missing anchor metadata`);
+      return;
+    }
+
+    const zone = findAnchorZone(roomAnchor, anchorId);
+    if (!zone) {
+      errors.push(`${name} anchor "${anchorId}" does not exist in ${roomId}`);
+      return;
+    }
+
+    const expectedCollections = expectedAnchorCollections(object);
+    if (!zoneMatchesCollection(zone, expectedCollections)) {
+      errors.push(`${name} anchor "${anchorId}" is in ${zone.collectionName}, expected ${expectedCollections.join(' or ')}`);
+    }
+
+    if (object.type === 'glassWall') {
+      if (specs[roomId]?.glassPolicy?.allowed !== true) {
+        errors.push(`${name} is glassWall in ${roomId}, but room glassPolicy forbids glass`);
+      }
+      if (object.boundaryAligned !== true) {
+        errors.push(`${name} glassWall must be boundaryAligned`);
+      }
+    }
+  });
+
+  Object.entries(criticalForbiddenZoneIds).forEach(([roomId, zoneIds]) => {
+    const roomAnchor = anchors[roomId];
+    if (!roomAnchor) return;
+
+    zoneIds.forEach(zoneId => {
+      const zone = roomAnchor.forbiddenZones?.find(candidate => candidate.id === zoneId);
+      const zoneBounds = normalizeBounds(zone?.bounds ?? fallbackCriticalBounds[`${roomId}:${zoneId}`]);
+      if (!zoneBounds.length) {
+        warnings.push(`${roomId}/${zoneId} has no simple bounds for clear-path validation`);
+        return;
+      }
+
+      architecture
+        .filter(object => getObjectRoomId(object) === roomId)
+        .forEach((object, index) => {
+          if (shouldIgnoreCriticalOverlap(object, roomId, zoneId)) return;
+
+          const objectAnchorZone = findAnchorZone(anchors[roomId], getObjectAnchorId(object));
+          const objectBounds = getObjectBounds(object, objectAnchorZone);
+          if (!objectBounds) return;
+
+          const overlapsCriticalZone = zoneBounds.some(bounds => boundsOverlap(objectBounds, bounds));
+          if (overlapsCriticalZone) {
+            warnings.push(`${getObjectName(object, index)} overlaps critical clear path ${roomId}/${zoneId}`);
+          }
+        });
+    });
+  });
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings,
+    summary: {
+      architectureCount: architecture.length,
+      prefabCount: prefabObjects.length,
+      rawCount: architecture.length - prefabObjects.length,
+      signCount: architecture.filter(object => object.type === 'sign').length,
+      glassCount: architecture.filter(object => object.type === 'glassWall').length,
+      visualOnlyCount: architecture.filter(object => object.metadata?.visualOnly === true).length
+    }
+  };
+}
+
+const architectureValidation = validateArchitectureAgainstAnchors(level1);
+
+if (CONSTANTS.DEV_MODE && (!architectureValidation.valid || architectureValidation.warnings.length)) {
+  console.warn('Level architecture validation', architectureValidation);
+}

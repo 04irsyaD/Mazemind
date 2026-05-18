@@ -115,6 +115,7 @@ export function mountToWall(room, wall, options = {}) {
   const y2 = roomBounds.y2 ?? y1;
   const centerX = (x1 + x2) / 2;
   const centerY = (y1 + y2) / 2;
+  // wallOffset is the outward distance from the wall surface, in grid-cell units.
   const offset = options.wallOffset ?? DEFAULT_WALL_MOUNT_OFFSET;
   const normalizedWall = String(wall ?? '').toLowerCase();
 
@@ -148,6 +149,11 @@ const signWithDefaults = (prefab, defaults, config = {}) => {
     ...defaults.size,
     ...config.size
   };
+  // Sign units are intentionally split:
+  // - size.width/height/depth is the semantic prefab panel size in meters.
+  // - width is the renderer plane width in grid-cell units after conversion.
+  // - panelHeight is the renderer plane height in meters.
+  // - maxWidth clamps the semantic size.width before conversion.
   const maxWidth = config.maxWidth ?? defaults.maxWidth ?? sizeInput.width;
   const signWidth = config.allowOversize ? sizeInput.width : Math.min(sizeInput.width, maxWidth);
   const size = {
@@ -243,6 +249,10 @@ export function validatePrefabObject(object) {
     if ((object.width ?? 0) > 0.75) errors.push('sign renderer width is too large');
     if (!object.metadata?.roomId) errors.push('sign metadata.roomId is required');
     if (!object.metadata?.anchor?.id) errors.push('sign metadata.anchor.id is required');
+  }
+
+  if (['emergencyDoorFrame', 'emergencyWarningTrim'].includes(object.metadata?.prefab) && object.metadata.visualOnly !== true) {
+    errors.push(`${object.metadata.prefab} metadata.visualOnly must be true`);
   }
 
   return { valid: errors.length === 0, errors };
@@ -428,6 +438,15 @@ export const officeProps = {
       emissiveIntensity: 0.16,
       size: { width: 0.44, height: 1.25, depth: 0.2 },
       purpose: 'terminal-monolith'
+    }, config);
+  },
+
+  taskTerminal(config = {}) {
+    return createPrefabObject('taskTerminal', {
+      type: 'taskTerminal',
+      color: 0xbde1e0,
+      size: { width: 0.6, height: 1.2, depth: 0.45 },
+      purpose: 'objective-terminal'
     }, config);
   },
 

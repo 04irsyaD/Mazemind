@@ -1300,7 +1300,7 @@ export class MazeBuilder {
       }
     };
     const mesh = new THREE.Mesh(
-      new THREE.PlaneGeometry((config.width ?? 1.8) * CONSTANTS.CELL_SIZE, 0.52),
+      new THREE.PlaneGeometry((config.width ?? 1.8) * CONSTANTS.CELL_SIZE, config.panelHeight ?? config.size?.height ?? 0.52),
       material
     );
     mesh.position.set(

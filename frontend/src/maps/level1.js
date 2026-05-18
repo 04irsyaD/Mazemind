@@ -243,7 +243,7 @@ const roomLayoutSpecs = {
         minClusterWallGapCells: [0.6, 1.0],
         rules: ['Keep the route to Assigned Desk File clear.']
       },
-      allowedArchitecture: ['cubicleCluster', 'copyMachine', 'printer', 'plant', 'sign'],
+      allowedArchitecture: ['cubicleCluster', 'copyMachine', 'printer', 'plant', 'sign', 'taskTerminal'],
       forbiddenArchitecture: ['glassWall', 'column', 'serverRackRow', 'emergency beams', 'tall maze-like partitions'],
       objectCountLimits: {
         cubicleCluster: 2,
@@ -469,7 +469,7 @@ const roomLayoutSpecs = {
         minWidthCells: 1.5,
         rules: ['Path to fake exit trigger must be clear.']
       },
-      allowedArchitecture: ['doorSlab', 'exit sign', 'minimal wall trim'],
+      allowedArchitecture: ['doorSlab', 'exit sign', 'sign', 'minimal wall trim'],
       forbiddenArchitecture: ['glassWall', 'column', 'cubicleCluster', 'serverRackRow', 'large furniture', 'clutter'],
       objectCountLimits: {
         doorSlab: 1,
@@ -579,6 +579,756 @@ const roomLayoutSpecs = {
         'Do not change final route logic or final access behavior.'
       ]
     }
+  }
+};
+
+const roomLayoutAnchors = {
+  'front-reception': {
+    roomBounds: { x1: 2, y1: 18, x2: 12, y2: 21 },
+    entranceSide: 'south/front spawn side',
+    exitSide: 'north via reception-to-intake',
+    focalPoint: {
+      id: 'reception-waiting-orientation',
+      x: 4.2,
+      y: 21.05,
+      radiusCells: 1.4,
+      notes: 'Reception desk anchors the waiting read without blocking the spawn-to-intake lane.'
+    },
+    mainAisle: {
+      id: 'spawn-to-intake-clear-lane',
+      connectorIds: ['reception-to-intake'],
+      points: [
+        { x: 8.2, y: 20.65 },
+        { x: 7.4, y: 19.35 },
+        { x: 7.0, y: 17.5 }
+      ],
+      widthCells: 2.5,
+      rule: 'Keep the player start and center route clear from spawn to Employee Intake.'
+    },
+    furnitureZones: [
+      {
+        id: 'seatingZone',
+        allowedTypes: ['sofa', 'coffeeTable'],
+        bounds: { x1: 3.0, y1: 18.8, x2: 5.3, y2: 20.1 },
+        anchoredObjects: ['sofa', 'coffeeTable']
+      },
+      {
+        id: 'sideWaitingChairZone',
+        allowedTypes: ['waitingChairs'],
+        bounds: { x1: 10.6, y1: 18.6, x2: 11.5, y2: 20.2 },
+        anchoredObjects: ['waitingChairs'],
+        notes: 'Existing chairs stay against the side wall, outside the center route.'
+      },
+      {
+        id: 'receptionDeskZone',
+        allowedTypes: ['receptionDesk'],
+        bounds: { x1: 3.0, y1: 20.65, x2: 5.5, y2: 21.35 },
+        center: { x: 4.2, y: 21.05 },
+        anchoredObjects: ['front-reception-desk']
+      },
+      {
+        id: 'plantZones',
+        allowedTypes: ['plant'],
+        zones: [
+          { x1: 2.35, y1: 18.15, x2: 3.15, y2: 18.8 },
+          { x1: 11.0, y1: 20.35, x2: 11.8, y2: 21.05 }
+        ],
+        anchoredObjects: ['front-left-plant', 'front-right-plant']
+      }
+    ],
+    signageZones: [
+      {
+        id: 'entryWallSignZone',
+        allowedTypes: ['sign'],
+        bounds: { x1: 3.4, y1: 21.85, x2: 5.1, y2: 22.2 },
+        anchoredObjects: ['night-entry-sign'],
+        mount: 'south wall'
+      }
+    ],
+    forbiddenZones: [
+      {
+        id: 'spawnArea',
+        bounds: { x1: 7.2, y1: 20.1, x2: 9.2, y2: 21.1 },
+        rule: 'No architecture in the player start area.'
+      },
+      {
+        id: 'centerRouteToIntake',
+        pathRef: 'spawn-to-intake-clear-lane',
+        widthCells: 2.5,
+        rule: 'No props or signs in the direct spawn-to-intake lane.'
+      }
+    ],
+    clearPathWidthCells: 2.5,
+    notes: [
+      'Safe first room: furniture reads as waiting area, not a maze.',
+      'Do not place filler objects in open center space.'
+    ]
+  },
+  'employee-intake': {
+    roomBounds: { x1: 2, y1: 14, x2: 12, y2: 17 },
+    entranceSide: 'south from reception',
+    exitSide: 'north toward main-workstation-hall',
+    focalPoint: {
+      id: 'shift-assignment-form',
+      objectiveId: 'shift-assignment-form',
+      x: 5.35,
+      y: 16.16,
+      radiusCells: 2.35,
+      notes: 'The form and intake desk are the only focal read.'
+    },
+    mainAisle: {
+      id: 'reception-to-intake-to-workstation-path',
+      connectorIds: ['reception-to-intake', 'intake-to-workstations'],
+      points: [
+        { x: 7.0, y: 17.5 },
+        { x: 5.35, y: 16.16 },
+        { x: 8.0, y: 13.0 }
+      ],
+      widthCells: 2.0,
+      rule: 'Keep a continuous route from Reception past the desk to Workstation Hall.'
+    },
+    furnitureZones: [
+      {
+        id: 'intakeDeskZone',
+        allowedTypes: ['receptionDesk', 'intakeDesk', 'taskTerminal'],
+        bounds: { x1: 3.6, y1: 15.75, x2: 6.95, y2: 16.75 },
+        center: { x: 5.35, y: 16.25 },
+        anchoredObjects: ['employee-intake-desk', 'shift-assignment-terminal']
+      },
+      {
+        id: 'optionalSideCabinetZone',
+        allowedTypes: ['small cabinet', 'copyMachine'],
+        bounds: { x1: 9.6, y1: 15.1, x2: 11.4, y2: 16.8 },
+        notes: 'Optional wall-only utility zone; leave empty unless there is a clear purpose.'
+      }
+    ],
+    signageZones: [
+      {
+        id: 'behindIntakeDeskSignZone',
+        allowedTypes: ['sign'],
+        bounds: { x1: 4.7, y1: 16.9, x2: 6.1, y2: 17.2 },
+        anchoredObjects: ['intake-sign'],
+        mount: 'south wall behind intake desk'
+      }
+    ],
+    forbiddenZones: [
+      {
+        id: 'workstationConnectorMouth',
+        bounds: { x1: 6.0, y1: 13.9, x2: 10.0, y2: 14.8 },
+        rule: 'Do not place objects in the connector to Workstation Hall.'
+      },
+      {
+        id: 'centerMovementLane',
+        pathRef: 'reception-to-intake-to-workstation-path',
+        widthCells: 2.0,
+        rule: 'Keep the desk approachable without forcing a squeeze around it.'
+      }
+    ],
+    clearPathWidthCells: 2.0,
+    notes: [
+      'This room introduces the first task and should stay administrative.',
+      'Do not add side furniture unless it remains wall-mounted or wall-adjacent.'
+    ]
+  },
+  'main-workstation-hall': {
+    roomBounds: { x1: 2, y1: 4, x2: 19, y2: 12 },
+    entranceSide: 'south from employee-intake',
+    exitSide: 'east/northeast toward checkpoint-chamber',
+    focalPoint: {
+      id: 'assigned-desk-file',
+      objectiveId: 'assigned-desk-file',
+      x: 8.0,
+      y: 7.0,
+      radiusCells: 2.45,
+      notes: 'Assigned Desk File sits on the aisle edge and must stay readable from the main path.'
+    },
+    mainAisle: {
+      id: 'workstation-central-aisle',
+      connectorIds: ['intake-to-workstations', 'workstation-to-review'],
+      points: [
+        { x: 8.0, y: 12.0 },
+        { x: 8.0, y: 7.0 },
+        { x: 12.0, y: 7.0 },
+        { x: 18.2, y: 12.4 }
+      ],
+      widthCells: [2.5, 3.5],
+      rule: 'Central aisle stays open between left and right workstation rows.'
+    },
+    furnitureZones: [
+      {
+        id: 'leftWorkstationRows',
+        allowedTypes: ['cubicleCluster'],
+        bounds: { x1: 3.2, y1: 4.8, x2: 7.1, y2: 10.4 },
+        center: { x: 3.7, y: 5.25 },
+        anchoredObjects: ['left-cubicle-cluster']
+      },
+      {
+        id: 'assignedDeskTerminalZone',
+        allowedTypes: ['taskTerminal'],
+        bounds: { x1: 7.6, y1: 6.6, x2: 8.4, y2: 7.4 },
+        center: { x: 8.0, y: 7.0 },
+        anchoredObjects: ['assigned-desk-terminal'],
+        notes: 'Only the objective marker belongs inside the interaction radius.'
+      },
+      {
+        id: 'rightWorkstationRows',
+        allowedTypes: ['cubicleCluster'],
+        bounds: { x1: 12.0, y1: 4.8, x2: 16.4, y2: 10.4 },
+        center: { x: 12.5, y: 5.25 },
+        anchoredObjects: ['right-cubicle-cluster']
+      },
+      {
+        id: 'printerZone',
+        allowedTypes: ['copyMachine', 'printer'],
+        bounds: { x1: 17.7, y1: 4.8, x2: 18.8, y2: 5.9 },
+        center: { x: 18.25, y: 5.25 },
+        anchoredObjects: ['main-hall-copy-machine']
+      }
+    ],
+    signageZones: [
+      {
+        id: 'mainHallEntryWallSignZone',
+        allowedTypes: ['sign'],
+        bounds: { x1: 10.5, y1: 11.85, x2: 12.2, y2: 12.25 },
+        anchoredObjects: ['main-hall-sign'],
+        mount: 'south entrance wall, offset from connector center'
+      }
+    ],
+    forbiddenZones: [
+      {
+        id: 'centralAisle',
+        pathRef: 'workstation-central-aisle',
+        widthCells: [2.5, 3.5],
+        rule: 'No desk rows, signs, glass, or utility props in the central aisle.'
+      },
+      {
+        id: 'reviewConnectorMouth',
+        bounds: { x1: 16.8, y1: 11.0, x2: 20.0, y2: 14.0 },
+        rule: 'Keep the connector to review clear.'
+      },
+      {
+        id: 'assignedDeskFileInteractionRadius',
+        center: { x: 8.0, y: 7.0 },
+        radiusCells: 2.45,
+        rule: 'No additional architecture inside the objective radius beyond assignedDeskTerminalZone.'
+      }
+    ],
+    clearPathWidthCells: [2.5, 3.5],
+    notes: [
+      'Workstation rows stay organized on the sides.',
+      'The room should never be solved by weaving through random desks.'
+    ]
+  },
+  archive: {
+    roomBounds: { x1: 3, y1: 23, x2: 15, y2: 28 },
+    entranceSide: 'north/service connector from intake/archive aisle',
+    exitSide: 'north back toward the intake/archive service aisle',
+    focalPoint: {
+      id: 'archive-index-packet',
+      objectiveId: 'archive-index-packet',
+      x: 7.0,
+      y: 25.0,
+      radiusCells: 2.45,
+      notes: 'Archive Index Packet sits between rack rows with the center aisle kept open.'
+    },
+    mainAisle: {
+      id: 'archive-rack-aisle',
+      connectorIds: ['intake-to-archive'],
+      points: [
+        { x: 10.5, y: 23.5 },
+        { x: 7.0, y: 25.0 }
+      ],
+      widthCells: [1.8, 2.2],
+      rule: 'Keep the aisle between rack rows open from entrance to objective.'
+    },
+    furnitureZones: [
+      {
+        id: 'rackRowNorth',
+        allowedTypes: ['serverRackRow', 'archive racks'],
+        bounds: { x1: 4.5, y1: 23.6, x2: 9.6, y2: 24.4 },
+        center: { x: 7.0, y: 24.0 },
+        anchoredObjects: ['archive-racks-north']
+      },
+      {
+        id: 'archiveIndexPacketZone',
+        allowedTypes: ['taskTerminal', 'small table'],
+        bounds: { x1: 6.5, y1: 24.55, x2: 7.5, y2: 25.45 },
+        center: { x: 7.0, y: 25.0 },
+        anchoredObjects: ['archive-index-terminal'],
+        notes: 'Only the archive objective marker belongs in the aisle.'
+      },
+      {
+        id: 'rackRowSouth',
+        allowedTypes: ['serverRackRow', 'archive racks'],
+        bounds: { x1: 4.5, y1: 26.6, x2: 9.6, y2: 27.4 },
+        center: { x: 7.0, y: 27.0 },
+        anchoredObjects: ['archive-racks-south']
+      }
+    ],
+    signageZones: [
+      {
+        id: 'archiveEntranceSignZone',
+        allowedTypes: ['sign'],
+        bounds: { x1: 6.2, y1: 21.85, x2: 7.8, y2: 22.25 },
+        anchoredObjects: ['archive-sign'],
+        mount: 'north entrance wall'
+      }
+    ],
+    forbiddenZones: [
+      {
+        id: 'aisleBetweenRackRows',
+        bounds: { x1: 4.4, y1: 24.45, x2: 10.0, y2: 26.45 },
+        rule: 'No additional racks or furniture in the aisle.'
+      },
+      {
+        id: 'archiveObjectiveRadius',
+        center: { x: 7.0, y: 25.0 },
+        radiusCells: 2.45,
+        rule: 'No objects may crowd the archive objective.'
+      }
+    ],
+    clearPathWidthCells: [1.8, 2.2],
+    notes: [
+      'Racks should remain parallel and legible.',
+      'Do not turn storage into a workstation room.'
+    ]
+  },
+  'checkpoint-chamber': {
+    roomBounds: { x1: 18, y1: 12, x2: 24, y2: 18 },
+    entranceSide: 'west/southwest from workstation-to-review',
+    exitSide: 'east/north/south toward wrong-department, staff, and emergency route',
+    focalPoint: {
+      id: 'review-ledger',
+      objectiveId: 'review-ledger',
+      x: 21.0,
+      y: 15.0,
+      radiusCells: 2.7,
+      notes: 'Review Ledger and terminal remain centered near the formal meeting table.'
+    },
+    mainAisle: {
+      id: 'review-entry-table-exits',
+      connectorIds: ['workstation-to-review', 'review-to-wrong-dept', 'review-to-break', 'review-to-records'],
+      points: [
+        { x: 18.6, y: 13.2 },
+        { x: 21.0, y: 15.0 },
+        { x: 23.4, y: 15.0 },
+        { x: 22.0, y: 18.0 }
+      ],
+      widthCells: [1.5, 2.0],
+      rule: 'Entry, table approach, and onward exits stay readable.'
+    },
+    furnitureZones: [
+      {
+        id: 'meetingTableZone',
+        allowedTypes: ['meetingTable', 'chairs'],
+        bounds: { x1: 19.75, y1: 15.55, x2: 22.25, y2: 16.85 },
+        center: { x: 21.0, y: 16.2 },
+        anchoredObjects: ['review-table']
+      },
+      {
+        id: 'terminalZone',
+        allowedTypes: ['taskTerminal'],
+        bounds: { x1: 20.55, y1: 14.55, x2: 21.45, y2: 15.45 },
+        center: { x: 21.0, y: 15.0 },
+        anchoredObjects: ['review-ledger-terminal']
+      }
+    ],
+    glassZones: [
+      {
+        id: 'westBoundaryPartition',
+        allowedTypes: ['glassWall'],
+        bounds: { x1: 17.95, y1: 14.9, x2: 18.2, y2: 17.9 },
+        center: { x: 18.05, y: 16.4 },
+        axis: 'z',
+        maxLengthCells: 2.8,
+        anchoredObjects: ['review-west-glassWall'],
+        rule: 'Boundary-aligned side partition only; it must not cross the entry-to-table path.'
+      }
+    ],
+    signageZones: [
+      {
+        id: 'reviewDoorwaySignZone',
+        allowedTypes: ['sign'],
+        bounds: { x1: 18.4, y1: 10.9, x2: 20.0, y2: 11.3 },
+        anchoredObjects: ['review-sign'],
+        mount: 'northwest review doorway'
+      }
+    ],
+    forbiddenZones: [
+      {
+        id: 'connectorExits',
+        bounds: [
+          { x1: 17.0, y1: 11.0, x2: 20.0, y2: 14.0 },
+          { x1: 22.0, y1: 10.0, x2: 25.0, y2: 12.0 },
+          { x1: 21.0, y1: 18.0, x2: 23.0, y2: 23.0 },
+          { x1: 24.0, y1: 14.0, x2: 26.0, y2: 16.0 }
+        ],
+        rule: 'Doorways and connector mouths stay empty.'
+      },
+      {
+        id: 'reviewEntrance',
+        bounds: { x1: 18.0, y1: 12.0, x2: 20.2, y2: 14.2 },
+        rule: 'No furniture or glass may block the review entrance.'
+      },
+      {
+        id: 'routeThroughTableAndObjective',
+        pathRef: 'review-entry-table-exits',
+        widthCells: [1.5, 2.0],
+        rule: 'Table and terminal remain approachable without blocking exits.'
+      }
+    ],
+    clearPathWidthCells: [1.5, 2.0],
+    notes: [
+      'Glass is justified only as a room boundary.',
+      'Meeting table can feel formal, but it cannot become a door plug.'
+    ]
+  },
+  'wrong-department': {
+    roomBounds: { x1: 25, y1: 4, x2: 35, y2: 10 },
+    entranceSide: 'west/southwest from review-to-wrong-dept',
+    exitSide: 'south/southwest back toward the emergency records route',
+    focalPoint: {
+      id: 'transfer-notice',
+      objectiveId: 'transfer-notice',
+      x: 31.0,
+      y: 7.0,
+      radiusCells: 2.5,
+      notes: 'Transfer Notice and monolith define the controlled Accounts read.'
+    },
+    mainAisle: {
+      id: 'accounts-entry-to-monolith',
+      connectorIds: ['review-to-wrong-dept'],
+      points: [
+        { x: 25.0, y: 10.8 },
+        { x: 28.0, y: 9.2 },
+        { x: 31.0, y: 7.0 }
+      ],
+      widthCells: [1.5, 2.0],
+      rule: 'Keep the entrance-to-objective route open.'
+    },
+    furnitureZones: [
+      {
+        id: 'wallDeskCabinetZones',
+        allowedTypes: ['desk', 'cabinet'],
+        zones: [
+          { x1: 25.4, y1: 4.4, x2: 28.0, y2: 5.4 },
+          { x1: 33.0, y1: 5.0, x2: 34.6, y2: 9.4 }
+        ],
+        notes: 'Optional desks and cabinets must hug the walls only.'
+      },
+      {
+        id: 'terminalZone',
+        allowedTypes: ['taskTerminal'],
+        bounds: { x1: 30.55, y1: 6.55, x2: 31.45, y2: 7.45 },
+        center: { x: 31.0, y: 7.0 },
+        anchoredObjects: ['transfer-notice-terminal']
+      },
+      {
+        id: 'monolithZone',
+        allowedTypes: ['monolith'],
+        bounds: { x1: 30.6, y1: 7.55, x2: 31.4, y2: 8.25 },
+        center: { x: 31.0, y: 7.9 },
+        anchoredObjects: ['accounts-monolith']
+      }
+    ],
+    glassZones: [
+      {
+        id: 'accountsFrontBoundary',
+        allowedTypes: ['glassWall'],
+        bounds: { x1: 28.8, y1: 10.45, x2: 33.2, y2: 10.85 },
+        center: { x: 31.0, y: 10.65 },
+        axis: 'x',
+        maxLengthCells: 4.0,
+        anchoredObjects: ['accounts-front-glassWall'],
+        rule: 'Reads as front office boundary only; remove if extended into a fence.'
+      }
+    ],
+    signageZones: [
+      {
+        id: 'accountsFrontSignZone',
+        allowedTypes: ['sign'],
+        bounds: { x1: 30.2, y1: 9.85, x2: 31.8, y2: 10.25 },
+        anchoredObjects: ['wrong-dept-sign'],
+        mount: 'front wall near glass boundary'
+      }
+    ],
+    forbiddenZones: [
+      {
+        id: 'transferNoticeObjectiveRadius',
+        center: { x: 31.0, y: 7.0 },
+        radiusCells: 2.5,
+        rule: 'No extra desks, cabinets, or glass near the objective.'
+      },
+      {
+        id: 'accountsEntrancePath',
+        pathRef: 'accounts-entry-to-monolith',
+        widthCells: [1.5, 2.0],
+        rule: 'Entrance path must not be narrowed by office frontage or wall furniture.'
+      }
+    ],
+    clearPathWidthCells: [1.5, 2.0],
+    notes: [
+      'The existing glass count stays at one and is justified as frontage.',
+      'Do not use workstation clusters in this room.'
+    ]
+  },
+  'utility-break': {
+    roomBounds: { x1: 18, y1: 23, x2: 28, y2: 28 },
+    entranceSide: 'north from review-to-break connector',
+    exitSide: 'north back to checkpoint-chamber',
+    focalPoint: {
+      id: 'staff-utility-cluster',
+      x: 18.85,
+      y: 25.15,
+      radiusCells: 1.2,
+      notes: 'Copy machine and utility cluster stay near the west wall.'
+    },
+    mainAisle: {
+      id: 'staff-room-entry-open-center',
+      connectorIds: ['review-to-break'],
+      points: [
+        { x: 22.0, y: 23.0 },
+        { x: 22.0, y: 25.2 }
+      ],
+      widthCells: 1.5,
+      rule: 'Entry into the center remains open.'
+    },
+    furnitureZones: [
+      {
+        id: 'copyCabinetZone',
+        allowedTypes: ['copyMachine', 'cabinet', 'fridge-like object'],
+        bounds: { x1: 18.3, y1: 24.4, x2: 20.1, y2: 26.1 },
+        center: { x: 18.85, y: 25.15 },
+        anchoredObjects: ['utility-copier']
+      },
+      {
+        id: 'smallBreakTableZone',
+        allowedTypes: ['small table', 'chair set'],
+        bounds: { x1: 24.4, y1: 25.5, x2: 27.4, y2: 27.5 },
+        notes: 'Optional table zone only; keep it against the wall.'
+      }
+    ],
+    signageZones: [
+      {
+        id: 'staffEntranceSignZone',
+        allowedTypes: ['sign'],
+        bounds: { x1: 21.8, y1: 21.85, x2: 23.2, y2: 22.25 },
+        anchoredObjects: ['staff-sign'],
+        mount: 'north entry wall'
+      }
+    ],
+    forbiddenZones: [
+      {
+        id: 'centerEntryArea',
+        bounds: { x1: 20.7, y1: 23.0, x2: 23.5, y2: 26.0 },
+        rule: 'No copy machines, tables, or cabinets in the center entry area.'
+      }
+    ],
+    clearPathWidthCells: 1.5,
+    notes: [
+      'The room should remain a quiet detour.',
+      'No glass and no cubicles belong here.'
+    ]
+  },
+  'fake-exit': {
+    roomBounds: { x1: 38, y1: 12, x2: 42, y2: 18 },
+    entranceSide: 'west from emergency/fake exit route',
+    exitSide: 'east wall false exit direction; north afterimage route after trigger',
+    focalPoint: {
+      id: 'public-exit-sign-and-door-direction',
+      x: 41.85,
+      y: 13.65,
+      radiusCells: 1.2,
+      notes: 'The Public Exit sign reads from the wall without occupying the route to the trigger.'
+    },
+    mainAisle: {
+      id: 'fake-exit-trigger-route',
+      connectorIds: ['fake-exit-afterimage'],
+      points: [
+        { x: 36.0, y: 15.0 },
+        { x: 40.0, y: 15.0 },
+        { x: 40.5, y: 18.0 }
+      ],
+      widthCells: 2.0,
+      rule: 'Direct path to fake-exit trigger and exit direction stays empty.'
+    },
+    furnitureZones: [
+      {
+        id: 'noFurnitureZone',
+        allowedTypes: [],
+        bounds: { x1: 38, y1: 12, x2: 42, y2: 18 },
+        rule: 'No furniture or clutter in the false exit room.'
+      }
+    ],
+    signageZones: [
+      {
+        id: 'publicExitWallSignZone',
+        allowedTypes: ['sign'],
+        bounds: { x1: 41.7, y1: 13.1, x2: 42.1, y2: 14.2 },
+        anchoredObjects: ['fake-exit-sign'],
+        mount: 'east wall'
+      }
+    ],
+    forbiddenZones: [
+      {
+        id: 'pathToFakeExitTrigger',
+        pathRef: 'fake-exit-trigger-route',
+        widthCells: 2.0,
+        rule: 'No props, frames, or signs in the whole path to the fake exit trigger.'
+      }
+    ],
+    clearPathWidthCells: 2.0,
+    notes: [
+      'This area should feel clean and suspicious, not furnished.',
+      'Signage may guide the player but cannot become a blocker.'
+    ]
+  },
+  'crusher-corridor': {
+    roomBounds: { x1: 25, y1: 14, x2: 37, y2: 16 },
+    entranceSide: 'east/west corridor',
+    exitSide: 'east/west corridor',
+    focalPoint: {
+      id: 'clear-crusher-lane',
+      x1: 25.0,
+      y1: 15.0,
+      x2: 37.0,
+      y2: 15.0,
+      notes: 'The lane between x 25-37 at y 15 must remain visually and physically clear.'
+    },
+    mainAisle: {
+      id: 'full-crusher-lane',
+      hazardIds: ['records-hall-crusher'],
+      points: [
+        { x: 25.0, y: 15.0 },
+        { x: 37.0, y: 15.0 }
+      ],
+      widthCells: 'full corridor',
+      rule: 'The entire crusher lane is the aisle.'
+    },
+    furnitureZones: [
+      {
+        id: 'noFurnitureZone',
+        allowedTypes: [],
+        bounds: { x1: 25, y1: 14, x2: 37, y2: 16 },
+        rule: 'No furniture in the fairness-critical corridor.'
+      }
+    ],
+    frameZones: [
+      {
+        id: 'westEntranceFrame',
+        allowedTypes: ['frame'],
+        bounds: { x1: 24.8, y1: 13.7, x2: 25.2, y2: 16.3 },
+        center: { x: 25.0, y: 15.0 },
+        anchoredObjects: ['records-hall-west-frame']
+      },
+      {
+        id: 'eastExitFrame',
+        allowedTypes: ['frame'],
+        bounds: { x1: 36.8, y1: 13.7, x2: 37.2, y2: 16.3 },
+        center: { x: 37.0, y: 15.0 },
+        anchoredObjects: ['records-hall-east-frame']
+      }
+    ],
+    beamZones: [
+      {
+        id: 'northEdgeWarningBeam',
+        allowedTypes: ['beam', 'warning trim'],
+        bounds: { x1: 25.2, y1: 13.9, x2: 36.8, y2: 14.2 },
+        center: { x: 31.0, y: 14.05 },
+        anchoredObjects: ['records-hall-north-beam']
+      },
+      {
+        id: 'southEdgeWarningBeam',
+        allowedTypes: ['beam', 'warning trim'],
+        bounds: { x1: 25.2, y1: 15.8, x2: 36.8, y2: 16.1 },
+        center: { x: 31.0, y: 15.95 },
+        anchoredObjects: ['records-hall-south-beam']
+      }
+    ],
+    signageZones: [
+      {
+        id: 'corridorEntryEdgeSignZone',
+        allowedTypes: ['sign'],
+        bounds: { x1: 25.0, y1: 13.8, x2: 26.5, y2: 14.2 },
+        notes: 'Warning signs belong near an entry edge only; no current sign is placed here.'
+      }
+    ],
+    forbiddenZones: [
+      {
+        id: 'centerLane',
+        bounds: { x1: 25.0, y1: 14.3, x2: 37.0, y2: 15.7 },
+        rule: 'Never place architecture in the center crusher lane.'
+      }
+    ],
+    clearPathWidthCells: 'full corridor',
+    notes: [
+      'Frames mark thresholds only.',
+      'Beams stay on corridor edges and must never read as rails through the lane.'
+    ]
+  },
+  'final-route': {
+    roomBounds: { x1: 36, y1: 22, x2: 42, y2: 28 },
+    entranceSide: 'north/from fake-exit afterimage',
+    exitSide: 'south/east at final access door',
+    focalPoint: {
+      id: 'final-access-door',
+      objectiveId: 'final-access-door',
+      x: 41.0,
+      y: 27.0,
+      radiusCells: 1.6,
+      notes: 'Final Access Door remains the end of the sterile approach.'
+    },
+    mainAisle: {
+      id: 'afterimage-to-final-door',
+      connectorIds: ['fake-exit-afterimage', 'final-bend'],
+      points: [
+        { x: 40.5, y: 22.0 },
+        { x: 40.0, y: 24.0 },
+        { x: 41.0, y: 27.0 }
+      ],
+      widthCells: [1.8, 2.0],
+      rule: 'Path to final access door remains clean and centered.'
+    },
+    furnitureZones: [
+      {
+        id: 'finalDoorZone',
+        allowedTypes: ['doorSlab'],
+        bounds: { x1: 40.1, y1: 27.55, x2: 41.9, y2: 28.05 },
+        center: { x: 41.0, y: 27.8 },
+        anchoredObjects: ['final-door-slab'],
+        notes: 'Only the final door slab belongs here.'
+      }
+    ],
+    windowZone: {
+      id: 'eastObservationWindowBand',
+      allowedTypes: ['windowBand'],
+      bounds: { x1: 41.9, y1: 22.2, x2: 42.2, y2: 27.4 },
+      center: { x: 42.05, y: 24.8 },
+      axis: 'z',
+      anchoredObjects: ['final-route-window-band'],
+      rule: 'Optional observation/window band stays along the wall only.'
+    },
+    signageZones: [
+      {
+        id: 'finalDoorWindowSignageZone',
+        allowedTypes: ['sign'],
+        bounds: { x1: 40.0, y1: 26.6, x2: 42.1, y2: 28.0 },
+        notes: 'Any final-route sign belongs near the final door or window band; no current sign is placed here.'
+      }
+    ],
+    forbiddenZones: [
+      {
+        id: 'centerCorridor',
+        pathRef: 'afterimage-to-final-door',
+        widthCells: [1.8, 2.0],
+        rule: 'No furniture, random glass, or clutter in the center corridor.'
+      }
+    ],
+    clearPathWidthCells: [1.8, 2.0],
+    notes: [
+      'Keep this route sterile and minimal.',
+      'WindowBand is not counted as random glass and stays wall-bound.'
+    ]
   }
 };
 
@@ -968,6 +1718,7 @@ export const level1 = {
   grid: collisionGrid,
   rooms,
   roomLayoutSpecs,
+  roomLayoutAnchors,
   playerStart: { x: 8.2, y: 20.65, yaw: 0.03, pitch: -0.045 },
   goals: objectives.filter(objective => objective.type === 'finalExit').map(objective => ({
     id: objective.id,
@@ -1067,6 +1818,11 @@ export const level1 = {
       { id: 'archive-return-loop', rooms: ['archive', 'employee-intake'] }
     ]
   },
+  // Architecture placement contract:
+  // - Every architecture object must belong to a roomLayoutSpecs allowed object type.
+  // - Every architecture object must sit inside a roomLayoutAnchors furniture/signage/glass/frame/window zone.
+  // - If an object is not tied to a zone, remove it or move it to the nearest valid zone.
+  // - Do not fill empty space just because it is empty.
   architecture: [
     { type: 'receptionDesk', x: 4.2, y: 21.05, width: 2.25, depth: 0.5, color: 0xb7bbb7, panelColor: 0xacb2af, topColor: 0xd1d3cd, trimColor: 0x8b9698, roughness: 0.72, metalness: 0.04 },
     { type: 'receptionDesk', x: 5.35, y: 16.25, width: 3.15, depth: 0.78, color: 0xb9bdb9, panelColor: 0xaeb5b2, topColor: 0xd5d7d0, trimColor: 0x879496, roughness: 0.72, metalness: 0.04 },
@@ -1077,7 +1833,7 @@ export const level1 = {
     { type: 'plant', x: 11.45, y: 20.7, color: 0x4b6f5a, potColor: 0x8a877f },
     { type: 'sign', id: 'night-entry-sign', channelId: 'department-labels', x: 4.2, y: 22.05, text: 'NIGHT SHIFT\nENTRY', color: 0xcfe9e8, width: 1.3, height: 2.06, rotation: Math.PI },
     { type: 'sign', id: 'intake-sign', channelId: 'department-labels', x: 5.35, y: 17.05, text: 'EMPLOYEE\nINTAKE', color: 0xd8ebe7, width: 1.25, height: 1.94, rotation: Math.PI },
-    { type: 'sign', id: 'main-hall-sign', channelId: 'department-labels', x: 8.2, y: 13.05, text: 'MAIN WORKSTATION\nHALL', color: 0xcfe9e8, width: 1.45, height: 2.14 },
+    { type: 'sign', id: 'main-hall-sign', channelId: 'department-labels', x: 11.2, y: 12.05, text: 'MAIN WORKSTATION\nHALL', color: 0xcfe9e8, width: 1.25, height: 2.14 },
     {
       type: 'taskTerminal',
       x: 5.85,
@@ -1088,9 +1844,9 @@ export const level1 = {
       text: 'Welcome to Records Department.\nRetrieve your Shift Assignment Form.'
     },
     { type: 'sign', id: 'wrong-dept-sign', channelId: 'department-labels', x: 31, y: 10.05, text: 'ACCOUNTS /\nRECORDS OFFICE', color: 0xd0d1bd, width: 1.45, height: 2.12 },
-    { type: 'sign', id: 'fake-exit-sign', channelId: 'department-labels', x: 41.85, y: 15, text: 'PUBLIC\nEXIT', color: 0x86f7b2, width: 1.15, height: 2.18, rotation: -Math.PI / 2 },
+    { type: 'sign', id: 'fake-exit-sign', channelId: 'department-labels', x: 41.85, y: 13.65, text: 'PUBLIC\nEXIT', color: 0x86f7b2, width: 1.15, height: 2.18, rotation: -Math.PI / 2 },
     { type: 'sign', id: 'archive-sign', channelId: 'department-labels', x: 7, y: 22.05, text: 'RECORDS\nARCHIVE', color: 0xaebcff, width: 1.35, height: 2.1, rotation: Math.PI },
-    { type: 'sign', id: 'review-sign', channelId: 'department-labels', x: 21, y: 11.05, text: 'COUNSELLOR /\nREVIEW', color: 0xb7f7ff, width: 1.45, height: 2.12 },
+    { type: 'sign', id: 'review-sign', channelId: 'department-labels', x: 19.2, y: 11.05, text: 'COUNSELLOR /\nREVIEW', color: 0xb7f7ff, width: 1.45, height: 2.12 },
     { type: 'sign', id: 'staff-sign', channelId: 'department-labels', x: 22.5, y: 22.05, text: 'STAFF\nROOM', color: 0xc5d0b6, width: 1.15, height: 2.1, rotation: Math.PI },
     { type: 'taskTerminal', x: 8, y: 7, color: 0xbde1e0 },
     { type: 'taskTerminal', x: 7, y: 25, color: 0xa8bbd8 },

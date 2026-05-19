@@ -119,7 +119,43 @@ function resolveModelAssetConfig(config) {
       DEFAULT_MODEL_TRANSFORM.rotation
     ),
     yOffset: finiteNumber(modelValue(config, 'modelYOffset') ?? preset.yOffset, DEFAULT_MODEL_TRANSFORM.yOffset),
-    maxInstances: finiteNumber(preset.maxInstances, Infinity)
+    maxInstances: finiteNumber(preset.maxInstances, Infinity),
+    materialOverrides: preset.materialOverrides ?? null
+  };
+}
+
+function resolveWorkstationChairModelConfig(config) {
+  const metadata = config?.metadata ?? {};
+  const modelUrl = config?.chairModelUrl ?? metadata.chairModelUrl;
+  const modelId = config?.chairModelId ?? metadata.chairModelId;
+  const assetTag = config?.chairAssetTag ?? metadata.chairAssetTag;
+
+  if (!modelUrl && !modelId && !assetTag) return null;
+
+  const fallbackPrefab = config?.chairFallbackPrefab ?? metadata.chairFallbackPrefab;
+  const modelScale = config?.chairModelScale ?? metadata.chairModelScale;
+  const modelRotation = config?.chairModelRotation ?? metadata.chairModelRotation;
+  const modelYOffset = config?.chairModelYOffset ?? metadata.chairModelYOffset;
+
+  return {
+    type: 'waitingChairs',
+    modelUrl,
+    modelId,
+    assetTag,
+    fallbackPrefab,
+    modelScale,
+    modelRotation,
+    modelYOffset,
+    metadata: {
+      prefab: 'officeChairSet',
+      modelUrl,
+      modelId,
+      assetTag,
+      fallbackPrefab,
+      modelScale,
+      modelRotation,
+      modelYOffset
+    }
   };
 }
 
@@ -276,6 +312,7 @@ export class MazeBuilder {
       this.scene.remove(mesh);
       if (mesh.userData?.cachedModelAsset) return;
       mesh.traverse?.(node => {
+        if (node.userData?.cachedModelAsset) return;
         node.geometry?.dispose?.();
         if (Array.isArray(node.material)) {
           node.material.forEach(material => {
@@ -1170,6 +1207,23 @@ export class MazeBuilder {
   }
 
   addModelBackedProp(config, fallback) {
+    this.addModelBackedAsset(config, fallback, (model, modelAsset) => {
+      this.configureModelInstance(model, config, modelAsset);
+      this.scene.add(model);
+      this.guideMeshes.push(model);
+    });
+  }
+
+  addModelBackedChildProp(parent, localPosition, localRotation, config, fallback) {
+    const placement = safeVector3(localPosition, [0, 0, 0]);
+
+    this.addModelBackedAsset(config, fallback, (model, modelAsset) => {
+      this.configureModelChildInstance(model, placement, localRotation, modelAsset);
+      parent.add(model);
+    });
+  }
+
+  addModelBackedAsset(config, fallback, attachModel) {
     const modelAsset = resolveModelAssetConfig(config);
 
     devLogModelOnce(
@@ -1237,9 +1291,7 @@ export class MazeBuilder {
 
         try {
           const model = cloneModelGraph(sourceModel);
-          this.configureModelInstance(model, config, modelAsset);
-          this.scene.add(model);
-          this.guideMeshes.push(model);
+          attachModel(model, modelAsset);
           devLogModelOnce(
             `clone-success:${modelAsset.modelUrl}`,
             'MazeBuilder model asset: cloned cached GLB scene for prop instances',
@@ -1272,6 +1324,27 @@ export class MazeBuilder {
     return count;
   }
 
+  applyModelMaterialOverrides(model, modelAsset) {
+    if (!modelAsset.materialOverrides) return;
+
+    model.traverse(node => {
+      if (!node.isMesh || !node.material) return;
+      const materials = Array.isArray(node.material) ? node.material : [node.material];
+      const nextMaterials = materials.map(material => {
+        const override = modelAsset.materialOverrides[material.name];
+        if (!override) return material;
+
+        const nextMaterial = material.clone();
+        if (override.color !== undefined && nextMaterial.color) nextMaterial.color.setHex(override.color);
+        if (override.roughness !== undefined && 'roughness' in nextMaterial) nextMaterial.roughness = override.roughness;
+        if (override.metalness !== undefined && 'metalness' in nextMaterial) nextMaterial.metalness = override.metalness;
+        return nextMaterial;
+      });
+
+      node.material = Array.isArray(node.material) ? nextMaterials : nextMaterials[0];
+    });
+  }
+
   configureModelInstance(model, config, modelAsset) {
     model.position.set(
       config.x * CONSTANTS.CELL_SIZE,
@@ -1284,9 +1357,37 @@ export class MazeBuilder {
       modelAsset.rotation[2]
     );
     model.scale.set(modelAsset.scale[0], modelAsset.scale[1], modelAsset.scale[2]);
+    this.applyModelMaterialOverrides(model, modelAsset);
     model.userData.cachedModelAsset = true;
     model.userData.modelUrl = modelAsset.modelUrl;
     model.traverse(node => {
+      node.userData.cachedModelAsset = true;
+      node.userData.modelUrl = modelAsset.modelUrl;
+      if (!node.isMesh) return;
+      node.castShadow = true;
+      node.receiveShadow = true;
+      node.frustumCulled = true;
+    });
+  }
+
+  configureModelChildInstance(model, localPosition, localRotation, modelAsset) {
+    model.position.set(
+      localPosition[0],
+      localPosition[1] + modelAsset.yOffset,
+      localPosition[2]
+    );
+    model.rotation.set(
+      modelAsset.rotation[0],
+      finiteNumber(localRotation, 0) + modelAsset.rotation[1],
+      modelAsset.rotation[2]
+    );
+    model.scale.set(modelAsset.scale[0], modelAsset.scale[1], modelAsset.scale[2]);
+    this.applyModelMaterialOverrides(model, modelAsset);
+    model.userData.cachedModelAsset = true;
+    model.userData.modelUrl = modelAsset.modelUrl;
+    model.traverse(node => {
+      node.userData.cachedModelAsset = true;
+      node.userData.modelUrl = modelAsset.modelUrl;
       if (!node.isMesh) return;
       node.castShadow = true;
       node.receiveShadow = true;
@@ -1471,13 +1572,24 @@ export class MazeBuilder {
       laptopScreen.rotation.x = -0.35;
     }
 
-    this.addChairToGroup(
-      group,
-      [0, 0, halfDepth + 0.64],
-      Math.PI,
-      config.chairColor ?? 0x252c31,
-      config.chairAccentColor ?? 0x405a63
-    );
+    const chairPosition = [0, 0, halfDepth + 0.64];
+    const chairRotation = Math.PI;
+    const chairModelConfig = resolveWorkstationChairModelConfig(config);
+    const addProceduralChair = () => {
+      this.addChairToGroup(
+        group,
+        chairPosition,
+        chairRotation,
+        config.chairColor ?? 0x252c31,
+        config.chairAccentColor ?? 0x405a63
+      );
+    };
+
+    if (chairModelConfig) {
+      this.addModelBackedChildProp(group, chairPosition, chairRotation, chairModelConfig, addProceduralChair);
+    } else {
+      addProceduralChair();
+    }
 
     this.scene.add(group);
     this.guideMeshes.push(group);

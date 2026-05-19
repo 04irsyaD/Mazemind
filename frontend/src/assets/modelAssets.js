@@ -14,11 +14,15 @@ export const MODEL_PRESETS = {
     fallbackPrefab: 'procedural'
   },
   'office-chair-basic': {
-    scale: [2.2, 2.2, 2.2],
+    scale: [1, 1, 1],
     rotation: [0, 0, 0],
     yOffset: 0,
-    maxInstances: 24,
-    fallbackPrefab: 'procedural'
+    maxInstances: 32,
+    fallbackPrefab: 'procedural',
+    materialOverrides: {
+      Chair: { color: 0x2f3a44, roughness: 0.82, metalness: 0.03 },
+      Grey: { color: 0x4a4f54, roughness: 0.72, metalness: 0.08 }
+    }
   },
   'coffee-table-basic': {
     scale: [1.6, 1.6, 1.6],

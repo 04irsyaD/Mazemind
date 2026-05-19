@@ -57,6 +57,13 @@ const metadataFor = (prefab, object) => stripUndefined({
   modelScale: object.modelScale,
   modelRotation: object.modelRotation,
   modelYOffset: object.modelYOffset,
+  chairModelId: object.chairModelId,
+  chairModelUrl: object.chairModelUrl,
+  chairAssetTag: object.chairAssetTag,
+  chairFallbackPrefab: object.chairFallbackPrefab,
+  chairModelScale: object.chairModelScale,
+  chairModelRotation: object.chairModelRotation,
+  chairModelYOffset: object.chairModelYOffset,
   visualOnly: object.visualOnly ?? false
 });
 

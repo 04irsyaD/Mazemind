@@ -1591,7 +1591,7 @@ export class MazeBuilder {
     }
 
     const chairPosition = [0, 0, halfDepth + 0.64];
-    const chairRotation = Math.PI;
+    const chairRotation = 0;
     const chairModelConfig = resolveWorkstationChairModelConfig(config);
     const addProceduralChair = () => {
       this.addChairToGroup(
@@ -1766,8 +1766,16 @@ export class MazeBuilder {
   addProceduralCopyMachine(config) {
     const material = this.createArchitectureMaterial(config, 0x6d746f);
     const darkMaterial = this.createArchitectureMaterial({ color: 0x4a5254 }, 0x4a5254);
-    this.addPropBox(config.x, 0.55, config.y, 0.9, 0.75, 0.62, material);
-    this.addPropBox(config.x, 1.02, config.y - 0.12, 0.78, 0.18, 0.45, darkMaterial);
+    const group = new THREE.Group();
+    const width = config.width ?? 0.9;
+    const depth = config.depth ?? 0.62;
+
+    group.position.set(config.x * CONSTANTS.CELL_SIZE, 0, config.y * CONSTANTS.CELL_SIZE);
+    group.rotation.y = config.rotation ?? 0;
+    this.addBoxToGroup(group, [0, 0.55, 0], [width * CONSTANTS.CELL_SIZE, 0.75, depth * CONSTANTS.CELL_SIZE], material);
+    this.addBoxToGroup(group, [0, 1.02, -0.12 * CONSTANTS.CELL_SIZE], [0.78 * CONSTANTS.CELL_SIZE, 0.18, 0.45 * CONSTANTS.CELL_SIZE], darkMaterial);
+    this.scene.add(group);
+    this.guideMeshes.push(group);
   }
 
   addWindowBand(config) {

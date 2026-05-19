@@ -2060,7 +2060,7 @@ export const level1 = {
       x: 11.05,
       y: 19.05,
       axis: 'z',
-      rotation: -Math.PI / 2,
+      rotation: Math.PI / 2,
       roomId: 'front-reception',
       anchor: 'sideWaitingChairZone',
       modelId: 'office-chair-basic',
@@ -2072,8 +2072,8 @@ export const level1 = {
       modelYOffset: 0
     }),
     officeProps.coffeeTable({
-      x: 4.25,
-      y: 19.32,
+      x: 3.85,
+      y: 18.86,
       roomId: 'front-reception',
       anchor: 'seatingZone',
       modelId: 'coffee-table-basic',
@@ -2137,6 +2137,7 @@ export const level1 = {
     officeProps.copyMachine({
       x: 18.25,
       y: 5.25,
+      rotation: Math.PI / 2,
       roomId: 'main-workstation-hall',
       anchor: 'printerZone',
       modelId: 'copy-machine-basic',
@@ -2165,7 +2166,7 @@ export const level1 = {
     }),
     officeProps.reviewGlassPartition({ x: 18.05, y: 16.4, axis: 'z', roomId: 'checkpoint-chamber', anchor: 'westBoundaryPartition' }),
     officeProps.officeFrontGlass({ x: 31, y: 10.65, axis: 'x', roomId: 'wrong-department', anchor: 'accountsFrontBoundary' }),
-    officeProps.copyMachine({ x: 18.85, y: 25.15, color: 0xb1b8b4, roomId: 'utility-break', anchor: 'copyCabinetZone' }),
+    officeProps.copyMachine({ x: 18.85, y: 25.15, rotation: -Math.PI / 2, color: 0xb1b8b4, roomId: 'utility-break', anchor: 'copyCabinetZone' }),
     officeProps.monolithTerminal({ x: 31, y: 7.9, roomId: 'wrong-department', anchor: 'monolithZone' }),
     officeProps.emergencyDoorFrame({ id: 'records-hall-west-frame', x: 25, y: 15, ...anchoredZoneConfig('crusher-corridor', 'frameZones', 'westEntranceFrame') }),
     officeProps.emergencyDoorFrame({ id: 'records-hall-east-frame', x: 37, y: 15, ...anchoredZoneConfig('crusher-corridor', 'frameZones', 'eastExitFrame') }),

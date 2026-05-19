@@ -2067,6 +2067,7 @@ export const level1 = {
       assetTag: 'office-chair-basic',
       fallbackPrefab: 'procedural',
       modelScale: [2.2, 2.2, 2.2],
+      modelRotation: [0, 0, 0],
       modelYOffset: 0
     }),
     officeProps.coffeeTable({ x: 4.25, y: 19.32, roomId: 'front-reception', anchor: 'seatingZone' }),

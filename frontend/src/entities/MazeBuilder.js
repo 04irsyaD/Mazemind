@@ -20,8 +20,15 @@ import { devLog } from '../core/Debug.js';
 const gltfLoader = new GLTFLoader();
 const localModelCache = new Map();
 const modelFailureCache = new Map();
+const modelInfoCache = new Set();
 const modelWarningCache = new Set();
 const MODEL_FAILURE_RETRY_MS = 30_000;
+
+function devLogModelOnce(key, ...args) {
+  if (modelInfoCache.has(key)) return;
+  modelInfoCache.add(key);
+  devLog(...args);
+}
 
 function hasRecentModelFailure(url) {
   const failureTime = modelFailureCache.get(url);
@@ -37,7 +44,7 @@ function loadLocalModel(url) {
   }
 
   if (!localModelCache.has(url)) {
-    devLog('MazeBuilder: loading local model asset', url);
+    devLogModelOnce(`load-start:${url}`, 'MazeBuilder model asset: loading local GLB', url);
     const loadPromise = new Promise((resolve, reject) => {
       gltfLoader.load(
         url,
@@ -55,6 +62,7 @@ function loadLocalModel(url) {
     })
       .then(modelScene => {
         modelFailureCache.delete(url);
+        devLogModelOnce(`load-success:${url}`, 'MazeBuilder model asset: loaded local GLB successfully', url);
         return modelScene;
       })
       .catch(error => {
@@ -981,6 +989,15 @@ export class MazeBuilder {
   }
 
   addReceptionDesk(config) {
+    if (hasModelAssetMetadata(config)) {
+      this.addModelBackedProp(config, () => this.addProceduralReceptionDesk(config));
+      return;
+    }
+
+    this.addProceduralReceptionDesk(config);
+  }
+
+  addProceduralReceptionDesk(config) {
     const width = config.width ?? 2.2;
     const depth = config.depth ?? 0.45;
     const panelMaterial = this.createArchitectureMaterial({
@@ -1116,6 +1133,15 @@ export class MazeBuilder {
   }
 
   addCoffeeTable(config) {
+    if (hasModelAssetMetadata(config)) {
+      this.addModelBackedProp(config, () => this.addProceduralCoffeeTable(config));
+      return;
+    }
+
+    this.addProceduralCoffeeTable(config);
+  }
+
+  addProceduralCoffeeTable(config) {
     const material = this.createArchitectureMaterial(config, 0x7b725f);
     const legMaterial = this.createArchitectureMaterial({ color: 0x33393c }, 0x33393c);
     this.addMeterBox(config.x, 0.42, config.y, config.width ?? 1.25, 0.1, config.depth ?? 0.72, material);
@@ -1145,6 +1171,12 @@ export class MazeBuilder {
 
   addModelBackedProp(config, fallback) {
     const modelAsset = resolveModelAssetConfig(config);
+
+    devLogModelOnce(
+      `attempt:${modelAsset.modelUrl ?? modelAsset.presetKey ?? config.metadata?.prefab ?? config.type}`,
+      'MazeBuilder model asset: attempting model-backed prop',
+      modelAsset.modelUrl ?? '(missing modelUrl)'
+    );
 
     if (!isModelAllowedForObject(config)) {
       this.warnModelAssetOnce(
@@ -1182,7 +1214,7 @@ export class MazeBuilder {
       const sourceType = isExternalModelUrl(modelAsset.modelUrl) ? 'external' : 'non-local';
       this.warnModelAssetOnce(
         `non-local:${modelAsset.modelUrl}`,
-        `Skipped ${sourceType} model URL "${modelAsset.modelUrl}". Using procedural fallback.`
+        `Blocked ${sourceType} model URL "${modelAsset.modelUrl}". Procedural fallback used.`
       );
       fallback();
       return;
@@ -1192,7 +1224,7 @@ export class MazeBuilder {
     if (instanceCount > modelAsset.maxInstances) {
       this.warnModelAssetOnce(
         `max-instances:${modelAsset.modelUrl}`,
-        `Model asset "${modelAsset.modelUrl}" exceeded maxInstances (${modelAsset.maxInstances}). Using procedural fallback for extra instances.`
+        `Model asset "${modelAsset.modelUrl}" exceeded maxInstances (${modelAsset.maxInstances}). Procedural fallback used for extra instances.`
       );
       fallback();
       return;
@@ -1208,10 +1240,15 @@ export class MazeBuilder {
           this.configureModelInstance(model, config, modelAsset);
           this.scene.add(model);
           this.guideMeshes.push(model);
+          devLogModelOnce(
+            `clone-success:${modelAsset.modelUrl}`,
+            'MazeBuilder model asset: cloned cached GLB scene for prop instances',
+            modelAsset.modelUrl
+          );
         } catch (error) {
           this.warnModelAssetOnce(
             `clone:${modelAsset.modelUrl}`,
-            `Could not clone model "${modelAsset.modelUrl}". Using procedural fallback.`,
+            `Could not clone model "${modelAsset.modelUrl}". Procedural fallback used.`,
             error
           );
           fallback();
@@ -1221,7 +1258,7 @@ export class MazeBuilder {
         if (loadGeneration !== this.modelLoadGeneration) return;
         this.warnModelAssetOnce(
           `load:${modelAsset.modelUrl}`,
-          `Could not load model "${modelAsset.modelUrl}". Using procedural fallback.`,
+          `Could not load model "${modelAsset.modelUrl}". Procedural fallback used.`,
           error
         );
         fallback();
@@ -1465,6 +1502,15 @@ export class MazeBuilder {
   }
 
   addMeetingTable(config) {
+    if (hasModelAssetMetadata(config)) {
+      this.addModelBackedProp(config, () => this.addProceduralMeetingTable(config));
+      return;
+    }
+
+    this.addProceduralMeetingTable(config);
+  }
+
+  addProceduralMeetingTable(config) {
     const material = this.createArchitectureMaterial(config, 0x4a4f52);
     this.addPropBox(config.x, 0.72, config.y, config.width ?? 2.2, 0.14, config.depth ?? 1.0, material);
     this.addPropBox(config.x - 0.65, 0.36, config.y, 0.08, 0.72, 0.08, material);
@@ -1579,6 +1625,15 @@ export class MazeBuilder {
   }
 
   addCopyMachine(config) {
+    if (hasModelAssetMetadata(config)) {
+      this.addModelBackedProp(config, () => this.addProceduralCopyMachine(config));
+      return;
+    }
+
+    this.addProceduralCopyMachine(config);
+  }
+
+  addProceduralCopyMachine(config) {
     const material = this.createArchitectureMaterial(config, 0x6d746f);
     const darkMaterial = this.createArchitectureMaterial({ color: 0x4a5254 }, 0x4a5254);
     this.addPropBox(config.x, 0.55, config.y, 0.9, 0.75, 0.62, material);

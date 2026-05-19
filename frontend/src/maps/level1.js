@@ -2070,7 +2070,19 @@ export const level1 = {
       modelRotation: [0, 0, 0],
       modelYOffset: 0
     }),
-    officeProps.coffeeTable({ x: 4.25, y: 19.32, roomId: 'front-reception', anchor: 'seatingZone' }),
+    officeProps.coffeeTable({
+      x: 4.25,
+      y: 19.32,
+      roomId: 'front-reception',
+      anchor: 'seatingZone',
+      modelId: 'coffee-table-basic',
+      modelUrl: '/assets/models/office/coffee_table_basic.glb',
+      assetTag: 'coffee-table-basic',
+      fallbackPrefab: 'procedural',
+      modelScale: [1.6, 1.6, 1.6],
+      modelRotation: [0, 0, 0],
+      modelYOffset: 0
+    }),
     officeProps.pottedPlant({
       x: 2.7,
       y: 18.35,

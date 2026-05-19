@@ -19,12 +19,36 @@ export const MODEL_PRESETS = {
     yOffset: 0,
     maxInstances: 24,
     fallbackPrefab: 'procedural'
+  },
+  'coffee-table-basic': {
+    scale: [1.6, 1.6, 1.6],
+    rotation: [0, 0, 0],
+    yOffset: 0,
+    maxInstances: 4,
+    fallbackPrefab: 'procedural'
   }
 };
 
 const LOCAL_MODEL_URL_PATTERN = /^\/assets\/models\/[a-z0-9_./-]+\.(glb|gltf)$/i;
-const MODEL_ENABLED_TYPES = new Set(['plant', 'waitingChairs']);
-const MODEL_ENABLED_PREFABS = new Set(['pottedPlant', 'waitingChairs', 'officeChairSet']);
+const MODEL_ENABLED_TYPES = new Set([
+  'plant',
+  'waitingChairs',
+  'coffeeTable',
+  'copyMachine',
+  'receptionDesk',
+  'meetingTable'
+]);
+const MODEL_ENABLED_PREFABS = new Set([
+  'pottedPlant',
+  'waitingChairs',
+  'officeChairSet',
+  'coffeeTable',
+  'copyMachine',
+  'receptionDesk',
+  'intakeDesk',
+  'officeDesk',
+  'meetingTable'
+]);
 
 export function getModelUrl(config) {
   return config?.modelUrl ?? config?.metadata?.modelUrl;

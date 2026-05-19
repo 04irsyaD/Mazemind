@@ -1,4 +1,15 @@
 import { CONSTANTS } from '../../core/Constants.js';
+import {
+  getAssetTag,
+  getModelFallbackPrefab,
+  getModelId,
+  getModelPreset,
+  getModelUrl,
+  hasModelAssetMetadata,
+  isExternalModelUrl,
+  isLocalModelUrl,
+  isModelAllowedForObject
+} from '../../assets/modelAssets.js';
 
 const DEFAULT_MOUNT_HEIGHT = 1.9;
 const DEFAULT_WALL_MOUNT_OFFSET = 0.465;
@@ -42,6 +53,10 @@ const metadataFor = (prefab, object) => stripUndefined({
   modelId: object.modelId ?? null,
   modelUrl: object.modelUrl ?? null,
   assetTag: object.assetTag,
+  fallbackPrefab: object.fallbackPrefab,
+  modelScale: object.modelScale,
+  modelRotation: object.modelRotation,
+  modelYOffset: object.modelYOffset,
   visualOnly: object.visualOnly ?? false
 });
 
@@ -218,6 +233,7 @@ const workstationDefaults = {
 
 export function validatePrefabObject(object) {
   const errors = [];
+  const warnings = [];
   const visit = (value, path) => {
     if (value === undefined) errors.push(`${path} is undefined`);
     if (typeof value === 'number' && Number.isNaN(value)) errors.push(`${path} is NaN`);
@@ -255,7 +271,29 @@ export function validatePrefabObject(object) {
     errors.push(`${object.metadata.prefab} metadata.visualOnly must be true`);
   }
 
-  return { valid: errors.length === 0, errors };
+  if (hasModelAssetMetadata(object)) {
+    const modelUrl = getModelUrl(object);
+    const modelId = getModelId(object);
+    const assetTag = getAssetTag(object);
+    const fallbackPrefab = object.fallbackPrefab ?? object.metadata?.fallbackPrefab ?? getModelPreset(object)?.fallbackPrefab;
+
+    if (!isModelAllowedForObject(object)) {
+      warnings.push(`model assets are not enabled for ${object.metadata?.prefab ?? object.type}`);
+    }
+    if (!modelUrl) {
+      warnings.push('model-enabled object is missing modelUrl');
+    } else if (isExternalModelUrl(modelUrl) || !isLocalModelUrl(modelUrl)) {
+      warnings.push(`modelUrl must be a local /assets/models/ path, got "${modelUrl}"`);
+    }
+    if (modelUrl && !modelId && !assetTag) {
+      warnings.push('model-enabled object should include modelId or assetTag');
+    }
+    if (getModelFallbackPrefab(object) !== 'procedural' || fallbackPrefab !== 'procedural') {
+      warnings.push('model-enabled object should declare fallbackPrefab: "procedural"');
+    }
+  }
+
+  return { valid: errors.length === 0, errors, warnings };
 }
 
 export function validatePrefabObjects(objects) {

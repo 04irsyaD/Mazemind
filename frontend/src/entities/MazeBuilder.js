@@ -1,6 +1,119 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone as cloneModelGraph } from 'three/addons/utils/SkeletonUtils.js';
+import {
+  DEFAULT_MODEL_TRANSFORM,
+  getAssetTag,
+  getModelFallbackPrefab,
+  getModelId,
+  getModelPreset,
+  getModelPresetKey,
+  getModelUrl,
+  hasModelAssetMetadata,
+  isExternalModelUrl,
+  isLocalModelUrl,
+  isModelAllowedForObject
+} from '../assets/modelAssets.js';
 import { CONSTANTS } from '../core/Constants.js';
 import { devLog } from '../core/Debug.js';
+
+const gltfLoader = new GLTFLoader();
+const localModelCache = new Map();
+const modelFailureCache = new Map();
+const modelWarningCache = new Set();
+const MODEL_FAILURE_RETRY_MS = 30_000;
+
+function hasRecentModelFailure(url) {
+  const failureTime = modelFailureCache.get(url);
+  if (!failureTime) return false;
+  if (Date.now() - failureTime < MODEL_FAILURE_RETRY_MS) return true;
+  modelFailureCache.delete(url);
+  return false;
+}
+
+function loadLocalModel(url) {
+  if (hasRecentModelFailure(url)) {
+    return Promise.reject(new Error(`Recent model load failure cached for ${url}`));
+  }
+
+  if (!localModelCache.has(url)) {
+    devLog('MazeBuilder: loading local model asset', url);
+    const loadPromise = new Promise((resolve, reject) => {
+      gltfLoader.load(
+        url,
+        gltf => {
+          const modelScene = gltf.scene ?? gltf.scenes?.[0];
+          if (!modelScene) {
+            reject(new Error(`No scene found in model asset: ${url}`));
+            return;
+          }
+          resolve(modelScene);
+        },
+        undefined,
+        reject
+      );
+    })
+      .then(modelScene => {
+        modelFailureCache.delete(url);
+        return modelScene;
+      })
+      .catch(error => {
+        localModelCache.delete(url);
+        modelFailureCache.set(url, Date.now());
+        throw error;
+      });
+
+    localModelCache.set(url, loadPromise);
+  }
+
+  return localModelCache.get(url);
+}
+
+function finiteNumber(value, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function safeVector3(value, fallback) {
+  if (!Array.isArray(value)) return fallback;
+  return [
+    finiteNumber(value[0], fallback[0]),
+    finiteNumber(value[1], fallback[1]),
+    finiteNumber(value[2], fallback[2])
+  ];
+}
+
+function safeModelScale(value) {
+  if (typeof value === 'number') {
+    const scale = finiteNumber(value, 1);
+    return scale > 0 ? [scale, scale, scale] : [1, 1, 1];
+  }
+
+  return safeVector3(value, [1, 1, 1]).map(component => (component > 0 ? component : 1));
+}
+
+function modelValue(config, key) {
+  return config?.[key] ?? config?.metadata?.[key];
+}
+
+function resolveModelAssetConfig(config) {
+  const preset = getModelPreset(config) ?? {};
+
+  return {
+    modelUrl: getModelUrl(config),
+    modelId: getModelId(config),
+    assetTag: getAssetTag(config),
+    presetKey: getModelPresetKey(config),
+    fallbackPrefab: getModelFallbackPrefab(config),
+    scale: safeModelScale(modelValue(config, 'modelScale') ?? preset.scale ?? DEFAULT_MODEL_TRANSFORM.scale),
+    rotation: safeVector3(
+      modelValue(config, 'modelRotation') ?? preset.rotation ?? DEFAULT_MODEL_TRANSFORM.rotation,
+      DEFAULT_MODEL_TRANSFORM.rotation
+    ),
+    yOffset: finiteNumber(modelValue(config, 'modelYOffset') ?? preset.yOffset, DEFAULT_MODEL_TRANSFORM.yOffset),
+    maxInstances: finiteNumber(preset.maxInstances, Infinity)
+  };
+}
 
 export class MazeBuilder {
   constructor(scene) {
@@ -10,6 +123,8 @@ export class MazeBuilder {
     this.guideMeshes = [];
     this.signageHandles = [];
     this.floorZoneMats = new Map();
+    this.modelLoadGeneration = 0;
+    this.modelInstanceCounts = new Map();
     
     // Materials
     this.wallMat = new THREE.MeshStandardMaterial({ 
@@ -136,6 +251,9 @@ export class MazeBuilder {
   }
 
   clear() {
+    this.modelLoadGeneration++;
+    this.modelInstanceCounts.clear();
+
     if (this.wallMesh) {
       this.scene.remove(this.wallMesh);
       this.wallMesh = null;
@@ -148,6 +266,7 @@ export class MazeBuilder {
 
     this.guideMeshes.forEach(mesh => {
       this.scene.remove(mesh);
+      if (mesh.userData?.cachedModelAsset) return;
       mesh.traverse?.(node => {
         node.geometry?.dispose?.();
         if (Array.isArray(node.material)) {
@@ -985,6 +1104,134 @@ export class MazeBuilder {
   }
 
   addPlant(config) {
+    if (hasModelAssetMetadata(config)) {
+      this.addModelBackedProp(config, () => this.addProceduralPlant(config));
+      return;
+    }
+
+    this.addProceduralPlant(config);
+  }
+
+  addModelBackedProp(config, fallback) {
+    const modelAsset = resolveModelAssetConfig(config);
+
+    if (!isModelAllowedForObject(config)) {
+      this.warnModelAssetOnce(
+        `disallowed:${config.type}:${config.metadata?.prefab}`,
+        `Skipped model for unsupported prefab "${config.metadata?.prefab ?? config.type}". Using procedural fallback.`
+      );
+      fallback();
+      return;
+    }
+
+    if (!modelAsset.modelUrl) {
+      this.warnModelAssetOnce(
+        `missing-url:${modelAsset.presetKey ?? config.metadata?.prefab ?? config.type}`,
+        `Model-enabled prefab "${config.metadata?.prefab ?? config.type}" is missing modelUrl. Using procedural fallback.`
+      );
+      fallback();
+      return;
+    }
+
+    if (!modelAsset.modelId && !modelAsset.assetTag) {
+      this.warnModelAssetOnce(
+        `missing-id:${modelAsset.modelUrl}`,
+        `Model asset "${modelAsset.modelUrl}" is missing modelId/assetTag metadata.`
+      );
+    }
+
+    if (modelAsset.fallbackPrefab !== 'procedural') {
+      this.warnModelAssetOnce(
+        `fallback:${modelAsset.modelUrl}`,
+        `Model asset "${modelAsset.modelUrl}" should declare fallbackPrefab: "procedural" for this pilot.`
+      );
+    }
+
+    if (!isLocalModelUrl(modelAsset.modelUrl)) {
+      const sourceType = isExternalModelUrl(modelAsset.modelUrl) ? 'external' : 'non-local';
+      this.warnModelAssetOnce(
+        `non-local:${modelAsset.modelUrl}`,
+        `Skipped ${sourceType} model URL "${modelAsset.modelUrl}". Using procedural fallback.`
+      );
+      fallback();
+      return;
+    }
+
+    const instanceCount = this.recordModelInstance(modelAsset);
+    if (instanceCount > modelAsset.maxInstances) {
+      this.warnModelAssetOnce(
+        `max-instances:${modelAsset.modelUrl}`,
+        `Model asset "${modelAsset.modelUrl}" exceeded maxInstances (${modelAsset.maxInstances}). Using procedural fallback for extra instances.`
+      );
+      fallback();
+      return;
+    }
+
+    const loadGeneration = this.modelLoadGeneration;
+    loadLocalModel(modelAsset.modelUrl)
+      .then(sourceModel => {
+        if (loadGeneration !== this.modelLoadGeneration) return;
+
+        try {
+          const model = cloneModelGraph(sourceModel);
+          this.configureModelInstance(model, config, modelAsset);
+          this.scene.add(model);
+          this.guideMeshes.push(model);
+        } catch (error) {
+          this.warnModelAssetOnce(
+            `clone:${modelAsset.modelUrl}`,
+            `Could not clone model "${modelAsset.modelUrl}". Using procedural fallback.`,
+            error
+          );
+          fallback();
+        }
+      })
+      .catch(error => {
+        if (loadGeneration !== this.modelLoadGeneration) return;
+        this.warnModelAssetOnce(
+          `load:${modelAsset.modelUrl}`,
+          `Could not load model "${modelAsset.modelUrl}". Using procedural fallback.`,
+          error
+        );
+        fallback();
+      });
+  }
+
+  recordModelInstance(modelAsset) {
+    const key = modelAsset.modelUrl;
+    const count = (this.modelInstanceCounts.get(key) ?? 0) + 1;
+    this.modelInstanceCounts.set(key, count);
+    return count;
+  }
+
+  configureModelInstance(model, config, modelAsset) {
+    model.position.set(
+      config.x * CONSTANTS.CELL_SIZE,
+      modelAsset.yOffset,
+      config.y * CONSTANTS.CELL_SIZE
+    );
+    model.rotation.set(modelAsset.rotation[0], modelAsset.rotation[1], modelAsset.rotation[2]);
+    model.scale.set(modelAsset.scale[0], modelAsset.scale[1], modelAsset.scale[2]);
+    model.userData.cachedModelAsset = true;
+    model.userData.modelUrl = modelAsset.modelUrl;
+    model.traverse(node => {
+      if (!node.isMesh) return;
+      node.castShadow = true;
+      node.receiveShadow = true;
+      node.frustumCulled = true;
+    });
+  }
+
+  warnModelAssetOnce(key, message, error) {
+    if (modelWarningCache.has(key)) return;
+    modelWarningCache.add(key);
+
+    if (CONSTANTS.DEV_MODE) {
+      console.warn(`MazeBuilder model asset: ${message}`, error ?? '');
+    }
+  }
+
+  addProceduralPlant(config) {
     const potMaterial = this.createArchitectureMaterial({ color: config.potColor ?? 0x6d6457 }, 0x6d6457);
     const leafMaterial = this.createArchitectureMaterial({
       color: config.color ?? 0x3f654d,

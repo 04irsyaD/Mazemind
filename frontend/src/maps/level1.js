@@ -2057,7 +2057,16 @@ export const level1 = {
     officeProps.officeSofa({ x: 3.35, y: 19.18, roomId: 'front-reception', anchor: 'seatingZone' }),
     officeProps.waitingChairs({ x: 11.05, y: 19.05, axis: 'z', rotation: -Math.PI / 2, roomId: 'front-reception', anchor: 'sideWaitingChairZone' }),
     officeProps.coffeeTable({ x: 4.25, y: 19.32, roomId: 'front-reception', anchor: 'seatingZone' }),
-    officeProps.pottedPlant({ x: 2.7, y: 18.35, roomId: 'front-reception', anchor: 'plantZones' }),
+    officeProps.pottedPlant({
+      x: 2.7,
+      y: 18.35,
+      roomId: 'front-reception',
+      anchor: 'plantZones',
+      modelId: 'potted-plant-basic',
+      modelUrl: '/assets/models/office/potted_plant_basic.glb',
+      assetTag: 'potted-plant-basic',
+      fallbackPrefab: 'procedural'
+    }),
     officeProps.pottedPlant({ x: 11.45, y: 20.7, color: 0x4b6f5a, potColor: 0x8a877f, roomId: 'front-reception', anchor: 'plantZones' }),
     officeProps.wallSign({ id: 'night-entry-sign', ...mountedSignConfig('front-reception', 'entryWallSignZone'), purpose: 'entry-label' }),
     officeProps.departmentSign({ id: 'intake-sign', ...mountedSignConfig('employee-intake', 'behindIntakeDeskSignZone'), color: 0xd8ebe7 }),
@@ -2224,10 +2233,13 @@ export function validateArchitectureAgainstAnchors(level) {
   const prefabObjects = architecture.filter(object => object.metadata?.prefab);
 
   validatePrefabObjects(prefabObjects).forEach(result => {
+    const object = prefabObjects[result.index];
     if (!result.valid) {
-      const object = prefabObjects[result.index];
       errors.push(`${getObjectName(object, result.index)} prefab validation failed: ${result.errors.join('; ')}`);
     }
+    result.warnings?.forEach(warning => {
+      warnings.push(`${getObjectName(object, result.index)} prefab validation warning: ${warning}`);
+    });
   });
 
   architecture.forEach((object, index) => {

@@ -118,6 +118,10 @@ function resolveModelAssetConfig(config) {
       modelValue(config, 'modelRotation') ?? preset.rotation ?? DEFAULT_MODEL_TRANSFORM.rotation,
       DEFAULT_MODEL_TRANSFORM.rotation
     ),
+    positionOffset: safeVector3(
+      modelValue(config, 'modelPositionOffset') ?? preset.positionOffset ?? DEFAULT_MODEL_TRANSFORM.positionOffset,
+      DEFAULT_MODEL_TRANSFORM.positionOffset
+    ),
     yOffset: finiteNumber(modelValue(config, 'modelYOffset') ?? preset.yOffset, DEFAULT_MODEL_TRANSFORM.yOffset),
     maxInstances: finiteNumber(preset.maxInstances, Infinity),
     materialOverrides: preset.materialOverrides ?? null
@@ -1346,14 +1350,21 @@ export class MazeBuilder {
   }
 
   configureModelInstance(model, config, modelAsset) {
+    const baseRotation = finiteNumber(config.rotation, 0) + modelAsset.rotation[1];
+    const positionOffset = new THREE.Vector3(
+      modelAsset.positionOffset[0],
+      modelAsset.positionOffset[1],
+      modelAsset.positionOffset[2]
+    ).applyAxisAngle(new THREE.Vector3(0, 1, 0), baseRotation);
+
     model.position.set(
-      config.x * CONSTANTS.CELL_SIZE,
-      modelAsset.yOffset,
-      config.y * CONSTANTS.CELL_SIZE
+      config.x * CONSTANTS.CELL_SIZE + positionOffset.x,
+      modelAsset.yOffset + positionOffset.y,
+      config.y * CONSTANTS.CELL_SIZE + positionOffset.z
     );
     model.rotation.set(
       modelAsset.rotation[0],
-      finiteNumber(config.rotation, 0) + modelAsset.rotation[1],
+      baseRotation,
       modelAsset.rotation[2]
     );
     model.scale.set(modelAsset.scale[0], modelAsset.scale[1], modelAsset.scale[2]);
@@ -1371,14 +1382,21 @@ export class MazeBuilder {
   }
 
   configureModelChildInstance(model, localPosition, localRotation, modelAsset) {
+    const baseRotation = finiteNumber(localRotation, 0) + modelAsset.rotation[1];
+    const positionOffset = new THREE.Vector3(
+      modelAsset.positionOffset[0],
+      modelAsset.positionOffset[1],
+      modelAsset.positionOffset[2]
+    ).applyAxisAngle(new THREE.Vector3(0, 1, 0), baseRotation);
+
     model.position.set(
-      localPosition[0],
-      localPosition[1] + modelAsset.yOffset,
-      localPosition[2]
+      localPosition[0] + positionOffset.x,
+      localPosition[1] + modelAsset.yOffset + positionOffset.y,
+      localPosition[2] + positionOffset.z
     );
     model.rotation.set(
       modelAsset.rotation[0],
-      finiteNumber(localRotation, 0) + modelAsset.rotation[1],
+      baseRotation,
       modelAsset.rotation[2]
     );
     model.scale.set(modelAsset.scale[0], modelAsset.scale[1], modelAsset.scale[2]);

@@ -1,6 +1,7 @@
 export const DEFAULT_MODEL_TRANSFORM = {
   scale: [1, 1, 1],
   rotation: [0, 0, 0],
+  positionOffset: [0, 0, 0],
   yOffset: 0,
   fallbackPrefab: 'procedural'
 };
@@ -22,6 +23,27 @@ export const MODEL_PRESETS = {
     materialOverrides: {
       Chair: { color: 0x2f3a44, roughness: 0.82, metalness: 0.03 },
       Grey: { color: 0x4a4f54, roughness: 0.72, metalness: 0.08 }
+    }
+  },
+  'copy-machine-basic': {
+    scale: [3.2, 4.8, 1.8],
+    rotation: [0, 0, 0],
+    yOffset: 0,
+    maxInstances: 4,
+    fallbackPrefab: 'procedural',
+    materialOverrides: {
+      Material: { color: 0xb8bec0, roughness: 0.78, metalness: 0.02 }
+    }
+  },
+  'meeting-table-basic': {
+    scale: [2.6, 2.1, 2.25],
+    rotation: [0, 0, 0],
+    positionOffset: [-1.108, 0, 0.503],
+    yOffset: 0,
+    maxInstances: 2,
+    fallbackPrefab: 'procedural',
+    materialOverrides: {
+      wood: { color: 0x4f5454, roughness: 0.76, metalness: 0.04 }
     }
   },
   'coffee-table-basic': {

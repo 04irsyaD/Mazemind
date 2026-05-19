@@ -56,6 +56,7 @@ const metadataFor = (prefab, object) => stripUndefined({
   fallbackPrefab: object.fallbackPrefab,
   modelScale: object.modelScale,
   modelRotation: object.modelRotation,
+  modelPositionOffset: object.modelPositionOffset,
   modelYOffset: object.modelYOffset,
   chairModelId: object.chairModelId,
   chairModelUrl: object.chairModelUrl,

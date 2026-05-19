@@ -1,4 +1,5 @@
 import { CONSTANTS } from '../core/Constants.js';
+import { validateArchitectureAgainstRoomAssetManifest } from '../assets/roomAssetManifest.js';
 import { OfficeMazeGenerator } from './OfficeMazeGenerator.js';
 import { mountToWall, normalizeAnchor, officeProps, resolveWallRotation, validatePrefabObjects } from './prefabs/officeProps.js';
 
@@ -2133,10 +2134,35 @@ export const level1 = {
       chairModelRotation: [0, 0, 0],
       chairModelYOffset: 0
     }),
-    officeProps.copyMachine({ x: 18.25, y: 5.25, roomId: 'main-workstation-hall', anchor: 'printerZone' }),
+    officeProps.copyMachine({
+      x: 18.25,
+      y: 5.25,
+      roomId: 'main-workstation-hall',
+      anchor: 'printerZone',
+      modelId: 'copy-machine-basic',
+      modelUrl: '/assets/models/office/copy_machine_basic.glb',
+      assetTag: 'copy-machine-basic',
+      fallbackPrefab: 'procedural',
+      modelScale: [3.2, 4.8, 1.8],
+      modelRotation: [0, 0, 0],
+      modelYOffset: 0
+    }),
     officeProps.serverRackRow({ x: 5, y: 24, roomId: 'archive', anchor: 'rackRowNorth' }),
     officeProps.serverRackRow({ x: 5, y: 27, color: 0x37414a, roomId: 'archive', anchor: 'rackRowSouth' }),
-    officeProps.meetingTable({ x: 21, y: 16.2, roomId: 'checkpoint-chamber', anchor: 'meetingTableZone' }),
+    officeProps.meetingTable({
+      x: 21,
+      y: 16.2,
+      roomId: 'checkpoint-chamber',
+      anchor: 'meetingTableZone',
+      modelId: 'meeting-table-basic',
+      modelUrl: '/assets/models/office/meeting_table_basic.glb',
+      assetTag: 'meeting-table-basic',
+      fallbackPrefab: 'procedural',
+      modelScale: [2.6, 2.1, 2.25],
+      modelRotation: [0, 0, 0],
+      modelPositionOffset: [-1.108, 0, 0.503],
+      modelYOffset: 0
+    }),
     officeProps.reviewGlassPartition({ x: 18.05, y: 16.4, axis: 'z', roomId: 'checkpoint-chamber', anchor: 'westBoundaryPartition' }),
     officeProps.officeFrontGlass({ x: 31, y: 10.65, axis: 'x', roomId: 'wrong-department', anchor: 'accountsFrontBoundary' }),
     officeProps.copyMachine({ x: 18.85, y: 25.15, color: 0xb1b8b4, roomId: 'utility-break', anchor: 'copyCabinetZone' }),
@@ -2290,6 +2316,14 @@ export function validateArchitectureAgainstAnchors(level) {
     result.warnings?.forEach(warning => {
       warnings.push(`${getObjectName(object, result.index)} prefab validation warning: ${warning}`);
     });
+  });
+
+  const roomAssetManifestValidation = validateArchitectureAgainstRoomAssetManifest(architecture, anchors);
+  roomAssetManifestValidation.errors.forEach(error => {
+    warnings.push(`room asset manifest error: ${error}`);
+  });
+  roomAssetManifestValidation.warnings.forEach(warning => {
+    warnings.push(`room asset manifest warning: ${warning}`);
   });
 
   architecture.forEach((object, index) => {

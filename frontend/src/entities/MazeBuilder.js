@@ -1063,6 +1063,15 @@ export class MazeBuilder {
   }
 
   addWaitingChairs(config) {
+    if (hasModelAssetMetadata(config)) {
+      this.addModelBackedWaitingChairs(config);
+      return;
+    }
+
+    this.addProceduralWaitingChairs(config);
+  }
+
+  addProceduralWaitingChairs(config) {
     const count = config.count ?? 3;
     const spacing = config.spacing ?? 0.72;
     for (let index = 0; index < count; index++) {
@@ -1072,6 +1081,28 @@ export class MazeBuilder {
         config.rotation ?? 0,
         config.color ?? 0x4b5256
       );
+    }
+  }
+
+  addModelBackedWaitingChairs(config) {
+    const count = config.count ?? 3;
+    const spacing = config.spacing ?? 0.72;
+
+    for (let index = 0; index < count; index++) {
+      const chairConfig = {
+        ...config,
+        x: config.x + (config.axis === 'z' ? 0 : index * spacing),
+        y: config.y + (config.axis === 'z' ? index * spacing : 0)
+      };
+
+      this.addModelBackedProp(chairConfig, () => {
+        this.addStaticChair(
+          chairConfig.x,
+          chairConfig.y,
+          chairConfig.rotation ?? 0,
+          chairConfig.color ?? 0x4b5256
+        );
+      });
     }
   }
 
@@ -1210,7 +1241,11 @@ export class MazeBuilder {
       modelAsset.yOffset,
       config.y * CONSTANTS.CELL_SIZE
     );
-    model.rotation.set(modelAsset.rotation[0], modelAsset.rotation[1], modelAsset.rotation[2]);
+    model.rotation.set(
+      modelAsset.rotation[0],
+      finiteNumber(config.rotation, 0) + modelAsset.rotation[1],
+      modelAsset.rotation[2]
+    );
     model.scale.set(modelAsset.scale[0], modelAsset.scale[1], modelAsset.scale[2]);
     model.userData.cachedModelAsset = true;
     model.userData.modelUrl = modelAsset.modelUrl;

@@ -2055,7 +2055,20 @@ export const level1 = {
     officeProps.receptionDesk({ x: 4.2, y: 21.05, roomId: 'front-reception', anchor: 'receptionDeskZone' }),
     officeProps.intakeDesk({ x: 5.35, y: 16.25, roomId: 'employee-intake', anchor: 'intakeDeskZone' }),
     officeProps.officeSofa({ x: 3.35, y: 19.18, roomId: 'front-reception', anchor: 'seatingZone' }),
-    officeProps.waitingChairs({ x: 11.05, y: 19.05, axis: 'z', rotation: -Math.PI / 2, roomId: 'front-reception', anchor: 'sideWaitingChairZone' }),
+    officeProps.waitingChairs({
+      x: 11.05,
+      y: 19.05,
+      axis: 'z',
+      rotation: -Math.PI / 2,
+      roomId: 'front-reception',
+      anchor: 'sideWaitingChairZone',
+      modelId: 'office-chair-basic',
+      modelUrl: '/assets/models/office/office_chair_basic.glb',
+      assetTag: 'office-chair-basic',
+      fallbackPrefab: 'procedural',
+      modelScale: [2.2, 2.2, 2.2],
+      modelYOffset: 0
+    }),
     officeProps.coffeeTable({ x: 4.25, y: 19.32, roomId: 'front-reception', anchor: 'seatingZone' }),
     officeProps.pottedPlant({
       x: 2.7,

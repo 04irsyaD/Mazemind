@@ -129,6 +129,7 @@ export class UIManager {
 
     if (this.debugStateLine) {
       this.debugStateLine.innerText = [
+        state.levelLabel ?? 'Level 1',
         `Documents ${state.checkpointsCollected ?? 0}/${state.totalCheckpoints ?? 0}`,
         `Flow ${state.progressionState ?? 'unknown'}`,
         `Exit ${state.exitUnlocked ? 'Unlocked' : 'Locked'}`,

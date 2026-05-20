@@ -21,6 +21,11 @@ import { UIManager } from '../ui/UIManager.js';
 
 // Map Data
 import { level1 } from '../maps/level1.js';
+import { level1V2 } from '../maps/level1V2.js';
+
+const getSelectedLevelVersion = () => (import.meta.env.VITE_LEVEL_VERSION === 'v2' ? 'v2' : 'v1');
+const getSelectedLevel = () => (getSelectedLevelVersion() === 'v2' ? level1V2 : level1);
+const getSelectedLevelLabel = () => (getSelectedLevelVersion() === 'v2' ? 'Level 1 V2 Preview' : 'Level 1');
 
 export class Game {
   constructor() {
@@ -141,7 +146,11 @@ export class Game {
     this.inputManager.resetTransient();
     this.checkpointActive = false;
     this.levelEnding = false;
-    const runtime = this.levelRuntime.load(level1);
+    const selectedLevel = getSelectedLevel();
+    devLog('Game: Loading level version', {
+      version: getSelectedLevelVersion()
+    });
+    const runtime = this.levelRuntime.load(selectedLevel);
     const level = runtime.level;
     this.collisionSystem = runtime.collisionSystem;
     const startWorldX = level.playerStart.x * CONSTANTS.CELL_SIZE;
@@ -319,7 +328,8 @@ export class Game {
       lightChannels: runtime.lights?.channels ?? [],
       routeBlockers: runtime.routeBlockers ?? 0,
       collisionVolumes: runtime.collisionVolumes ?? 0,
-      fps: this.lastDelta > 0 ? Math.round(1 / this.lastDelta) : 0
+      fps: this.lastDelta > 0 ? Math.round(1 / this.lastDelta) : 0,
+      levelLabel: getSelectedLevelLabel()
     };
   }
 

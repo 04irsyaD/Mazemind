@@ -1,5 +1,8 @@
 import { CONSTANTS } from '../core/Constants.js';
-import { validateArchitectureAgainstRoomAssetManifest } from '../assets/roomAssetManifest.js';
+import {
+  summarizeRoomAssetManifest,
+  validateArchitectureAgainstRoomAssetManifest
+} from '../assets/roomAssetManifest.js';
 import { OfficeMazeGenerator } from './OfficeMazeGenerator.js';
 import { mountToWall, normalizeAnchor, officeProps, resolveWallRotation, validatePrefabObjects } from './prefabs/officeProps.js';
 
@@ -2308,6 +2311,7 @@ export function validateArchitectureAgainstAnchors(level) {
   const anchors = level.roomLayoutAnchors ?? {};
   const specs = level.roomLayoutSpecs?.rooms ?? {};
   const prefabObjects = architecture.filter(object => object.metadata?.prefab);
+  const roomAssetManifestSummary = summarizeRoomAssetManifest(anchors);
 
   validatePrefabObjects(prefabObjects).forEach(result => {
     const object = prefabObjects[result.index];
@@ -2412,7 +2416,8 @@ export function validateArchitectureAgainstAnchors(level) {
       rawCount: architecture.length - prefabObjects.length,
       signCount: architecture.filter(object => object.type === 'sign').length,
       glassCount: architecture.filter(object => object.type === 'glassWall').length,
-      visualOnlyCount: architecture.filter(object => object.metadata?.visualOnly === true).length
+      visualOnlyCount: architecture.filter(object => object.metadata?.visualOnly === true).length,
+      roomAssetManifest: roomAssetManifestSummary
     }
   };
 }

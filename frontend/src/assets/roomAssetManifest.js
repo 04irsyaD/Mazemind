@@ -8,17 +8,55 @@
 // maxSizeMeters is the hard upper bound before the model is considered unsafe.
 // placementZones must match existing roomLayoutAnchors zone ids.
 // fallbackPrefab must always exist so procedural fallback remains available.
+//
+// Role separation is intentional and should not be blurred to satisfy a
+// temporary placement problem:
+// - officeChair is workstation-only; waitingChair is lobby/reception seating.
+// - meetingChair is for checkpoint/review table seating only.
+// - receptionDesk, intakeDesk, and officeDesk are separate room roles.
+// - coffeeTable is waiting-area furniture, not a meetingTable substitute.
+// - archiveRack/serverRack storage is not filingCabinet wall furniture.
+// - emergency props are hazard/corridor visuals, never office furniture.
+
+export const ROOM_ASSET_MANIFEST_REQUIRED_ROOMS = [
+  'front-reception',
+  'employee-intake',
+  'main-workstation-hall',
+  'archive',
+  'checkpoint-chamber',
+  'wrong-department',
+  'utility-break',
+  'crusher-corridor',
+  'fake-exit',
+  'final-route'
+];
+
+export const VALIDATION_CATEGORIES = {
+  SOP_ERROR: 'SOP_ERROR',
+  SOP_WARNING: 'SOP_WARNING',
+  PLACEMENT_WARNING: 'PLACEMENT_WARNING',
+  DEFERRED_REPAIR: 'DEFERRED_REPAIR',
+  MANIFEST_MISMATCH: 'MANIFEST_MISMATCH'
+};
 
 export const ASSET_SIZE_STANDARDS = {
   officeChair: {
     targetSizeMeters: [0.65, 1.05, 0.65],
     maxSizeMeters: [0.8, 1.25, 0.85]
   },
+  meetingChair: {
+    targetSizeMeters: [0.65, 1.0, 0.65],
+    maxSizeMeters: [0.85, 1.2, 0.85]
+  },
   waitingChair: {
     targetSizeMeters: [0.6, 0.9, 0.65],
     maxSizeMeters: [0.75, 1.1, 0.8]
   },
   officeDesk: {
+    targetSizeMeters: [1.4, 0.75, 0.75],
+    maxSizeMeters: [1.8, 0.9, 0.9]
+  },
+  smallOfficeDesk: {
     targetSizeMeters: [1.4, 0.75, 0.75],
     maxSizeMeters: [1.8, 0.9, 0.9]
   },
@@ -66,9 +104,17 @@ export const ASSET_SIZE_STANDARDS = {
     targetSizeMeters: [1.6, 0.35, 0.05],
     maxSizeMeters: [2.2, 0.6, 0.12]
   },
+  exitSign: {
+    targetSizeMeters: [1.1, 0.28, 0.04],
+    maxSizeMeters: [1.35, 0.45, 0.1]
+  },
   taskTerminal: {
     targetSizeMeters: [0.6, 1.2, 0.45],
     maxSizeMeters: [0.8, 1.5, 0.65]
+  },
+  wallTerminal: {
+    targetSizeMeters: [0.55, 1.0, 0.16],
+    maxSizeMeters: [0.75, 1.3, 0.24]
   },
   documentTray: {
     targetSizeMeters: [0.45, 0.12, 0.32],
@@ -106,6 +152,10 @@ export const ASSET_SIZE_STANDARDS = {
     targetSizeMeters: [1.2, 0.75, 0.7],
     maxSizeMeters: [1.6, 0.9, 1.0]
   },
+  simpleChair: {
+    targetSizeMeters: [0.55, 0.9, 0.55],
+    maxSizeMeters: [0.7, 1.1, 0.75]
+  },
   fridgeCabinet: {
     targetSizeMeters: [0.75, 1.8, 0.7],
     maxSizeMeters: [1.0, 2.1, 0.9]
@@ -129,6 +179,10 @@ export const ASSET_SIZE_STANDARDS = {
   finalDoorSlab: {
     targetSizeMeters: [1.6, 2.15, 0.12],
     maxSizeMeters: [2.0, 2.4, 0.24]
+  },
+  doorSlab: {
+    targetSizeMeters: [1.4, 2.05, 0.1],
+    maxSizeMeters: [1.8, 2.25, 0.2]
   },
   observationWindowBand: {
     targetSizeMeters: [0.08, 1.15, 5.0],
@@ -157,13 +211,15 @@ export const GLOBAL_PLACEMENT_RULES = {
     'serverRack',
     'warningPanel',
     'wallTerminal',
-    'fridgeCabinet'
+    'fridgeCabinet',
+    'exitSign'
   ],
   facingRequiredTypes: [
     'officeChair',
     'waitingChair',
     'meetingChair',
-    'receptionDesk'
+    'receptionDesk',
+    'intakeDesk'
   ]
 };
 
@@ -176,6 +232,12 @@ export const ROOM_ASSET_MANIFEST = {
   'front-reception': {
     function: 'entry lobby and waiting area',
     maxLargeProps: 6,
+    placementNotes: [
+      'Keep the spawn to employee-intake path clear.',
+      'Reception desk faces the entrance and player approach.',
+      'Waiting chairs and sofa stay in the seating zone.',
+      'Plants are corner-only.'
+    ],
     allowedAssets: {
       receptionDesk: {
         idealCount: 1,
@@ -227,6 +289,11 @@ export const ROOM_ASSET_MANIFEST = {
   'employee-intake': {
     function: 'employee intake desk and first form handoff',
     maxLargeProps: 4,
+    placementNotes: [
+      'Intake desk faces the approach path.',
+      'Terminal and form stay on the desk.',
+      'Connector paths must remain clear.'
+    ],
     allowedAssets: {
       intakeDesk: {
         idealCount: 1,
@@ -271,6 +338,12 @@ export const ROOM_ASSET_MANIFEST = {
   'main-workstation-hall': {
     function: 'dense but readable rows of employee workstations',
     maxLargeProps: 5,
+    placementNotes: [
+      'Central aisle stays clear.',
+      'Workstation clusters remain row-based.',
+      'Office chairs face desks.',
+      'Copy machine stays in the printer zone.'
+    ],
     allowedAssets: {
       workstationCluster: {
         idealCount: 2,
@@ -344,6 +417,11 @@ export const ROOM_ASSET_MANIFEST = {
   archive: {
     function: 'records archive with rack rows and one index objective',
     maxLargeProps: 4,
+    placementNotes: [
+      'Racks and cabinets stay in rows or wall-bound zones.',
+      'Aisle between racks stays clear.',
+      'No sofa or workstation furniture.'
+    ],
     allowedAssets: {
       serverRack: {
         idealCount: 2,
@@ -388,6 +466,11 @@ export const ROOM_ASSET_MANIFEST = {
   'checkpoint-chamber': {
     function: 'formal review room with a table, ledger terminal, and glass edge',
     maxLargeProps: 4,
+    placementNotes: [
+      'Meeting table does not block connector exits.',
+      'Glass remains boundary-aligned.',
+      'Review terminal remains readable.'
+    ],
     allowedAssets: {
       meetingTable: {
         idealCount: 1,
@@ -398,7 +481,7 @@ export const ROOM_ASSET_MANIFEST = {
       },
       meetingChair: {
         idealCount: [0, 4],
-        ...standard('officeChair'),
+        ...standard('meetingChair'),
         placementZones: ['meetingTableZone'],
         placement: { facing: 'meetingTable', minClearanceMeters: 0.55 },
         fallbackPrefab: 'procedural'
@@ -432,10 +515,15 @@ export const ROOM_ASSET_MANIFEST = {
   'wrong-department': {
     function: 'wrong records/accounts office with controlled objective misdirection',
     maxLargeProps: 5,
+    placementNotes: [
+      'Office furniture stays wall-side.',
+      'Monolith terminal remains the focal point.',
+      'No workstation cluster.'
+    ],
     allowedAssets: {
       smallOfficeDesk: {
         idealCount: [0, 2],
-        ...standard('officeDesk'),
+        ...standard('smallOfficeDesk'),
         placementZones: ['wallDeskCabinetZones'],
         placement: { wallBound: true, minClearanceMeters: 0.6 },
         fallbackPrefab: 'officeDesk'
@@ -490,6 +578,11 @@ export const ROOM_ASSET_MANIFEST = {
   'utility-break': {
     function: 'staff utility break area with copier and optional break furniture',
     maxLargeProps: 5,
+    placementNotes: [
+      'Copy machine, fridge, and cabinet are wall-bound.',
+      'Table and chair are corner-only.',
+      'Room should not be overfilled.'
+    ],
     allowedAssets: {
       copyMachine: {
         idealCount: 1,
@@ -514,9 +607,9 @@ export const ROOM_ASSET_MANIFEST = {
       },
       simpleChair: {
         idealCount: [0, 2],
-        ...standard('waitingChair'),
+        ...standard('simpleChair'),
         placementZones: ['smallBreakTableZone'],
-        placement: { facing: 'smallBreakTable', minClearanceMeters: 0.45 },
+        placement: { facing: 'smallBreakTable', cornerOnly: true, minClearanceMeters: 0.45 },
         fallbackPrefab: 'procedural'
       },
       trashBin: {
@@ -541,6 +634,12 @@ export const ROOM_ASSET_MANIFEST = {
   'crusher-corridor': {
     function: 'hazard corridor with visual-only emergency framing',
     maxLargeProps: 6,
+    placementNotes: [
+      'Center lane must stay empty.',
+      'All props are visualOnly if near hazard.',
+      'Frames and trims belong only on edges or thresholds.',
+      'No office furniture.'
+    ],
     allowedAssets: {
       emergencyDoorFrame: {
         idealCount: 2,
@@ -585,17 +684,22 @@ export const ROOM_ASSET_MANIFEST = {
   'fake-exit': {
     function: 'clean false exit room with signage only',
     maxLargeProps: 1,
+    placementNotes: [
+      'No furniture.',
+      'Path to fake exit trigger stays clear.',
+      'Keep a clean suspicious emptiness.'
+    ],
     allowedAssets: {
       exitSign: {
         idealCount: 1,
-        ...standard('wallSign'),
+        ...standard('exitSign'),
         placementZones: ['publicExitWallSignZone'],
         placement: { wallBound: true, minClearanceMeters: 0.8 },
         fallbackPrefab: 'exitSign'
       },
       doorSlab: {
         idealCount: [0, 1],
-        ...standard('finalDoorSlab'),
+        ...standard('doorSlab'),
         placementZones: ['noFurnitureZone'],
         placement: { visualOnlyRequired: true, wallBound: true, minClearanceMeters: 0.8 },
         fallbackPrefab: 'doorSlab'
@@ -615,6 +719,11 @@ export const ROOM_ASSET_MANIFEST = {
   'final-route': {
     function: 'sterile final approach to the final door',
     maxLargeProps: 2,
+    placementNotes: [
+      'Center corridor stays clear.',
+      'Final door remains the focal point.',
+      'No office furniture.'
+    ],
     allowedAssets: {
       finalDoorSlab: {
         idealCount: 1,
@@ -639,7 +748,7 @@ export const ROOM_ASSET_MANIFEST = {
       },
       wallTerminal: {
         idealCount: [0, 1],
-        ...standard('taskTerminal'),
+        ...standard('wallTerminal'),
         placementZones: ['finalDoorWindowSignageZone'],
         placement: { wallBound: true, minClearanceMeters: 0.8 },
         fallbackPrefab: 'procedural'
@@ -650,12 +759,45 @@ export const ROOM_ASSET_MANIFEST = {
   }
 };
 
+export const ROOM_PLACEMENT_REPAIR_PRIORITIES = [
+  {
+    roomId: 'crusher-corridor',
+    priority: 'high',
+    issue: 'Emergency frame appears too blocky/debug-like and should be refined without blocking center lane.'
+  },
+  {
+    roomId: 'main-workstation-hall',
+    priority: 'high',
+    issue: 'Verify workstation clusters and chairs do not intrude into central aisle.'
+  },
+  {
+    roomId: 'front-reception',
+    priority: 'high',
+    issue: 'Waiting area should use waitingChair model later, not officeChair model.'
+  },
+  {
+    roomId: 'checkpoint-chamber',
+    priority: 'medium',
+    issue: 'Verify meeting table model offset and review chairs keep all connector exits readable.'
+  },
+  {
+    roomId: 'main-workstation-hall',
+    priority: 'medium',
+    issue: 'Measure model-backed copy machine against SOP target/max size before placement repair is finalized.'
+  }
+];
+
+// Prefab-to-role mapping is deliberately semantic. If a procedural prefab is
+// reused by more than one visual role, keep the mapping role-specific here
+// instead of loosening a room to accept the wrong furniture category.
 export const PREFAB_TO_MANIFEST_ASSET_TYPE = {
   waitingChairs: 'waitingChair',
   officeChairSet: 'officeChair',
   pottedPlant: 'pottedPlant',
   receptionDesk: 'receptionDesk',
   intakeDesk: 'intakeDesk',
+  // officeDesk is currently only allowed as wall-side small office furniture,
+  // not as a workstation desk replacement in the main workstation clusters.
   officeDesk: 'smallOfficeDesk',
   coffeeTable: 'coffeeTable',
   copyMachine: 'copyMachine',
@@ -664,6 +806,7 @@ export const PREFAB_TO_MANIFEST_ASSET_TYPE = {
   emergencyDoorFrame: 'emergencyDoorFrame',
   emergencyWarningTrim: 'warningTrim',
   finalDoorSlab: 'finalDoorSlab',
+  doorSlab: 'doorSlab',
   workstationCluster: 'workstationCluster',
   workstationClusterLeft: 'workstationCluster',
   workstationClusterRight: 'workstationCluster',
@@ -673,6 +816,8 @@ export const PREFAB_TO_MANIFEST_ASSET_TYPE = {
   warningSign: 'warningPanel',
   taskTerminal: 'taskTerminal',
   monolithTerminal: 'monolithTerminal',
+  // Both glass prefabs are glassPartition because the room decides whether
+  // review-boundary or office-front boundary placement is valid.
   reviewGlassPartition: 'glassPartition',
   officeFrontGlass: 'glassPartition',
   observationWindowBand: 'observationWindowBand',
@@ -695,6 +840,23 @@ const OFFICE_FURNITURE_ASSET_TYPES = new Set([
 ]);
 
 const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+
+function createValidationIssue(category, message, context = {}) {
+  return {
+    category,
+    message,
+    ...context,
+    formatted: `[${category}] ${message}`
+  };
+}
+
+function pushIssue(collection, category, message, context) {
+  collection.push(createValidationIssue(category, message, context));
+}
+
+function formatIssues(issues) {
+  return issues.map(issue => issue.formatted);
+}
 
 function getObjectAnchorId(object) {
   const anchor = object?.metadata?.anchor ?? object?.anchor;
@@ -772,89 +934,215 @@ export function getManifestAssetTypeForObject(object) {
 }
 
 export function validateRoomAssetManifest(roomLayoutAnchors = null) {
-  const errors = [];
-  const warnings = [];
+  const errorIssues = [];
+  const warningIssues = [];
+
+  ROOM_ASSET_MANIFEST_REQUIRED_ROOMS.forEach(roomId => {
+    if (!ROOM_ASSET_MANIFEST[roomId]) {
+      pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId} is missing from ROOM_ASSET_MANIFEST`, {
+        roomId
+      });
+    }
+  });
 
   Object.entries(ROOM_ASSET_MANIFEST).forEach(([roomId, room]) => {
-    if (!room.function) errors.push(`${roomId} manifest is missing function`);
+    if (!room.function) {
+      pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId} manifest is missing function`, { roomId });
+    }
     if (!Number.isInteger(room.maxLargeProps) || room.maxLargeProps < 0) {
-      errors.push(`${roomId} manifest maxLargeProps must be a non-negative integer`);
+      pushIssue(
+        errorIssues,
+        VALIDATION_CATEGORIES.SOP_ERROR,
+        `${roomId} manifest maxLargeProps must be a non-negative integer`,
+        { roomId }
+      );
+    }
+    if (!isObject(room.allowedAssets) || Object.keys(room.allowedAssets).length === 0) {
+      pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId} manifest must declare allowedAssets`, {
+        roomId
+      });
+    }
+    if (!Array.isArray(room.forbiddenObjects)) {
+      pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId} manifest must declare forbiddenObjects`, {
+        roomId
+      });
+    }
+    if (!Array.isArray(room.forbiddenZones)) {
+      pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId} manifest must declare forbiddenZones`, {
+        roomId
+      });
+    }
+    if (!Array.isArray(room.placementNotes) || room.placementNotes.length === 0) {
+      pushIssue(warningIssues, VALIDATION_CATEGORIES.SOP_WARNING, `${roomId} manifest is missing placementNotes`, {
+        roomId
+      });
     }
 
     const roomAnchorZoneIds = roomLayoutAnchors?.[roomId] ? collectAnchorZoneIds(roomLayoutAnchors[roomId]) : null;
 
     Object.entries(room.allowedAssets ?? {}).forEach(([assetType, asset]) => {
       if (!isValidIdealCount(asset.idealCount)) {
-        errors.push(`${roomId}.${assetType} has invalid idealCount`);
+        pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId}.${assetType} has invalid idealCount`, {
+          roomId,
+          assetType
+        });
       }
       if (!isSizeTuple(asset.targetSizeMeters)) {
-        errors.push(`${roomId}.${assetType} is missing targetSizeMeters`);
+        pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId}.${assetType} is missing targetSizeMeters`, {
+          roomId,
+          assetType
+        });
       }
       if (!isSizeTuple(asset.maxSizeMeters)) {
-        errors.push(`${roomId}.${assetType} is missing maxSizeMeters`);
+        pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId}.${assetType} is missing maxSizeMeters`, {
+          roomId,
+          assetType
+        });
       }
       if (targetExceedsMax(asset.targetSizeMeters, asset.maxSizeMeters)) {
-        errors.push(`${roomId}.${assetType} targetSizeMeters exceeds maxSizeMeters`);
+        pushIssue(
+          errorIssues,
+          VALIDATION_CATEGORIES.SOP_ERROR,
+          `${roomId}.${assetType} targetSizeMeters exceeds maxSizeMeters`,
+          { roomId, assetType }
+        );
       }
       if (!Array.isArray(asset.placementZones) || asset.placementZones.length === 0) {
-        errors.push(`${roomId}.${assetType} must declare placementZones`);
+        pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId}.${assetType} must declare placementZones`, {
+          roomId,
+          assetType
+        });
+      }
+      if (!isObject(asset.placement) || Object.keys(asset.placement).length === 0) {
+        pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId}.${assetType} must declare placement rules`, {
+          roomId,
+          assetType
+        });
       }
       if (!asset.fallbackPrefab) {
-        errors.push(`${roomId}.${assetType} must declare fallbackPrefab`);
+        pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId}.${assetType} must declare fallbackPrefab`, {
+          roomId,
+          assetType
+        });
       }
       if (room.forbiddenObjects?.includes(assetType)) {
-        errors.push(`${roomId}.${assetType} is both allowed and forbidden`);
+        pushIssue(errorIssues, VALIDATION_CATEGORIES.SOP_ERROR, `${roomId}.${assetType} is both allowed and forbidden`, {
+          roomId,
+          assetType
+        });
       }
       if (roomAnchorZoneIds) {
         asset.placementZones?.forEach(zoneId => {
           if (!roomAnchorZoneIds.has(zoneId)) {
-            warnings.push(`${roomId}.${assetType} placement zone "${zoneId}" is not present in roomLayoutAnchors`);
+            pushIssue(
+              warningIssues,
+              VALIDATION_CATEGORIES.MANIFEST_MISMATCH,
+              `${roomId}.${assetType} placement zone "${zoneId}" is not present in roomLayoutAnchors`,
+              { roomId, assetType, zoneId }
+            );
           }
         });
       }
     });
   });
 
-  return { valid: errors.length === 0, errors, warnings };
+  return {
+    valid: errorIssues.length === 0,
+    errors: formatIssues(errorIssues),
+    warnings: formatIssues(warningIssues),
+    issues: [...errorIssues, ...warningIssues]
+  };
 }
 
 export function validateModelAgainstRoomManifest(object, roomId, assetType, roomLayoutAnchors = null) {
-  const warnings = [];
+  const warningIssues = [];
   const room = ROOM_ASSET_MANIFEST[roomId];
   const name = getObjectName(object);
 
   if (!room) {
-    warnings.push(`${name} references room "${roomId}" with no room asset manifest entry`);
-    return { valid: false, warnings };
+    pushIssue(
+      warningIssues,
+      VALIDATION_CATEGORIES.MANIFEST_MISMATCH,
+      `${name} references room "${roomId}" with no room asset manifest entry`,
+      { roomId, objectName: name }
+    );
+    return { valid: false, warnings: formatIssues(warningIssues), issues: warningIssues };
   }
 
   const resolvedAssetType = assetType ?? getManifestAssetTypeForObject(object);
   const asset = room.allowedAssets?.[resolvedAssetType];
 
   if (!asset) {
-    warnings.push(`${name} uses asset "${resolvedAssetType}" which is not allowed in ${roomId}`);
+    pushIssue(
+      warningIssues,
+      VALIDATION_CATEGORIES.MANIFEST_MISMATCH,
+      `${name} uses asset "${resolvedAssetType}" which is not allowed in ${roomId}`,
+      { roomId, assetType: resolvedAssetType, objectName: name }
+    );
     if (['fake-exit', 'final-route'].includes(roomId) && OFFICE_FURNITURE_ASSET_TYPES.has(resolvedAssetType)) {
-      warnings.push(`${name} is office furniture in ${roomId}, which is reserved as a no-office-furniture room`);
+      pushIssue(
+        warningIssues,
+        VALIDATION_CATEGORIES.PLACEMENT_WARNING,
+        `${name} is office furniture in ${roomId}, which is reserved as a no-office-furniture room`,
+        { roomId, assetType: resolvedAssetType, objectName: name }
+      );
     }
-    return { valid: false, warnings };
+    return { valid: false, warnings: formatIssues(warningIssues), issues: warningIssues };
   }
 
   const anchorId = getObjectAnchorId(object);
   if (anchorId && !asset.placementZones.includes(anchorId)) {
-    warnings.push(
-      `${name} uses anchor "${anchorId}", but ${roomId}.${resolvedAssetType} allows ${asset.placementZones.join(', ')}`
+    pushIssue(
+      warningIssues,
+      VALIDATION_CATEGORIES.PLACEMENT_WARNING,
+      `${name} uses anchor "${anchorId}", but ${roomId}.${resolvedAssetType} allows ${asset.placementZones.join(', ')}`,
+      { roomId, assetType: resolvedAssetType, objectName: name, anchorId }
     );
   }
 
-  if (!asset.fallbackPrefab) warnings.push(`${roomId}.${resolvedAssetType} is missing fallbackPrefab`);
-  if (!isSizeTuple(asset.targetSizeMeters)) warnings.push(`${roomId}.${resolvedAssetType} is missing targetSizeMeters`);
-  if (!isSizeTuple(asset.maxSizeMeters)) warnings.push(`${roomId}.${resolvedAssetType} is missing maxSizeMeters`);
-  if (targetExceedsMax(asset.targetSizeMeters, asset.maxSizeMeters)) {
-    warnings.push(`${roomId}.${resolvedAssetType} targetSizeMeters exceeds maxSizeMeters`);
+  if (!asset.fallbackPrefab) {
+    pushIssue(warningIssues, VALIDATION_CATEGORIES.SOP_WARNING, `${roomId}.${resolvedAssetType} is missing fallbackPrefab`, {
+      roomId,
+      assetType: resolvedAssetType
+    });
   }
-  if (!isValidIdealCount(asset.idealCount)) warnings.push(`${roomId}.${resolvedAssetType} has invalid idealCount`);
+  if (!isSizeTuple(asset.targetSizeMeters)) {
+    pushIssue(
+      warningIssues,
+      VALIDATION_CATEGORIES.SOP_WARNING,
+      `${roomId}.${resolvedAssetType} is missing targetSizeMeters`,
+      { roomId, assetType: resolvedAssetType }
+    );
+  }
+  if (!isSizeTuple(asset.maxSizeMeters)) {
+    pushIssue(
+      warningIssues,
+      VALIDATION_CATEGORIES.SOP_WARNING,
+      `${roomId}.${resolvedAssetType} is missing maxSizeMeters`,
+      { roomId, assetType: resolvedAssetType }
+    );
+  }
+  if (targetExceedsMax(asset.targetSizeMeters, asset.maxSizeMeters)) {
+    pushIssue(
+      warningIssues,
+      VALIDATION_CATEGORIES.SOP_WARNING,
+      `${roomId}.${resolvedAssetType} targetSizeMeters exceeds maxSizeMeters`,
+      { roomId, assetType: resolvedAssetType }
+    );
+  }
+  if (!isValidIdealCount(asset.idealCount)) {
+    pushIssue(warningIssues, VALIDATION_CATEGORIES.SOP_WARNING, `${roomId}.${resolvedAssetType} has invalid idealCount`, {
+      roomId,
+      assetType: resolvedAssetType
+    });
+  }
   if (room.forbiddenObjects?.includes(resolvedAssetType)) {
-    warnings.push(`${name} uses asset "${resolvedAssetType}" which is listed in ${roomId}.forbiddenObjects`);
+    pushIssue(
+      warningIssues,
+      VALIDATION_CATEGORIES.PLACEMENT_WARNING,
+      `${name} uses asset "${resolvedAssetType}" which is listed in ${roomId}.forbiddenObjects`,
+      { roomId, assetType: resolvedAssetType, objectName: name }
+    );
   }
 
   if (
@@ -862,30 +1150,50 @@ export function validateModelAgainstRoomManifest(object, roomId, assetType, room
     (object?.metadata?.modelUrl || object?.modelUrl) &&
     object?.metadata?.visualOnly !== true
   ) {
-    warnings.push(`${name} is a model prop in crusher-corridor and must be metadata.visualOnly`);
+    pushIssue(
+      warningIssues,
+      VALIDATION_CATEGORIES.PLACEMENT_WARNING,
+      `${name} is a model prop in crusher-corridor and must be metadata.visualOnly`,
+      { roomId, assetType: resolvedAssetType, objectName: name }
+    );
   }
 
   if (asset.placement?.visualOnlyRequired && object?.metadata?.prefab !== 'warningSign' && object?.metadata?.visualOnly !== true) {
-    warnings.push(`${name} must be metadata.visualOnly for ${roomId}.${resolvedAssetType}`);
+    pushIssue(
+      warningIssues,
+      VALIDATION_CATEGORIES.PLACEMENT_WARNING,
+      `${name} must be metadata.visualOnly for ${roomId}.${resolvedAssetType}`,
+      { roomId, assetType: resolvedAssetType, objectName: name }
+    );
   }
 
   if (['fake-exit', 'final-route'].includes(roomId) && OFFICE_FURNITURE_ASSET_TYPES.has(resolvedAssetType)) {
-    warnings.push(`${name} is office furniture in ${roomId}, which is reserved as a no-office-furniture room`);
+    pushIssue(
+      warningIssues,
+      VALIDATION_CATEGORIES.PLACEMENT_WARNING,
+      `${name} is office furniture in ${roomId}, which is reserved as a no-office-furniture room`,
+      { roomId, assetType: resolvedAssetType, objectName: name }
+    );
   }
 
   const roomAnchor = roomLayoutAnchors?.[roomId];
   if (roomAnchor && anchorId) {
     const roomZoneIds = collectAnchorZoneIds(roomAnchor);
     if (!roomZoneIds.has(anchorId)) {
-      warnings.push(`${name} anchor "${anchorId}" is not present in ${roomId} roomLayoutAnchors`);
+      pushIssue(
+        warningIssues,
+        VALIDATION_CATEGORIES.MANIFEST_MISMATCH,
+        `${name} anchor "${anchorId}" is not present in ${roomId} roomLayoutAnchors`,
+        { roomId, assetType: resolvedAssetType, objectName: name, anchorId }
+      );
     }
   }
 
-  return { valid: warnings.length === 0, warnings };
+  return { valid: warningIssues.length === 0, warnings: formatIssues(warningIssues), issues: warningIssues };
 }
 
 export function validateRoomAssetCounts(architecture = []) {
-  const warnings = [];
+  const warningIssues = [];
   const countsByRoom = new Map();
 
   architecture.forEach(object => {
@@ -904,11 +1212,61 @@ export function validateRoomAssetCounts(architecture = []) {
 
     const maxIdealCount = idealCountMax(asset.idealCount);
     if (count > maxIdealCount) {
-      warnings.push(`${roomId}.${assetType} count ${count} exceeds manifest ideal max ${maxIdealCount}`);
+      pushIssue(
+        warningIssues,
+        VALIDATION_CATEGORIES.PLACEMENT_WARNING,
+        `${roomId}.${assetType} count ${count} exceeds manifest ideal max ${maxIdealCount}`,
+        { roomId, assetType, count, maxIdealCount }
+      );
     }
   });
 
-  return { valid: warnings.length === 0, warnings };
+  return { valid: warningIssues.length === 0, warnings: formatIssues(warningIssues), issues: warningIssues };
+}
+
+export function summarizeRoomAssetManifest(roomLayoutAnchors = null) {
+  const roomsMissingPlacementNotes = [];
+  const assetsMissingFallbackPrefab = [];
+  const placementZonesNotFound = [];
+  let totalAssetRules = 0;
+
+  Object.entries(ROOM_ASSET_MANIFEST).forEach(([roomId, room]) => {
+    if (!Array.isArray(room.placementNotes) || room.placementNotes.length === 0) {
+      roomsMissingPlacementNotes.push(roomId);
+    }
+
+    const roomAnchorZoneIds = roomLayoutAnchors?.[roomId] ? collectAnchorZoneIds(roomLayoutAnchors[roomId]) : null;
+
+    Object.entries(room.allowedAssets ?? {}).forEach(([assetType, asset]) => {
+      totalAssetRules += 1;
+
+      if (!asset.fallbackPrefab) {
+        assetsMissingFallbackPrefab.push(`${roomId}.${assetType}`);
+      }
+
+      if (roomAnchorZoneIds) {
+        asset.placementZones?.forEach(zoneId => {
+          if (!roomAnchorZoneIds.has(zoneId)) {
+            placementZonesNotFound.push(`${roomId}.${assetType}:${zoneId}`);
+          }
+        });
+      }
+    });
+  });
+
+  return {
+    totalRoomsCovered: Object.keys(ROOM_ASSET_MANIFEST).length,
+    requiredRoomsCovered: ROOM_ASSET_MANIFEST_REQUIRED_ROOMS.filter(roomId => ROOM_ASSET_MANIFEST[roomId]),
+    requiredRoomsMissing: ROOM_ASSET_MANIFEST_REQUIRED_ROOMS.filter(roomId => !ROOM_ASSET_MANIFEST[roomId]),
+    totalAssetRules,
+    roomsMissingPlacementNotes,
+    assetsMissingFallbackPrefab,
+    placementZonesNotFound,
+    deferredRepairCandidates: ROOM_PLACEMENT_REPAIR_PRIORITIES.map(candidate => ({
+      ...candidate,
+      category: VALIDATION_CATEGORIES.DEFERRED_REPAIR
+    }))
+  };
 }
 
 export function validateArchitectureAgainstRoomAssetManifest(architecture = [], roomLayoutAnchors = null) {
@@ -916,6 +1274,17 @@ export function validateArchitectureAgainstRoomAssetManifest(architecture = [], 
   const countResult = validateRoomAssetCounts(architecture);
   const warnings = [...manifestResult.warnings, ...countResult.warnings];
   const errors = [...manifestResult.errors];
+  const deferredRepairIssues = ROOM_PLACEMENT_REPAIR_PRIORITIES.map(candidate =>
+    createValidationIssue(
+      VALIDATION_CATEGORIES.DEFERRED_REPAIR,
+      `${candidate.roomId} (${candidate.priority}): ${candidate.issue}`,
+      candidate
+    )
+  );
+  const issues = [
+    ...(manifestResult.issues ?? []),
+    ...(countResult.issues ?? [])
+  ];
 
   architecture.forEach(object => {
     const roomId = getObjectRoomId(object);
@@ -927,11 +1296,14 @@ export function validateArchitectureAgainstRoomAssetManifest(architecture = [], 
       roomLayoutAnchors
     );
     result.warnings.forEach(warning => warnings.push(warning));
+    result.issues?.forEach(issue => issues.push(issue));
   });
 
   return {
     valid: errors.length === 0,
     errors,
-    warnings
+    warnings,
+    deferredRepairs: formatIssues(deferredRepairIssues),
+    issues: [...issues, ...deferredRepairIssues]
   };
 }

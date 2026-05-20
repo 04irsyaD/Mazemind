@@ -12,14 +12,14 @@ export class GameManager {
     this.exitUnlocked = false;
   }
 
-  reset({ totalCheckpoints, playerStart }) {
+  reset({ totalCheckpoints, playerStart, initialStatus = 'Retrieve Shift Assignment Form.' }) {
     this.totalCheckpoints = totalCheckpoints;
     this.checkpointsCollected = 0;
     this.collectedCheckpointIds.clear();
     this.exitUnlocked = false;
     this.respawnPoint.set(playerStart.x * CONSTANTS.CELL_SIZE, playerStart.height ?? 0, playerStart.y * CONSTANTS.CELL_SIZE);
     this.uiManager.updateProgress(this.checkpointsCollected, this.totalCheckpoints);
-    this.uiManager.updateStatus('Retrieve Shift Assignment Form.');
+    this.uiManager.updateStatus(initialStatus);
   }
 
   collectCheckpoint(checkpoint) {

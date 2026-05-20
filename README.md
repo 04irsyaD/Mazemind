@@ -130,25 +130,31 @@ Default URL:
 http://localhost:5173
 ```
 
-Default level tanpa environment variable adalah Level 1 lama:
+Default tanpa environment variable membuka Level 1 V2:
 
 ```text
-frontend/src/maps/level1.js
+frontend/src/maps/level1V2.js
 ```
 
-Preview experimental Level 1 V2:
+Untuk membuka Level 1 lama / legacy:
 
 ```powershell
-$env:VITE_LEVEL_VERSION='v2'; npm run dev
+$env:VITE_LEVEL_VERSION="v1"; npm run dev
 ```
 
-Atau buat file `.env.local` di folder `frontend/`:
+Unix/macOS:
 
 ```text
-VITE_LEVEL_VERSION=v2
+VITE_LEVEL_VERSION=v1 npm run dev
 ```
 
-Untuk kembali ke Level 1 lama, hapus variable tersebut atau set ke selain `v2`.
+Atau buat file `.env.local` di folder `frontend/` untuk pilihan lokal yang persisten:
+
+```text
+VITE_LEVEL_VERSION=v1
+```
+
+Restart dev server setelah mengubah `.env.local`.
 
 Build production:
 

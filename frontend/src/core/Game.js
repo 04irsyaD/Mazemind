@@ -23,9 +23,23 @@ import { UIManager } from '../ui/UIManager.js';
 import { level1 } from '../maps/level1.js';
 import { level1V2 } from '../maps/level1V2.js';
 
-const getSelectedLevelVersion = () => (import.meta.env.VITE_LEVEL_VERSION === 'v2' ? 'v2' : 'v1');
-const getSelectedLevel = () => (getSelectedLevelVersion() === 'v2' ? level1V2 : level1);
-const getSelectedLevelLabel = () => (getSelectedLevelVersion() === 'v2' ? 'Level 1 V2 Preview' : 'Level 1');
+const getSelectedLevelVersion = () => {
+  const requested = import.meta.env.VITE_LEVEL_VERSION;
+  return requested === 'v1' ? 'v1' : 'v2';
+};
+const getSelectedLevel = () => (getSelectedLevelVersion() === 'v1' ? level1 : level1V2);
+const getSelectedLevelLabel = () => (
+  getSelectedLevelVersion() === 'v1'
+    ? 'Level 1 Legacy'
+    : 'Level 1 V2 Preview'
+);
+const isMapShellLevel = level => level?.status === 'map-shell';
+const getInitialLevelStatus = (level, freeExplore = false) => {
+  if (!isMapShellLevel(level)) return 'Retrieve Shift Assignment Form.';
+  return freeExplore
+    ? 'Free Explore: Level 1 V2 map shell / placement review.'
+    : 'Level 1 V2 map shell preview. No tasks in map shell mode.';
+};
 
 export class Game {
   constructor() {
@@ -146,9 +160,24 @@ export class Game {
     this.inputManager.resetTransient();
     this.checkpointActive = false;
     this.levelEnding = false;
+    const selectedLevelVersion = getSelectedLevelVersion();
     const selectedLevel = getSelectedLevel();
+    console.info('[MazeMind] Selected level:', {
+      version: selectedLevelVersion,
+      id: selectedLevel.id,
+      label: selectedLevel.label ?? getSelectedLevelLabel(),
+      rooms: selectedLevel.rooms?.length,
+      architecture: selectedLevel.architecture?.length
+    });
+    if (selectedLevelVersion === 'v2' && selectedLevel?.id !== 'level-1-v2') {
+      console.warn('[MazeMind] Expected Level 1 V2 but selected level does not look like V2.', selectedLevel);
+    }
+    if (isMapShellLevel(selectedLevel)) {
+      console.info('[MazeMind] Level 1 V2 loaded in map-shell mode. Object placement disabled.');
+    }
     devLog('Game: Loading level version', {
-      version: getSelectedLevelVersion()
+      version: selectedLevelVersion,
+      label: getSelectedLevelLabel()
     });
     const runtime = this.levelRuntime.load(selectedLevel);
     const level = runtime.level;
@@ -160,6 +189,7 @@ export class Game {
     this.gameManager.reset({
       totalCheckpoints: getTaskObjectives(level).length,
       playerStart,
+      initialStatus: getInitialLevelStatus(level, freeExplore)
     });
     this.progressionSystem.reset(level);
 
@@ -175,6 +205,9 @@ export class Game {
     this.cameraSystem.snap(this.player.mesh.position);
 
     this.stateSystem.setState(freeExplore ? CONSTANTS.STATE_DEV_EXPLORE : CONSTANTS.STATE_PLAYING);
+    if (isMapShellLevel(level)) {
+      this.uiManager.updateStatus(getInitialLevelStatus(level, freeExplore));
+    }
     this.syncDeveloperVisuals();
     if (freeExplore) {
       this.uiManager.updateProgress(0, getTaskObjectives(level).length);

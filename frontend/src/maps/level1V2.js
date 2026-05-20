@@ -7,7 +7,6 @@ import {
   validateLevel1V2ArchitectureAgainstManifest
 } from '../assets/level1V2RoomAssetManifest.js';
 import { OfficeMazeGenerator } from './OfficeMazeGenerator.js';
-import { mountToWall, normalizeAnchor, officeProps, resolveWallRotation } from './prefabs/officeProps.js';
 
 const GRID_WIDTH = 45;
 const GRID_HEIGHT = 31;
@@ -796,170 +795,7 @@ const level1V2RoomLayoutAnchors = {
   }
 };
 
-function resolveWallCoord(room, wall, alongWallOffset = 0) {
-  const bounds = room.roomBounds ?? room;
-  const normalizedWall = String(wall ?? '').toLowerCase();
-  const center = normalizedWall === 'east' || normalizedWall === 'west'
-    ? (bounds.y1 + bounds.y2) / 2
-    : (bounds.x1 + bounds.x2) / 2;
-
-  return Number((center + alongWallOffset).toFixed(2));
-}
-
-function mountedSignConfig(roomId, zoneId) {
-  const room = level1V2RoomLayoutAnchors[roomId];
-  const zone = room?.signageZones?.find(candidate => candidate.id === zoneId);
-  if (!room || !zone) {
-    throw new Error(`Unknown Level 1 V2 signage anchor: ${roomId}/${zoneId}`);
-  }
-
-  const wall = zone.wall;
-  const alongWallOffset = zone.alongWallOffset ?? zone.offset;
-  const mounted = mountToWall(room, wall, {
-    coord: zone.coord ?? resolveWallCoord(room, wall, alongWallOffset),
-    mount: zone.mount,
-    mountHeight: zone.height,
-    rotation: zone.rotation ?? resolveWallRotation(wall),
-    wallOffset: zone.wallOffset
-  });
-
-  return {
-    ...mounted,
-    room,
-    roomId,
-    text: zone.text,
-    maxWidth: zone.maxWidth,
-    visualOnly: zone.visualOnly,
-    face: zone.face ?? wall,
-    anchor: normalizeAnchor({
-      id: zone.id,
-      roomId,
-      mount: zone.mount,
-      wall
-    }, room)
-  };
-}
-
-const level1V2Architecture = [
-  officeProps.intakeDesk({
-    id: 'level1v2-front-admin-intake-desk',
-    x: 5.6,
-    y: 25.55,
-    roomId: 'front-admin-intake',
-    anchor: 'intakeDeskZone'
-  }),
-  officeProps.taskTerminal({
-    id: 'level1v2-intake-terminal',
-    x: 6.35,
-    y: 25.55,
-    roomId: 'front-admin-intake',
-    anchor: 'intakeDeskZone',
-    desktop: true,
-    surfaceHeight: 0.92,
-    text: 'EMPLOYEE\nINTAKE'
-  }),
-  officeProps.wallSign({
-    id: 'level1v2-admin-entry-sign',
-    ...mountedSignConfig('front-admin-intake', 'adminEntrySignZone')
-  }),
-
-  // TODO: add dedicated canteenTable/canteenChair/vending/water-dispenser prefabs before furnishing B.
-  officeProps.wallSign({
-    id: 'level1v2-canteen-sign',
-    ...mountedSignConfig('canteen', 'canteenEntrySignZone'),
-    color: 0xd8e1ca
-  }),
-
-  officeProps.workstationClusterLeft({
-    id: 'level1v2-main-workstation-north-cluster',
-    x: 23.5,
-    y: 24.0,
-    roomId: 'main-workstation-hall',
-    anchor: 'mainWorkstationRowsNorth'
-  }),
-  officeProps.workstationClusterRight({
-    id: 'level1v2-main-workstation-south-cluster',
-    x: 35.5,
-    y: 27.2,
-    roomId: 'main-workstation-hall',
-    anchor: 'mainWorkstationRowsSouth'
-  }),
-  officeProps.departmentSign({
-    id: 'level1v2-workstation-entry-sign',
-    ...mountedSignConfig('main-workstation-hall', 'workstationEntrySignZone')
-  }),
-
-  // TODO: replace meetingTable with a dedicated conferenceTable prefab when available.
-  officeProps.meetingTable({
-    id: 'level1v2-boardroom-placeholder-table',
-    x: 29.5,
-    y: 16.0,
-    roomId: 'boardroom-review',
-    anchor: 'conferenceTableZone'
-  }),
-  officeProps.departmentSign({
-    id: 'level1v2-boardroom-sign',
-    ...mountedSignConfig('boardroom-review', 'boardroomEntrySignZone'),
-    color: 0xb7f7ff
-  }),
-
-  // TODO: add procedural restroom fixtures before furnishing E.
-  officeProps.wallSign({
-    id: 'level1v2-toilet-sign',
-    ...mountedSignConfig('toilet', 'toiletEntrySignZone'),
-    color: 0xd8eeee
-  }),
-
-  // TODO: add archiveRack prefab later; serverRackRow is a safe storage placeholder only.
-  officeProps.serverRackRow({
-    id: 'level1v2-records-storage-placeholder',
-    x: 4.6,
-    y: 4.2,
-    roomId: 'records-archive',
-    anchor: 'archiveRackRows'
-  }),
-  officeProps.wallSign({
-    id: 'level1v2-archive-sign',
-    ...mountedSignConfig('records-archive', 'archiveEntrySignZone'),
-    color: 0xc4d1ff
-  }),
-
-  officeProps.officeDesk({
-    id: 'level1v2-secondary-workstation-desk',
-    x: 28.5,
-    y: 4.6,
-    roomId: 'secondary-workstation',
-    anchor: 'secondaryDeskRows'
-  }),
-  officeProps.taskTerminal({
-    id: 'level1v2-secondary-task-terminal',
-    x: 26.2,
-    y: 5.1,
-    roomId: 'secondary-workstation',
-    anchor: 'secondaryObjectiveZone',
-    text: 'ACCOUNTS\nQUEUE'
-  }),
-  officeProps.departmentSign({
-    id: 'level1v2-secondary-entry-sign',
-    ...mountedSignConfig('secondary-workstation', 'secondaryEntrySignZone'),
-    color: 0xd0d1bd
-  }),
-
-  // TODO: replace finalDoorSlab with elevatorDoor/stairwellDoor visuals before Level 2 transition logic exists.
-  officeProps.finalDoorSlab({
-    id: 'level1v2-elevator-door-placeholder',
-    x: 21.0,
-    y: 7.72,
-    roomId: 'level2-access',
-    anchor: 'elevatorDoorZone',
-    purpose: 'level2-access-placeholder'
-  }),
-  officeProps.wallSign({
-    id: 'level1v2-level2-access-sign',
-    ...mountedSignConfig('level2-access', 'level2AccessSignZone'),
-    color: 0x86f7b2
-  })
-];
+const level1V2Architecture = [];
 
 const level1V2Spaces = [...level1V2Rooms, level1V2MainCorridor];
 const toCollisionRect = rectangle => ({
@@ -999,11 +835,12 @@ const level1V2FloorZones = level1V2Spaces.map(space => ({
 
 export const level1V2 = {
   schemaVersion: 1,
-  id: 'department-incorrect-level1-v2-scaffold',
-  title: 'Department Incorrect - Level 1 V2 Scaffold',
-  version: 'v2-foundation',
-  status: 'scaffold',
-  active: false,
+  id: 'level-1-v2',
+  label: 'Level 1 V2 Map Shell',
+  title: 'Level 1 V2 Map Shell',
+  version: 'v2-map-shell',
+  status: 'map-shell',
+  active: true,
   estimatedMinutes: 20,
   mapDimensions: level1V2MapDimensions,
   movementStandards: level1V2MovementStandards,
@@ -1057,8 +894,10 @@ export const level1V2 = {
     }
   ],
   notes: [
-    'Standalone scaffold only; not imported by Game.js and not active.',
-    'Old level1.js remains the active reference level.',
+    'Level 1 V2 is currently a map shell.',
+    'Furniture/object placement is intentionally disabled.',
+    'Old level1.js remains available as legacy.',
+    'Object placement will be added after floorplan approval.',
     'No GLB model metadata or runtime external model URLs are added here.',
     'No Level 2 transition logic is implemented in this scaffold.'
   ],

@@ -7,15 +7,15 @@ import {
   validateLevel1V2ArchitectureAgainstManifest
 } from '../assets/level1V2RoomAssetManifest.js';
 
-const GRID_WIDTH = 45;
-const GRID_HEIGHT = 31;
+const GRID_WIDTH = 36;
+const GRID_HEIGHT = 26;
 
 export const level1V2MapDimensions = {
-  gridWidth: 45,
-  gridHeight: 31,
+  gridWidth: GRID_WIDTH,
+  gridHeight: GRID_HEIGHT,
   cellSizeMeters: CONSTANTS.CELL_SIZE,
-  worldWidthMeters: 45 * CONSTANTS.CELL_SIZE,
-  worldDepthMeters: 31 * CONSTANTS.CELL_SIZE,
+  worldWidthMeters: GRID_WIDTH * CONSTANTS.CELL_SIZE,
+  worldDepthMeters: GRID_HEIGHT * CONSTANTS.CELL_SIZE,
   wallHeightMeters: CONSTANTS.WALL_HEIGHT,
   ceilingHeightMeters: CONSTANTS.WALL_HEIGHT,
   playerEyeHeightMeters: CONSTANTS.PLAYER_EYE_HEIGHT,
@@ -27,8 +27,8 @@ export const level1V2MapDimensions = {
 };
 
 export const level1V2MovementStandards = {
-  mainCorridorClearWidthCells: 2,
-  mainCorridorClearWidthMeters: 2 * CONSTANTS.CELL_SIZE,
+  mainCorridorClearWidthCells: 3,
+  mainCorridorClearWidthMeters: 3 * CONSTANTS.CELL_SIZE,
   preferredLargeAisleWidthCells: [2.5, 3],
   standardDoorwayWidthCells: 1,
   importantDoorwayWidthCells: 1.5,
@@ -69,7 +69,7 @@ const level1V2Rooms = [
     code: 'A',
     id: 'front-admin-intake',
     label: 'Front Admin / Employee Intake',
-    bounds: { x1: 2, y1: 23, x2: 12, y2: 29 },
+    bounds: { x1: 2, y1: 19, x2: 10, y2: 24 },
     color: 0xb8c6cc,
     purpose: 'first admin/intake space',
     roomFunction: 'first admin/intake space'
@@ -78,7 +78,7 @@ const level1V2Rooms = [
     code: 'B',
     id: 'canteen',
     label: 'Staff Canteen',
-    bounds: { x1: 2, y1: 16, x2: 12, y2: 22 },
+    bounds: { x1: 2, y1: 12, x2: 10, y2: 18 },
     color: 0xb7c2b6,
     purpose: 'staff canteen / break area',
     roomFunction: 'staff canteen / break area'
@@ -87,7 +87,7 @@ const level1V2Rooms = [
     code: 'E',
     id: 'toilet',
     label: 'Restroom',
-    bounds: { x1: 2, y1: 11, x2: 8, y2: 15 },
+    bounds: { x1: 2, y1: 8, x2: 7, y2: 11 },
     color: 0xc0d0d2,
     purpose: 'restroom / toilet area',
     roomFunction: 'restroom / toilet area'
@@ -96,7 +96,7 @@ const level1V2Rooms = [
     code: 'F',
     id: 'records-archive',
     label: 'Records Archive',
-    bounds: { x1: 2, y1: 2, x2: 14, y2: 10 },
+    bounds: { x1: 2, y1: 2, x2: 12, y2: 7 },
     color: 0x929da2,
     purpose: 'archive / records storage',
     roomFunction: 'archive / records storage',
@@ -106,7 +106,7 @@ const level1V2Rooms = [
     code: 'C',
     id: 'main-workstation-hall',
     label: 'Main Workstation Hall',
-    bounds: { x1: 18, y1: 23, x2: 39, y2: 29 },
+    bounds: { x1: 16, y1: 19, x2: 32, y2: 24 },
     color: 0xb4bbbd,
     purpose: 'main employee workstation rows',
     roomFunction: 'main employee workstation rows'
@@ -115,7 +115,7 @@ const level1V2Rooms = [
     code: 'D',
     id: 'boardroom-review',
     label: 'Boardroom / Review Room',
-    bounds: { x1: 18, y1: 13, x2: 38, y2: 22 },
+    bounds: { x1: 16, y1: 10, x2: 31, y2: 18 },
     color: 0xb0c8cc,
     purpose: 'boardroom / formal review chamber',
     roomFunction: 'boardroom / formal review chamber'
@@ -124,7 +124,7 @@ const level1V2Rooms = [
     code: 'G',
     id: 'secondary-workstation',
     label: 'Secondary Workstation / Accounts Processing',
-    bounds: { x1: 24, y1: 2, x2: 39, y2: 10 },
+    bounds: { x1: 22, y1: 2, x2: 32, y2: 7 },
     color: 0xbebfb3,
     purpose: 'secondary workstation / accounts processing',
     roomFunction: 'secondary workstation / accounts processing'
@@ -133,7 +133,7 @@ const level1V2Rooms = [
     code: 'H',
     id: 'level2-access',
     label: 'Lift / Stairs to Level 2',
-    bounds: { x1: 18, y1: 2, x2: 22, y2: 10 },
+    bounds: { x1: 16, y1: 2, x2: 20, y2: 7 },
     color: 0xaac6c0,
     purpose: 'elevator or stairwell access to level 2',
     roomFunction: 'elevator or stairwell access to level 2'
@@ -143,13 +143,13 @@ const level1V2Rooms = [
 const level1V2MainCorridor = {
   id: 'main-corridor',
   label: 'Main Corridor',
-  x1: 14,
+  x1: 12,
   y1: 2,
-  x2: 16,
-  y2: 29,
-  bounds: { x1: 14, y1: 2, x2: 16, y2: 29 },
-  gridSizeCells: { width: 2, depth: 27 },
-  worldSizeMeters: { width: metersFromCells(2), depth: metersFromCells(27) },
+  x2: 14,
+  y2: 24,
+  bounds: { x1: 12, y1: 2, x2: 14, y2: 24 },
+  gridSizeCells: { width: 3, depth: 22 },
+  worldSizeMeters: { width: metersFromCells(3), depth: metersFromCells(22) },
   function: 'main vertical player route',
   purpose: 'route spine',
   decorativeRoom: false,
@@ -163,8 +163,7 @@ const level1V2Doorways = [
     id: 'door-front-admin-to-main-corridor',
     from: 'front-admin-intake',
     to: 'main-corridor',
-    bounds: { x1: 12, y1: 26, x2: 15, y2: 26 },
-    recessBounds: { x1: 11, y1: 25, x2: 12, y2: 27 },
+    bounds: { x1: 11, y1: 21, x2: 12, y2: 21 },
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Front intake doorway stays free of desks, chairs, signs, and plants.'
@@ -173,8 +172,7 @@ const level1V2Doorways = [
     id: 'door-canteen-to-main-corridor',
     from: 'canteen',
     to: 'main-corridor',
-    bounds: { x1: 12, y1: 19, x2: 15, y2: 19 },
-    recessBounds: { x1: 11, y1: 18, x2: 12, y2: 20 },
+    bounds: { x1: 11, y1: 15, x2: 12, y2: 15 },
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'No seating or utility props in canteen doorway.'
@@ -183,8 +181,10 @@ const level1V2Doorways = [
     id: 'door-toilet-to-main-corridor',
     from: 'toilet',
     to: 'main-corridor',
-    bounds: { x1: 8, y1: 13, x2: 15, y2: 13 },
-    recessBounds: { x1: 8, y1: 12, x2: 10, y2: 14 },
+    bounds: [
+      { x1: 7, y1: 9, x2: 8, y2: 9 },
+      { x1: 11, y1: 9, x2: 12, y2: 9 }
+    ],
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Restroom fixtures never intrude into the doorway.'
@@ -193,8 +193,7 @@ const level1V2Doorways = [
     id: 'door-records-to-main-corridor',
     from: 'records-archive',
     to: 'main-corridor',
-    bounds: { x1: 13, y1: 6, x2: 15, y2: 6 },
-    recessBounds: { x1: 12, y1: 5, x2: 12, y2: 7 },
+    bounds: { x1: 11, y1: 5, x2: 12, y2: 5 },
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Archive rack rows keep this doorway and aisle readable.'
@@ -203,8 +202,7 @@ const level1V2Doorways = [
     id: 'door-main-corridor-to-main-workstation',
     from: 'main-corridor',
     to: 'main-workstation-hall',
-    bounds: { x1: 16, y1: 26, x2: 18, y2: 26 },
-    recessBounds: { x1: 18, y1: 25, x2: 19, y2: 27 },
+    bounds: { x1: 15, y1: 21, x2: 16, y2: 21 },
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Workstation chairs and clusters do not spill into this connector.'
@@ -213,8 +211,7 @@ const level1V2Doorways = [
     id: 'door-main-corridor-to-boardroom',
     from: 'main-corridor',
     to: 'boardroom-review',
-    bounds: { x1: 16, y1: 18, x2: 18, y2: 18 },
-    recessBounds: { x1: 18, y1: 17, x2: 19, y2: 19 },
+    bounds: { x1: 15, y1: 14, x2: 16, y2: 14 },
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Meeting furniture stays clear of the boardroom approach.'
@@ -223,8 +220,7 @@ const level1V2Doorways = [
     id: 'door-main-corridor-to-level2-access',
     from: 'main-corridor',
     to: 'level2-access',
-    bounds: { x1: 16, y1: 6, x2: 18, y2: 6 },
-    recessBounds: { x1: 18, y1: 5, x2: 19, y2: 7 },
+    bounds: { x1: 15, y1: 5, x2: 16, y2: 5 },
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'The elevator/stair approach remains clear by at least 1.5m.'
@@ -233,11 +229,7 @@ const level1V2Doorways = [
     id: 'door-level2-access-to-secondary-workstation',
     from: 'level2-access',
     to: 'secondary-workstation',
-    bounds: { x1: 22, y1: 6, x2: 24, y2: 6 },
-    recessBounds: [
-      { x1: 22, y1: 5, x2: 22, y2: 7 },
-      { x1: 24, y1: 5, x2: 24, y2: 7 }
-    ],
+    bounds: { x1: 21, y1: 5, x2: 22, y2: 5 },
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Accounts furniture must not block Level 2 access circulation.'
@@ -280,81 +272,191 @@ const level1V2ClearPathRules = [
 
 const level1V2WallSegments = [
   {
-    id: 'left-rooms-to-main-corridor-wall',
+    id: 'left-wing-west-outer-wall',
+    kind: 'outer-wall',
+    x1: 1,
+    y1: 1,
+    x2: 1,
+    y2: 25,
+    purpose: 'Defines the outside edge of the A/B/E/F wing.'
+  },
+  {
+    id: 'left-wing-north-outer-wall',
+    kind: 'outer-wall',
+    x1: 1,
+    y1: 1,
+    x2: 12,
+    y2: 1,
+    purpose: 'Defines the top edge of the left room stack.'
+  },
+  {
+    id: 'left-wing-south-outer-wall',
+    kind: 'outer-wall',
+    x1: 1,
+    y1: 25,
+    x2: 11,
+    y2: 25,
+    purpose: 'Defines the lower edge of the admin room.'
+  },
+  {
+    id: 'left-corridor-boundary-wall',
     kind: 'corridor-boundary',
-    bounds: [
-      { x1: 13, y1: 2, x2: 13, y2: 29 },
-      { x1: 14, y1: 2, x2: 14, y2: 29 }
-    ],
+    x1: 11,
+    y1: 2,
+    x2: 11,
+    y2: 24,
     doorwayIds: [
       'door-front-admin-to-main-corridor',
       'door-canteen-to-main-corridor',
       'door-toilet-to-main-corridor',
       'door-records-to-main-corridor'
     ],
-    purpose: 'Separates left-side A/B/E/F rooms from the main corridor.'
+    purpose: 'Keeps corridor cells x=12..14 open while separating the left rooms.'
   },
   {
-    id: 'main-corridor-to-right-rooms-wall',
+    id: 'left-stack-admin-canteen-separator',
+    kind: 'room-separator',
+    x1: 2,
+    y1: 19,
+    x2: 11,
+    y2: 19,
+    purpose: 'Separates A from B.'
+  },
+  {
+    id: 'left-stack-canteen-toilet-separator',
+    kind: 'room-separator',
+    x1: 2,
+    y1: 12,
+    x2: 11,
+    y2: 12,
+    purpose: 'Separates B from E.'
+  },
+  {
+    id: 'left-stack-toilet-archive-separator',
+    kind: 'room-separator',
+    x1: 2,
+    y1: 8,
+    x2: 11,
+    y2: 8,
+    purpose: 'Separates E from F and keeps the toilet compact.'
+  },
+  {
+    id: 'records-archive-internal-wall-stub',
+    kind: 'internal-stub',
+    x1: 6,
+    y1: 3,
+    x2: 6,
+    y2: 5,
+    purpose: 'Adds a structural notch to F without placing archive objects.'
+  },
+  {
+    id: 'right-corridor-boundary-wall',
     kind: 'corridor-boundary',
-    bounds: { x1: 17, y1: 2, x2: 17, y2: 29 },
+    x1: 15,
+    y1: 2,
+    x2: 15,
+    y2: 24,
     doorwayIds: [
       'door-main-corridor-to-main-workstation',
       'door-main-corridor-to-boardroom',
       'door-main-corridor-to-level2-access'
     ],
-    purpose: 'Separates the main corridor from C/D/H.'
+    purpose: 'Keeps corridor cells x=12..14 open while separating the right rooms.'
   },
   {
-    id: 'left-stack-room-separators',
-    kind: 'room-separator',
-    bounds: [
-      { x1: 2, y1: 23, x2: 12, y2: 23 },
-      { x1: 2, y1: 16, x2: 12, y2: 16 },
-      { x1: 2, y1: 11, x2: 14, y2: 11 }
-    ],
-    purpose: 'Keeps A, B, E, and F from merging into one tall room.'
+    id: 'right-wing-east-outer-wall',
+    kind: 'outer-wall',
+    x1: 33,
+    y1: 1,
+    x2: 33,
+    y2: 25,
+    purpose: 'Leaves a wall/void buffer beyond the right-side rooms.'
   },
   {
-    id: 'right-stack-room-separators',
+    id: 'right-wing-north-outer-wall',
+    kind: 'outer-wall',
+    x1: 15,
+    y1: 1,
+    x2: 33,
+    y2: 1,
+    purpose: 'Defines the top edge of the H/G rooms.'
+  },
+  {
+    id: 'right-wing-south-outer-wall',
+    kind: 'outer-wall',
+    x1: 15,
+    y1: 25,
+    x2: 33,
+    y2: 25,
+    purpose: 'Defines the lower edge of the main workstation hall.'
+  },
+  {
+    id: 'main-workstation-boardroom-separator',
     kind: 'room-separator',
-    bounds: [
-      { x1: 18, y1: 23, x2: 39, y2: 23 },
-      { x1: 18, y1: 12, x2: 39, y2: 12 },
-      { x1: 23, y1: 2, x2: 23, y2: 10 }
-    ],
+    x1: 16,
+    y1: 19,
+    x2: 33,
+    y2: 19,
+    purpose: 'Separates C from D.'
+  },
+  {
+    id: 'boardroom-lower-access-separator',
+    kind: 'room-separator',
+    x1: 16,
+    y1: 8,
+    x2: 33,
+    y2: 8,
+    purpose: 'Separates D from H/G.'
+  },
+  {
+    id: 'level2-secondary-separator',
+    kind: 'room-separator',
+    x1: 21,
+    y1: 2,
+    x2: 21,
+    y2: 7,
     doorwayIds: ['door-level2-access-to-secondary-workstation'],
-    purpose: 'Keeps C, D, G, and H as readable right-side compartments.'
+    purpose: 'Keeps H and G separate with one controlled connector.'
   },
   {
     id: 'main-workstation-entry-stub',
     kind: 'internal-stub',
-    bounds: [
-      { x1: 18, y1: 24, x2: 20, y2: 24 },
-      { x1: 18, y1: 28, x2: 20, y2: 28 }
-    ],
-    purpose: 'Breaks the C entrance silhouette without adding furniture.'
+    x1: 16,
+    y1: 22,
+    x2: 18,
+    y2: 22,
+    purpose: 'Breaks the C doorway silhouette without adding furniture.'
   },
   {
-    id: 'boardroom-entry-recess-stub',
+    id: 'boardroom-entry-stub',
     kind: 'internal-stub',
-    bounds: [
-      { x1: 18, y1: 16, x2: 20, y2: 16 },
-      { x1: 18, y1: 20, x2: 20, y2: 20 }
-    ],
-    purpose: 'Gives D a recessed entry and avoids a single open rectangle.'
-  },
-  {
-    id: 'records-archive-aisle-stubs',
-    kind: 'internal-stub',
-    bounds: [
-      { x1: 6, y1: 3, x2: 6, y2: 5 },
-      { x1: 6, y1: 8, x2: 6, y2: 9 },
-      { x1: 10, y1: 3, x2: 10, y2: 5 }
-    ],
-    purpose: 'Suggests future archive aisle structure while keeping F object-free.'
+    x1: 16,
+    y1: 15,
+    x2: 18,
+    y2: 15,
+    purpose: 'Gives D a recessed entry rather than a flat rectangular opening.'
   }
 ];
+
+const level1V2FloorplanBlueprint = {
+  gridWidth: GRID_WIDTH,
+  gridHeight: GRID_HEIGHT,
+  openAreas: [
+    { id: 'A-open', roomId: 'front-admin-intake', x1: 2, y1: 19, x2: 10, y2: 24 },
+    { id: 'B-open', roomId: 'canteen', x1: 2, y1: 12, x2: 10, y2: 18 },
+    { id: 'E-open', roomId: 'toilet', x1: 2, y1: 8, x2: 7, y2: 11 },
+    { id: 'E-connector-open', roomId: 'toilet', x1: 8, y1: 9, x2: 12, y2: 9 },
+    { id: 'F-open', roomId: 'records-archive', x1: 2, y1: 2, x2: 10, y2: 7 },
+    { id: 'main-corridor-open', roomId: 'main-corridor', x1: 12, y1: 2, x2: 14, y2: 24 },
+    { id: 'C-open', roomId: 'main-workstation-hall', x1: 16, y1: 19, x2: 32, y2: 24 },
+    { id: 'D-open', roomId: 'boardroom-review', x1: 16, y1: 10, x2: 31, y2: 18 },
+    { id: 'H-open', roomId: 'level2-access', x1: 16, y1: 2, x2: 20, y2: 7 },
+    { id: 'G-open', roomId: 'secondary-workstation', x1: 22, y1: 2, x2: 32, y2: 7 }
+  ],
+  wallLines: level1V2WallSegments,
+  doorOpenings: level1V2Doorways,
+  roomMetadata: [...level1V2Rooms, level1V2MainCorridor]
+};
 
 const level1V2ProceduralFallbackRules = [
   'Do not add GLB model metadata in this scaffold.',
@@ -448,7 +550,7 @@ const level1V2RoomLayoutSpecs = {
   }
 };
 
-const level1V2RoomLayoutAnchors = {
+const level1V2FuturePlacementAnchors = {
   'front-admin-intake': {
     roomId: 'front-admin-intake',
     roomBounds: { x1: 2, y1: 23, x2: 12, y2: 29 },
@@ -883,6 +985,122 @@ const level1V2RoomLayoutAnchors = {
   }
 };
 
+const compactZone = (id, bounds, allowedTypes = []) => ({ id, bounds, allowedTypes });
+
+const level1V2RoomLayoutAnchors = {
+  'front-admin-intake': {
+    roomId: 'front-admin-intake',
+    roomBounds: { x1: 2, y1: 19, x2: 10, y2: 24 },
+    furnitureZones: [
+      compactZone('intakeDeskZone', { x1: 3, y1: 20, x2: 6.5, y2: 22 }, ['intakeDesk', 'taskTerminal', 'documentTray']),
+      compactZone('frontCounterZone', { x1: 3, y1: 22.5, x2: 7, y2: 24 }, ['receptionDesk']),
+      compactZone('cornerPlantZone', { x1: 8.5, y1: 22.5, x2: 10, y2: 24 }, ['pottedPlant'])
+    ],
+    signageZones: [compactZone('adminEntrySignZone', { x1: 4, y1: 19, x2: 7, y2: 19.4 }, ['wallSign'])],
+    forbiddenZones: [
+      compactZone('mainCorridorEntry', { x1: 11, y1: 20, x2: 14, y2: 22 }),
+      compactZone('doorwayToMainCorridor', { x1: 11, y1: 21, x2: 12, y2: 21 })
+    ]
+  },
+  canteen: {
+    roomId: 'canteen',
+    roomBounds: { x1: 2, y1: 12, x2: 10, y2: 18 },
+    furnitureZones: [
+      compactZone('canteenSeatingZone', { x1: 4, y1: 13, x2: 9.5, y2: 17.5 }, ['canteenTable', 'canteenChair']),
+      compactZone('canteenWallUtilityZone', { x1: 2, y1: 13, x2: 3.5, y2: 18 }, ['vendingMachine', 'waterDispenser', 'fridgeCabinet', 'trashBin'])
+    ],
+    signageZones: [compactZone('canteenEntrySignZone', { x1: 4, y1: 12, x2: 7, y2: 12.4 }, ['wallSign'])],
+    forbiddenZones: [
+      compactZone('canteenDoorway', { x1: 11, y1: 15, x2: 12, y2: 15 }),
+      compactZone('mainCorridorConnector', { x1: 12, y1: 12, x2: 14, y2: 18 })
+    ]
+  },
+  'main-workstation-hall': {
+    roomId: 'main-workstation-hall',
+    roomBounds: { x1: 16, y1: 19, x2: 32, y2: 24 },
+    furnitureZones: [
+      compactZone('mainWorkstationRowsNorth', { x1: 18, y1: 20, x2: 30, y2: 21 }, ['workstationCluster', 'officeDesk', 'officeChair', 'monitor', 'keyboard', 'partition']),
+      compactZone('mainWorkstationRowsSouth', { x1: 18, y1: 23, x2: 30, y2: 24 }, ['workstationCluster', 'officeDesk', 'officeChair', 'monitor', 'keyboard', 'partition']),
+      compactZone('mainPrinterZone', { x1: 30.5, y1: 20, x2: 32, y2: 21.5 }, ['copyMachine'])
+    ],
+    signageZones: [compactZone('workstationEntrySignZone', { x1: 24, y1: 24, x2: 28, y2: 24.4 }, ['wallSign'])],
+    forbiddenZones: [
+      compactZone('mainWorkstationCentralAisle', { x1: 16, y1: 21, x2: 32, y2: 22.5 }),
+      compactZone('mainCorridorConnector', { x1: 15, y1: 21, x2: 16, y2: 21 })
+    ]
+  },
+  'boardroom-review': {
+    roomId: 'boardroom-review',
+    roomBounds: { x1: 16, y1: 10, x2: 31, y2: 18 },
+    furnitureZones: [
+      compactZone('conferenceTableZone', { x1: 21, y1: 12, x2: 27, y2: 16 }, ['conferenceTable', 'meetingTable']),
+      compactZone('conferenceChairRingZone', { x1: 19, y1: 11, x2: 29, y2: 17 }, ['meetingChair']),
+      compactZone('reviewTerminalZone', { x1: 28.5, y1: 13, x2: 30.5, y2: 15 }, ['taskTerminal'])
+    ],
+    wallZones: [compactZone('presentationWallZone', { x1: 16, y1: 11, x2: 16.5, y2: 17 }, ['wallBoard'])],
+    glassZones: [compactZone('reviewBoundaryGlassZone', { x1: 16, y1: 10, x2: 31, y2: 10.4 }, ['glassPartition'])],
+    signageZones: [compactZone('boardroomEntrySignZone', { x1: 23, y1: 10, x2: 27, y2: 10.4 }, ['wallSign'])],
+    forbiddenZones: [
+      compactZone('boardroomDoorway', { x1: 15, y1: 14, x2: 16, y2: 14 }),
+      compactZone('connectorClearPath', { x1: 16, y1: 13, x2: 19, y2: 15 })
+    ]
+  },
+  toilet: {
+    roomId: 'toilet',
+    roomBounds: { x1: 2, y1: 8, x2: 7, y2: 11 },
+    furnitureZones: [
+      compactZone('toiletStallZone', { x1: 2.5, y1: 9, x2: 5, y2: 11 }, ['toiletStall']),
+      compactZone('sinkWallZone', { x1: 5.5, y1: 9, x2: 7, y2: 10.5 }, ['sink', 'mirror', 'handDryer']),
+      compactZone('toiletUtilityCorner', { x1: 6, y1: 10.5, x2: 7, y2: 11 }, ['trashBin'])
+    ],
+    signageZones: [compactZone('toiletEntrySignZone', { x1: 3.5, y1: 8, x2: 6.5, y2: 8.4 }, ['wallSign'])],
+    forbiddenZones: [compactZone('toiletDoorway', { x1: 7, y1: 9, x2: 12, y2: 9 })]
+  },
+  'records-archive': {
+    roomId: 'records-archive',
+    roomBounds: { x1: 2, y1: 2, x2: 12, y2: 7 },
+    furnitureZones: [
+      compactZone('archiveRackRows', { x1: 3, y1: 3, x2: 9.5, y2: 6.5 }, ['archiveRack', 'serverRack', 'archiveBox']),
+      compactZone('archiveWallCabinetZone', { x1: 2, y1: 3, x2: 3.5, y2: 7 }, ['filingCabinet', 'archiveBox']),
+      compactZone('archiveObjectiveZone', { x1: 9.5, y1: 4.5, x2: 11.5, y2: 6 }, ['documentPacket', 'taskTerminal'])
+    ],
+    signageZones: [compactZone('archiveEntrySignZone', { x1: 5, y1: 2, x2: 8, y2: 2.4 }, ['wallSign'])],
+    forbiddenZones: [
+      compactZone('archiveAisleBetweenRows', { x1: 5.5, y1: 3, x2: 7.5, y2: 7 }),
+      compactZone('archiveDoorway', { x1: 11, y1: 5, x2: 12, y2: 5 })
+    ]
+  },
+  'secondary-workstation': {
+    roomId: 'secondary-workstation',
+    roomBounds: { x1: 22, y1: 2, x2: 32, y2: 7 },
+    furnitureZones: [
+      compactZone('secondaryDeskRows', { x1: 23, y1: 3, x2: 30, y2: 6.5 }, ['officeDesk', 'officeChair', 'monitor', 'keyboard', 'documentTray']),
+      compactZone('secondaryWallCabinetZone', { x1: 30.5, y1: 3, x2: 32, y2: 7 }, ['filingCabinet']),
+      compactZone('secondaryObjectiveZone', { x1: 23, y1: 4.5, x2: 25, y2: 6 }, ['taskTerminal'])
+    ],
+    signageZones: [compactZone('secondaryEntrySignZone', { x1: 26, y1: 2, x2: 30, y2: 2.4 }, ['wallSign'])],
+    forbiddenZones: [
+      compactZone('secondaryCentralAisle', { x1: 26, y1: 3, x2: 28, y2: 7 }),
+      compactZone('level2AccessConnector', { x1: 21, y1: 5, x2: 22, y2: 5 })
+    ]
+  },
+  'level2-access': {
+    roomId: 'level2-access',
+    roomBounds: { x1: 16, y1: 2, x2: 20, y2: 7 },
+    doorZones: [
+      compactZone('elevatorDoorZone', { x1: 17, y1: 6.5, x2: 20, y2: 7 }, ['elevatorDoor']),
+      compactZone('stairwellDoorZone', { x1: 16.5, y1: 2, x2: 20, y2: 2.5 }, ['stairwellDoor'])
+    ],
+    wallZones: [compactZone('accessPanelZone', { x1: 19.2, y1: 4.5, x2: 20, y2: 5.5 }, ['accessPanel'])],
+    trimZones: [compactZone('level2AccessTrimZone', { x1: 16.5, y1: 6.6, x2: 20, y2: 7 }, ['warningTrim'])],
+    signageZones: [compactZone('level2AccessSignZone', { x1: 17, y1: 6.8, x2: 20, y2: 7.2 }, ['level2Sign'])],
+    forbiddenZones: [
+      compactZone('level2AccessApproach', { x1: 16, y1: 3, x2: 20, y2: 6.5 }),
+      compactZone('mainCorridorEndpoint', { x1: 12, y1: 2, x2: 16, y2: 7 })
+    ]
+  }
+};
+
 const level1V2Architecture = [];
 
 const level1V2Spaces = [...level1V2Rooms, level1V2MainCorridor];
@@ -897,10 +1115,12 @@ const asRectList = value => (Array.isArray(value) ? value : [value]).filter(Bool
 
 function setGridRect(grid, rectangle, cellType) {
   const rect = toCollisionRect(rectangle);
-  const x1 = Math.max(0, Math.min(GRID_WIDTH - 1, rect.x1));
-  const x2 = Math.max(0, Math.min(GRID_WIDTH - 1, rect.x2));
-  const y1 = Math.max(0, Math.min(GRID_HEIGHT - 1, rect.y1));
-  const y2 = Math.max(0, Math.min(GRID_HEIGHT - 1, rect.y2));
+  const width = grid[0]?.length ?? 0;
+  const height = grid.length;
+  const x1 = Math.max(0, Math.min(width - 1, rect.x1));
+  const x2 = Math.max(0, Math.min(width - 1, rect.x2));
+  const y1 = Math.max(0, Math.min(height - 1, rect.y1));
+  const y2 = Math.max(0, Math.min(height - 1, rect.y2));
 
   for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
     for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
@@ -909,22 +1129,40 @@ function setGridRect(grid, rectangle, cellType) {
   }
 }
 
-function buildLevel1V2CollisionGrid() {
-  const grid = Array.from({ length: GRID_HEIGHT }, () => Array(GRID_WIDTH).fill(CONSTANTS.CELL_WALL));
+function createWallGrid(width, height) {
+  return Array.from({ length: height }, () => Array(width).fill(CONSTANTS.CELL_WALL));
+}
 
-  level1V2Spaces.forEach(space => setGridRect(grid, space.bounds ?? space, CONSTANTS.CELL_PATH));
-  level1V2WallSegments.forEach(segment => {
-    asRectList(segment.bounds).forEach(bounds => setGridRect(grid, bounds, CONSTANTS.CELL_WALL));
-  });
-  level1V2Doorways.forEach(doorway => {
-    setGridRect(grid, doorway.bounds, CONSTANTS.CELL_PATH);
-    asRectList(doorway.recessBounds).forEach(bounds => setGridRect(grid, bounds, CONSTANTS.CELL_PATH));
-  });
+function carveOpenRect(grid, rectangle) {
+  setGridRect(grid, rectangle, CONSTANTS.CELL_PATH);
+}
+
+function applyWallLine(grid, line) {
+  if (line.x1 !== line.x2 && line.y1 !== line.y2) {
+    if (CONSTANTS.DEV_MODE) {
+      console.warn('Level 1 V2 blueprint ignores non-axis-aligned wall line', line);
+    }
+    return;
+  }
+
+  setGridRect(grid, line, CONSTANTS.CELL_WALL);
+}
+
+function carveDoorOpening(grid, opening) {
+  asRectList(opening.bounds).forEach(bounds => carveOpenRect(grid, bounds));
+}
+
+function buildLevel1V2CollisionGrid(blueprint) {
+  const grid = createWallGrid(blueprint.gridWidth, blueprint.gridHeight);
+
+  blueprint.openAreas.forEach(area => carveOpenRect(grid, area));
+  blueprint.wallLines.forEach(line => applyWallLine(grid, line));
+  blueprint.doorOpenings.forEach(opening => carveDoorOpening(grid, opening));
 
   return grid;
 }
 
-const level1V2CollisionGrid = buildLevel1V2CollisionGrid();
+const level1V2CollisionGrid = buildLevel1V2CollisionGrid(level1V2FloorplanBlueprint);
 
 const level1V2FloorZones = level1V2Spaces.map(space => ({
   id: space.id,
@@ -956,6 +1194,7 @@ export const level1V2 = {
   placementRules: LEVEL1_V2_GLOBAL_PLACEMENT_RULES,
   proceduralFallbackRules: level1V2ProceduralFallbackRules,
   repairPriorities: LEVEL1_V2_ROOM_REPAIR_PRIORITIES,
+  floorplanBlueprint: level1V2FloorplanBlueprint,
   spaces: level1V2Spaces,
   rooms: level1V2Rooms,
   corridors: [level1V2MainCorridor],
@@ -976,7 +1215,7 @@ export const level1V2 = {
   roomLayoutAnchors: level1V2RoomLayoutAnchors,
   roomAssetManifest: LEVEL1_V2_ROOM_ASSET_MANIFEST,
   roomAssetManifestSummary: summarizeLevel1V2RoomAssetManifest(level1V2RoomLayoutAnchors),
-  playerStart: { x: 7.0, y: 26.0, yaw: 0, pitch: -0.04 },
+  playerStart: { x: 6.5, y: 21.5, yaw: 0, pitch: -0.04 },
   goals: [],
   checkpoints: [],
   triggers: [],
@@ -995,18 +1234,19 @@ export const level1V2 = {
       label: 'Level 1 V2 Foundation Route',
       color: 0x86f7b2,
       points: [
-        { x: 7.0, y: 26.0 },
-        { x: 15, y: 26.0 },
-        { x: 15, y: 19.0 },
-        { x: 15, y: 13.0 },
-        { x: 15, y: 6.0 },
-        { x: 20.0, y: 6.0 },
-        { x: 25.0, y: 6.0 }
+        { x: 6.5, y: 21.5 },
+        { x: 13.0, y: 21.0 },
+        { x: 13.0, y: 15.0 },
+        { x: 13.0, y: 9.0 },
+        { x: 13.0, y: 5.0 },
+        { x: 18.0, y: 5.0 },
+        { x: 23.0, y: 5.0 }
       ]
     }
   ],
   notes: [
     'Level 1 V2 is currently a map shell.',
+    'The playable shell is built from a compact manual floorplan blueprint rather than room rectangle auto-carving.',
     'Furniture/object placement is intentionally disabled.',
     'Old level1.js remains available as legacy.',
     'Object placement will be added after floorplan approval.',
@@ -1016,6 +1256,94 @@ export const level1V2 = {
   architecture: level1V2Architecture
 };
 
+function cellKey(x, y) {
+  return `${x},${y}`;
+}
+
+function getStartCell(playerStart) {
+  return {
+    x: Math.floor(playerStart.x + 0.5),
+    y: Math.floor(playerStart.y + 0.5)
+  };
+}
+
+function isOpenCell(grid, x, y) {
+  return grid[y]?.[x] !== undefined && grid[y][x] !== CONSTANTS.CELL_WALL;
+}
+
+function collectReachableCells(grid, start) {
+  if (!isOpenCell(grid, start.x, start.y)) return new Set();
+
+  const queue = [start];
+  const reachable = new Set([cellKey(start.x, start.y)]);
+
+  for (let index = 0; index < queue.length; index++) {
+    const cell = queue[index];
+    [
+      { x: cell.x + 1, y: cell.y },
+      { x: cell.x - 1, y: cell.y },
+      { x: cell.x, y: cell.y + 1 },
+      { x: cell.x, y: cell.y - 1 }
+    ].forEach(next => {
+      const key = cellKey(next.x, next.y);
+      if (!isOpenCell(grid, next.x, next.y) || reachable.has(key)) return;
+      reachable.add(key);
+      queue.push(next);
+    });
+  }
+
+  return reachable;
+}
+
+function rectHasReachableCell(rect, reachable) {
+  const bounds = toCollisionRect(rect);
+  for (let y = bounds.y1; y <= bounds.y2; y++) {
+    for (let x = bounds.x1; x <= bounds.x2; x++) {
+      if (reachable.has(cellKey(x, y))) return true;
+    }
+  }
+  return false;
+}
+
+function validateLevel1V2BlueprintReachability(level) {
+  const grid = level.grid;
+  const start = getStartCell(level.playerStart);
+  const reachable = collectReachableCells(grid, start);
+  const warnings = [];
+
+  if (!isOpenCell(grid, start.x, start.y)) {
+    warnings.push(`playerStart is not open at ${cellKey(start.x, start.y)}`);
+  }
+
+  level.rooms.forEach(room => {
+    if (!rectHasReachableCell(room.bounds, reachable)) {
+      warnings.push(`${room.code} / ${room.id} is not reachable from playerStart`);
+    }
+  });
+
+  level.doorways.forEach(doorway => {
+    const reachableDoor = asRectList(doorway.bounds).some(bounds => rectHasReachableCell(bounds, reachable));
+    if (!reachableDoor) warnings.push(`${doorway.id} is not reachable from playerStart`);
+  });
+
+  for (let y = level1V2MainCorridor.y1; y <= level1V2MainCorridor.y2; y++) {
+    for (let x = level1V2MainCorridor.x1; x <= level1V2MainCorridor.x2; x++) {
+      if (!isOpenCell(grid, x, y)) warnings.push(`main corridor has blocked cell ${cellKey(x, y)}`);
+    }
+  }
+
+  return {
+    valid: warnings.length === 0,
+    warnings,
+    details: {
+      reachableCells: reachable.size,
+      playerStartCell: start,
+      gridWidth: grid[0]?.length ?? 0,
+      gridHeight: grid.length
+    }
+  };
+}
+
 const level1V2Validation = validateLevel1V2ArchitectureAgainstManifest(
   level1V2.architecture,
   level1V2.roomLayoutAnchors
@@ -1023,4 +1351,10 @@ const level1V2Validation = validateLevel1V2ArchitectureAgainstManifest(
 
 if (CONSTANTS.DEV_MODE && (!level1V2Validation.valid || level1V2Validation.warnings.length)) {
   console.warn('Level 1 V2 architecture validation', level1V2Validation);
+}
+
+const level1V2BlueprintValidation = validateLevel1V2BlueprintReachability(level1V2);
+
+if (CONSTANTS.DEV_MODE && !level1V2BlueprintValidation.valid) {
+  console.warn('Level 1 V2 blueprint reachability validation', level1V2BlueprintValidation);
 }

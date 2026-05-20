@@ -70,8 +70,8 @@ const level1V2Rooms = [
     code: 'A',
     id: 'front-admin-intake',
     label: 'Front Admin / Employee Intake',
-    bounds: { x1: 2, y1: 22, x2: 13, y2: 29 },
-    color: 0xd4dad9,
+    bounds: { x1: 2, y1: 24, x2: 12, y2: 29 },
+    color: 0xb8c6cc,
     purpose: 'first admin/intake space',
     roomFunction: 'first admin/intake space'
   }),
@@ -79,8 +79,8 @@ const level1V2Rooms = [
     code: 'B',
     id: 'canteen',
     label: 'Staff Canteen',
-    bounds: { x1: 2, y1: 14, x2: 13, y2: 21 },
-    color: 0xc0cab8,
+    bounds: { x1: 2, y1: 17, x2: 12, y2: 22 },
+    color: 0xb7c2b6,
     purpose: 'staff canteen / break area',
     roomFunction: 'staff canteen / break area'
   }),
@@ -88,8 +88,8 @@ const level1V2Rooms = [
     code: 'E',
     id: 'toilet',
     label: 'Restroom',
-    bounds: { x1: 2, y1: 9, x2: 13, y2: 13 },
-    color: 0xb8c8c9,
+    bounds: { x1: 2, y1: 12, x2: 12, y2: 15 },
+    color: 0xc0d0d2,
     purpose: 'restroom / toilet area',
     roomFunction: 'restroom / toilet area'
   }),
@@ -97,18 +97,18 @@ const level1V2Rooms = [
     code: 'F',
     id: 'records-archive',
     label: 'Records Archive',
-    bounds: { x1: 2, y1: 2, x2: 18, y2: 8 },
-    color: 0x8f9da5,
+    bounds: { x1: 2, y1: 2, x2: 12, y2: 10 },
+    color: 0x929da2,
     purpose: 'archive / records storage',
     roomFunction: 'archive / records storage',
-    notes: ['Shares the corridor band in the source plan; furniture must still avoid main-corridor bounds.']
+    notes: ['Archive stays left of the main corridor with a controlled doorway for map-shell readability.']
   }),
   createRoom({
     code: 'C',
     id: 'main-workstation-hall',
     label: 'Main Workstation Hall',
-    bounds: { x1: 17, y1: 22, x2: 42, y2: 29 },
-    color: 0xaeb9bd,
+    bounds: { x1: 18, y1: 24, x2: 42, y2: 29 },
+    color: 0xb4bbbd,
     purpose: 'main employee workstation rows',
     roomFunction: 'main employee workstation rows'
   }),
@@ -116,8 +116,8 @@ const level1V2Rooms = [
     code: 'D',
     id: 'boardroom-review',
     label: 'Boardroom / Review Room',
-    bounds: { x1: 17, y1: 11, x2: 42, y2: 21 },
-    color: 0xb7d4d8,
+    bounds: { x1: 18, y1: 12, x2: 42, y2: 22 },
+    color: 0xb0c8cc,
     purpose: 'boardroom / formal review chamber',
     roomFunction: 'boardroom / formal review chamber'
   }),
@@ -125,8 +125,8 @@ const level1V2Rooms = [
     code: 'G',
     id: 'secondary-workstation',
     label: 'Secondary Workstation / Accounts Processing',
-    bounds: { x1: 24, y1: 2, x2: 42, y2: 8 },
-    color: 0xc1c6bb,
+    bounds: { x1: 24, y1: 2, x2: 42, y2: 10 },
+    color: 0xbebfb3,
     purpose: 'secondary workstation / accounts processing',
     roomFunction: 'secondary workstation / accounts processing'
   }),
@@ -134,8 +134,8 @@ const level1V2Rooms = [
     code: 'H',
     id: 'level2-access',
     label: 'Lift / Stairs to Level 2',
-    bounds: { x1: 19, y1: 2, x2: 23, y2: 8 },
-    color: 0xa9c4bf,
+    bounds: { x1: 18, y1: 2, x2: 22, y2: 10 },
+    color: 0xaac6c0,
     purpose: 'elevator or stairwell access to level 2',
     roomFunction: 'elevator or stairwell access to level 2'
   })
@@ -156,7 +156,7 @@ const level1V2MainCorridor = {
   decorativeRoom: false,
   furnitureAllowed: false,
   mustStayMostlyClear: true,
-  color: 0x9aa3a3
+  color: 0x7f8888
 };
 
 const level1V2Doorways = [
@@ -164,16 +164,16 @@ const level1V2Doorways = [
     id: 'door-front-admin-to-main-corridor',
     from: 'front-admin-intake',
     to: 'main-corridor',
-    bounds: { x1: 13, y1: 25, x2: 16, y2: 26.5 },
-    clearWidthCells: 1.5,
-    clearWidthMeters: level1V2MapDimensions.importantDoorWidthMeters,
+    bounds: { x1: 12, y1: 26, x2: 14, y2: 26 },
+    clearWidthCells: 1,
+    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Front intake doorway stays free of desks, chairs, signs, and plants.'
   },
   {
     id: 'door-canteen-to-main-corridor',
     from: 'canteen',
     to: 'main-corridor',
-    bounds: { x1: 13, y1: 17, x2: 16, y2: 18.5 },
+    bounds: { x1: 12, y1: 19, x2: 14, y2: 19 },
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'No seating or utility props in canteen doorway.'
@@ -182,7 +182,7 @@ const level1V2Doorways = [
     id: 'door-toilet-to-main-corridor',
     from: 'toilet',
     to: 'main-corridor',
-    bounds: { x1: 13, y1: 10, x2: 16, y2: 11.5 },
+    bounds: { x1: 12, y1: 13, x2: 14, y2: 13 },
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Restroom fixtures never intrude into the doorway.'
@@ -191,43 +191,43 @@ const level1V2Doorways = [
     id: 'door-records-to-main-corridor',
     from: 'records-archive',
     to: 'main-corridor',
-    bounds: { x1: 14, y1: 5, x2: 18, y2: 6.5 },
-    clearWidthCells: 1.5,
-    clearWidthMeters: level1V2MapDimensions.importantDoorWidthMeters,
+    bounds: { x1: 12, y1: 6, x2: 14, y2: 6 },
+    clearWidthCells: 1,
+    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Archive rack rows keep this doorway and aisle readable.'
   },
   {
     id: 'door-main-corridor-to-main-workstation',
     from: 'main-corridor',
     to: 'main-workstation-hall',
-    bounds: { x1: 16, y1: 25, x2: 18, y2: 26.5 },
-    clearWidthCells: 1.5,
-    clearWidthMeters: level1V2MapDimensions.importantDoorWidthMeters,
+    bounds: { x1: 16, y1: 26, x2: 18, y2: 26 },
+    clearWidthCells: 1,
+    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Workstation chairs and clusters do not spill into this connector.'
   },
   {
     id: 'door-main-corridor-to-boardroom',
     from: 'main-corridor',
     to: 'boardroom-review',
-    bounds: { x1: 16, y1: 16, x2: 18, y2: 17.5 },
-    clearWidthCells: 1.5,
-    clearWidthMeters: level1V2MapDimensions.importantDoorWidthMeters,
+    bounds: { x1: 16, y1: 17, x2: 18, y2: 17 },
+    clearWidthCells: 1,
+    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Meeting furniture stays clear of the boardroom approach.'
   },
   {
     id: 'door-main-corridor-to-level2-access',
     from: 'main-corridor',
     to: 'level2-access',
-    bounds: { x1: 16, y1: 4.5, x2: 20, y2: 6.5 },
-    clearWidthCells: 1.5,
-    clearWidthMeters: level1V2MapDimensions.importantDoorWidthMeters,
+    bounds: { x1: 16, y1: 6, x2: 18, y2: 6 },
+    clearWidthCells: 1,
+    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'The elevator/stair approach remains clear by at least 1.5m.'
   },
   {
     id: 'door-level2-access-to-secondary-workstation',
     from: 'level2-access',
     to: 'secondary-workstation',
-    bounds: { x1: 23, y1: 4.5, x2: 25, y2: 6.5 },
+    bounds: { x1: 22, y1: 6, x2: 24, y2: 6 },
     clearWidthCells: 1,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
     rule: 'Accounts furniture must not block Level 2 access circulation.'
@@ -265,6 +265,49 @@ const level1V2ClearPathRules = [
       'Elevator/stairs approach area must remain clear by at least 1.5m to 2.0m.',
       'No office furniture belongs in H / level2-access.'
     ]
+  }
+];
+
+const level1V2PartitionBands = [
+  {
+    id: 'left-rooms-to-main-corridor-wall',
+    bounds: { x1: 13, y1: 2, x2: 13, y2: 29 },
+    doorwayIds: [
+      'door-front-admin-to-main-corridor',
+      'door-canteen-to-main-corridor',
+      'door-toilet-to-main-corridor',
+      'door-records-to-main-corridor'
+    ],
+    purpose: 'Separates left-side A/B/E/F rooms from the main corridor.'
+  },
+  {
+    id: 'main-corridor-to-right-rooms-wall',
+    bounds: { x1: 17, y1: 2, x2: 17, y2: 29 },
+    doorwayIds: [
+      'door-main-corridor-to-main-workstation',
+      'door-main-corridor-to-boardroom',
+      'door-main-corridor-to-level2-access'
+    ],
+    purpose: 'Separates the main corridor from C/D/H.'
+  },
+  {
+    id: 'left-stack-room-separators',
+    bounds: [
+      { x1: 2, y1: 23, x2: 12, y2: 23 },
+      { x1: 2, y1: 16, x2: 12, y2: 16 },
+      { x1: 2, y1: 11, x2: 12, y2: 11 }
+    ],
+    purpose: 'Keeps A, B, E, and F from merging into one tall room.'
+  },
+  {
+    id: 'right-stack-room-separators',
+    bounds: [
+      { x1: 18, y1: 23, x2: 42, y2: 23 },
+      { x1: 18, y1: 11, x2: 42, y2: 11 },
+      { x1: 23, y1: 2, x2: 23, y2: 10 }
+    ],
+    doorwayIds: ['door-level2-access-to-secondary-workstation'],
+    purpose: 'Keeps C, D, G, and H as readable right-side compartments.'
   }
 ];
 
@@ -363,12 +406,12 @@ const level1V2RoomLayoutSpecs = {
 const level1V2RoomLayoutAnchors = {
   'front-admin-intake': {
     roomId: 'front-admin-intake',
-    roomBounds: { x1: 2, y1: 22, x2: 13, y2: 29 },
+    roomBounds: { x1: 2, y1: 24, x2: 12, y2: 29 },
     entranceSide: 'east from main corridor',
     exitSide: 'east to main corridor',
     mainAisle: {
       id: 'front-admin-corridor-approach',
-      bounds: { x1: 8.5, y1: 24, x2: 13, y2: 27.5 },
+      bounds: { x1: 8.2, y1: 25, x2: 12, y2: 27.2 },
       widthCells: 2,
       rule: 'Keep approach from corridor to intake desk open.'
     },
@@ -376,18 +419,18 @@ const level1V2RoomLayoutAnchors = {
       {
         id: 'intakeDeskZone',
         allowedTypes: ['intakeDesk', 'taskTerminal', 'documentTray'],
-        bounds: { x1: 4.0, y1: 24.6, x2: 7.4, y2: 26.5 },
-        center: { x: 5.6, y: 25.55 }
+        bounds: { x1: 4.0, y1: 25.0, x2: 7.2, y2: 26.8 },
+        center: { x: 5.6, y: 26.0 }
       },
       {
         id: 'frontCounterZone',
         allowedTypes: ['receptionDesk'],
-        bounds: { x1: 3.0, y1: 27.2, x2: 8.1, y2: 28.6 }
+        bounds: { x1: 3.0, y1: 27.3, x2: 8.1, y2: 28.6 }
       },
       {
         id: 'cornerPlantZone',
         allowedTypes: ['pottedPlant'],
-        bounds: { x1: 11.0, y1: 27.2, x2: 12.6, y2: 28.7 }
+        bounds: { x1: 10.6, y1: 27.2, x2: 11.8, y2: 28.7 }
       }
     ],
     signageZones: [
@@ -396,7 +439,7 @@ const level1V2RoomLayoutAnchors = {
         prefab: 'wallSign',
         text: 'ADMIN\nINTAKE',
         allowedTypes: ['wallSign'],
-        bounds: { x1: 6.5, y1: 21.8, x2: 8.5, y2: 22.2 },
+        bounds: { x1: 6.5, y1: 23.8, x2: 8.5, y2: 24.2 },
         mount: 'wall',
         wall: 'north',
         coord: 7.5,
@@ -407,30 +450,30 @@ const level1V2RoomLayoutAnchors = {
     forbiddenZones: [
       {
         id: 'mainCorridorEntry',
-        bounds: { x1: 13, y1: 24, x2: 16, y2: 27.5 },
+        bounds: { x1: 13, y1: 25, x2: 16, y2: 27 },
         rule: 'No furniture in the corridor-side entry.'
       },
       {
         id: 'doorwayToMainCorridor',
-        bounds: { x1: 13, y1: 25, x2: 16, y2: 26.5 },
+        bounds: { x1: 12, y1: 26, x2: 14, y2: 26 },
         rule: 'Doorway clear width must remain open.'
       }
     ]
   },
   canteen: {
     roomId: 'canteen',
-    roomBounds: { x1: 2, y1: 14, x2: 13, y2: 21 },
+    roomBounds: { x1: 2, y1: 17, x2: 12, y2: 22 },
     entranceSide: 'east from main corridor',
     furnitureZones: [
       {
         id: 'canteenSeatingZone',
         allowedTypes: ['canteenTable', 'canteenChair'],
-        bounds: { x1: 4.0, y1: 15.1, x2: 10.8, y2: 20.0 }
+        bounds: { x1: 4.0, y1: 18.0, x2: 10.5, y2: 21.2 }
       },
       {
         id: 'canteenWallUtilityZone',
         allowedTypes: ['vendingMachine', 'waterDispenser', 'fridgeCabinet', 'trashBin'],
-        bounds: { x1: 2.3, y1: 14.5, x2: 3.8, y2: 20.6 },
+        bounds: { x1: 2.3, y1: 17.5, x2: 3.8, y2: 21.5 },
         wallBound: true
       }
     ],
@@ -440,7 +483,7 @@ const level1V2RoomLayoutAnchors = {
         prefab: 'wallSign',
         text: 'STAFF\nCANTEEN',
         allowedTypes: ['wallSign'],
-        bounds: { x1: 6.5, y1: 13.8, x2: 8.8, y2: 14.2 },
+        bounds: { x1: 6.5, y1: 16.8, x2: 8.8, y2: 17.2 },
         mount: 'wall',
         wall: 'north',
         coord: 7.6,
@@ -451,23 +494,23 @@ const level1V2RoomLayoutAnchors = {
     forbiddenZones: [
       {
         id: 'canteenDoorway',
-        bounds: { x1: 13, y1: 17, x2: 16, y2: 18.5 },
+        bounds: { x1: 12, y1: 19, x2: 14, y2: 19 },
         rule: 'No table, chair, vending, fridge, or trash bin in doorway.'
       },
       {
         id: 'mainCorridorConnector',
-        bounds: { x1: 13, y1: 14, x2: 16, y2: 21 },
+        bounds: { x1: 13, y1: 17, x2: 16, y2: 22 },
         rule: 'Main corridor connector is circulation only.'
       }
     ]
   },
   'main-workstation-hall': {
     roomId: 'main-workstation-hall',
-    roomBounds: { x1: 17, y1: 22, x2: 42, y2: 29 },
+    roomBounds: { x1: 18, y1: 24, x2: 42, y2: 29 },
     entranceSide: 'west from main corridor',
     mainAisle: {
       id: 'main-workstation-central-aisle',
-      bounds: { x1: 17, y1: 25.1, x2: 42, y2: 25.9 },
+      bounds: { x1: 18, y1: 26.1, x2: 42, y2: 26.9 },
       widthCells: 2.5,
       rule: 'Central aisle stays clear through the workstation hall.'
     },
@@ -475,19 +518,19 @@ const level1V2RoomLayoutAnchors = {
       {
         id: 'mainWorkstationRowsNorth',
         allowedTypes: ['workstationCluster', 'officeDesk', 'officeChair', 'monitor', 'keyboard', 'partition'],
-        bounds: { x1: 19, y1: 22.8, x2: 40, y2: 24.8 },
+        bounds: { x1: 20, y1: 24.5, x2: 40, y2: 25.7 },
         rowAligned: true
       },
       {
         id: 'mainWorkstationRowsSouth',
         allowedTypes: ['workstationCluster', 'officeDesk', 'officeChair', 'monitor', 'keyboard', 'partition'],
-        bounds: { x1: 19, y1: 26.2, x2: 40, y2: 28.4 },
+        bounds: { x1: 20, y1: 27.3, x2: 40, y2: 28.5 },
         rowAligned: true
       },
       {
         id: 'mainPrinterZone',
         allowedTypes: ['copyMachine'],
-        bounds: { x1: 40.2, y1: 22.5, x2: 41.6, y2: 24.1 },
+        bounds: { x1: 40.2, y1: 24.5, x2: 41.6, y2: 25.8 },
         wallBound: true
       }
     ],
@@ -508,43 +551,43 @@ const level1V2RoomLayoutAnchors = {
     forbiddenZones: [
       {
         id: 'mainWorkstationCentralAisle',
-        bounds: { x1: 17, y1: 25.1, x2: 42, y2: 25.9 },
+        bounds: { x1: 18, y1: 26.1, x2: 42, y2: 26.9 },
         rule: 'No desks, chairs, partitions, or copy machine in central aisle.'
       },
       {
         id: 'mainCorridorConnector',
-        bounds: { x1: 14, y1: 24, x2: 18, y2: 27.5 },
+        bounds: { x1: 16, y1: 26, x2: 18, y2: 26 },
         rule: 'Connector from main corridor is route-only.'
       }
     ]
   },
   'boardroom-review': {
     roomId: 'boardroom-review',
-    roomBounds: { x1: 17, y1: 11, x2: 42, y2: 21 },
+    roomBounds: { x1: 18, y1: 12, x2: 42, y2: 22 },
     entranceSide: 'west from main corridor',
     furnitureZones: [
       {
         id: 'conferenceTableZone',
         allowedTypes: ['conferenceTable', 'meetingTable'],
-        bounds: { x1: 25, y1: 14, x2: 34, y2: 18 },
-        center: { x: 29.5, y: 16 }
+        bounds: { x1: 25, y1: 15, x2: 34, y2: 19 },
+        center: { x: 29.5, y: 17 }
       },
       {
         id: 'conferenceChairRingZone',
         allowedTypes: ['meetingChair'],
-        bounds: { x1: 23, y1: 12.5, x2: 36, y2: 19.5 }
+        bounds: { x1: 23, y1: 13.5, x2: 36, y2: 20.5 }
       },
       {
         id: 'reviewTerminalZone',
         allowedTypes: ['taskTerminal'],
-        bounds: { x1: 38, y1: 15, x2: 40.2, y2: 17.2 }
+        bounds: { x1: 38, y1: 16, x2: 40.2, y2: 18.2 }
       }
     ],
     wallZones: [
       {
         id: 'presentationWallZone',
         allowedTypes: ['wallBoard'],
-        bounds: { x1: 17, y1: 13, x2: 17.4, y2: 19 },
+        bounds: { x1: 18, y1: 14, x2: 18.4, y2: 20 },
         wallBound: true
       }
     ],
@@ -552,7 +595,7 @@ const level1V2RoomLayoutAnchors = {
       {
         id: 'reviewBoundaryGlassZone',
         allowedTypes: ['glassPartition'],
-        bounds: { x1: 17, y1: 11, x2: 42, y2: 11.4 },
+        bounds: { x1: 18, y1: 12, x2: 42, y2: 12.4 },
         boundaryAligned: true
       }
     ],
@@ -562,7 +605,7 @@ const level1V2RoomLayoutAnchors = {
         prefab: 'departmentSign',
         text: 'BOARDROOM\nREVIEW',
         allowedTypes: ['wallSign'],
-        bounds: { x1: 28, y1: 10.8, x2: 30.4, y2: 11.2 },
+        bounds: { x1: 28, y1: 11.8, x2: 30.4, y2: 12.2 },
         mount: 'wall',
         wall: 'north',
         coord: 29.2,
@@ -573,37 +616,37 @@ const level1V2RoomLayoutAnchors = {
     forbiddenZones: [
       {
         id: 'boardroomDoorway',
-        bounds: { x1: 14, y1: 16, x2: 18, y2: 17.5 },
+        bounds: { x1: 16, y1: 17, x2: 18, y2: 17 },
         rule: 'Doorway from corridor must stay clear.'
       },
       {
         id: 'connectorClearPath',
-        bounds: { x1: 17, y1: 15.5, x2: 22, y2: 18.5 },
+        bounds: { x1: 18, y1: 16, x2: 22, y2: 18 },
         rule: 'No meeting chair/table intrusion near connector.'
       }
     ]
   },
   toilet: {
     roomId: 'toilet',
-    roomBounds: { x1: 2, y1: 9, x2: 13, y2: 13 },
+    roomBounds: { x1: 2, y1: 12, x2: 12, y2: 15 },
     entranceSide: 'east from main corridor',
     furnitureZones: [
       {
         id: 'toiletStallZone',
         allowedTypes: ['toiletStall'],
-        bounds: { x1: 3.0, y1: 9.4, x2: 8.8, y2: 11.4 },
+        bounds: { x1: 3.0, y1: 12.5, x2: 8.8, y2: 14.0 },
         wallBound: true
       },
       {
         id: 'sinkWallZone',
         allowedTypes: ['sink', 'mirror', 'handDryer'],
-        bounds: { x1: 9.6, y1: 9.2, x2: 12.4, y2: 10.4 },
+        bounds: { x1: 9.2, y1: 12.5, x2: 11.8, y2: 13.6 },
         wallBound: true
       },
       {
         id: 'toiletUtilityCorner',
         allowedTypes: ['trashBin'],
-        bounds: { x1: 11.5, y1: 12.0, x2: 12.8, y2: 12.8 },
+        bounds: { x1: 10.8, y1: 14.0, x2: 11.8, y2: 14.8 },
         cornerOnly: true
       }
     ],
@@ -613,7 +656,7 @@ const level1V2RoomLayoutAnchors = {
         prefab: 'wallSign',
         text: 'RESTROOM',
         allowedTypes: ['wallSign'],
-        bounds: { x1: 6.4, y1: 8.8, x2: 8.6, y2: 9.2 },
+        bounds: { x1: 6.4, y1: 11.8, x2: 8.6, y2: 12.2 },
         mount: 'wall',
         wall: 'north',
         coord: 7.5,
@@ -624,32 +667,32 @@ const level1V2RoomLayoutAnchors = {
     forbiddenZones: [
       {
         id: 'toiletDoorway',
-        bounds: { x1: 13, y1: 10, x2: 16, y2: 11.5 },
+        bounds: { x1: 12, y1: 13, x2: 14, y2: 13 },
         rule: 'Restroom doorway is clear circulation.'
       }
     ]
   },
   'records-archive': {
     roomId: 'records-archive',
-    roomBounds: { x1: 2, y1: 2, x2: 18, y2: 8 },
-    entranceSide: 'east/shared corridor band',
+    roomBounds: { x1: 2, y1: 2, x2: 12, y2: 10 },
+    entranceSide: 'east from main corridor',
     furnitureZones: [
       {
         id: 'archiveRackRows',
         allowedTypes: ['archiveRack', 'serverRack', 'archiveBox'],
-        bounds: { x1: 3, y1: 2.7, x2: 13.5, y2: 7.3 },
+        bounds: { x1: 3, y1: 2.7, x2: 10.5, y2: 9.3 },
         rowAligned: true
       },
       {
         id: 'archiveWallCabinetZone',
         allowedTypes: ['filingCabinet', 'archiveBox'],
-        bounds: { x1: 2.2, y1: 2.5, x2: 3.5, y2: 7.4 },
+        bounds: { x1: 2.2, y1: 2.5, x2: 3.5, y2: 9.4 },
         wallBound: true
       },
       {
         id: 'archiveObjectiveZone',
         allowedTypes: ['documentPacket', 'taskTerminal'],
-        bounds: { x1: 16.0, y1: 4.0, x2: 17.8, y2: 6.2 }
+        bounds: { x1: 10.0, y1: 5.0, x2: 11.7, y2: 7.2 }
       }
     ],
     signageZones: [
@@ -658,10 +701,10 @@ const level1V2RoomLayoutAnchors = {
         prefab: 'wallSign',
         text: 'RECORDS\nARCHIVE',
         allowedTypes: ['wallSign'],
-        bounds: { x1: 10.2, y1: 1.8, x2: 12.3, y2: 2.2 },
+        bounds: { x1: 6.2, y1: 1.8, x2: 8.3, y2: 2.2 },
         mount: 'wall',
         wall: 'north',
-        coord: 11.2,
+        coord: 7.2,
         height: 2.0,
         maxWidth: 1.65
       }
@@ -669,37 +712,37 @@ const level1V2RoomLayoutAnchors = {
     forbiddenZones: [
       {
         id: 'archiveAisleBetweenRows',
-        bounds: { x1: 7.2, y1: 2.5, x2: 9.2, y2: 7.5 },
+        bounds: { x1: 6.2, y1: 2.5, x2: 7.8, y2: 9.5 },
         rule: 'Aisle between archive rows stays clear.'
       },
       {
         id: 'archiveDoorway',
-        bounds: { x1: 14, y1: 5, x2: 18, y2: 6.5 },
+        bounds: { x1: 12, y1: 6, x2: 14, y2: 6 },
         rule: 'Archive doorway and corridor overlap stay clear.'
       }
     ]
   },
   'secondary-workstation': {
     roomId: 'secondary-workstation',
-    roomBounds: { x1: 24, y1: 2, x2: 42, y2: 8 },
+    roomBounds: { x1: 24, y1: 2, x2: 42, y2: 10 },
     entranceSide: 'west through level2-access connector',
     furnitureZones: [
       {
         id: 'secondaryDeskRows',
         allowedTypes: ['officeDesk', 'officeChair', 'monitor', 'keyboard', 'documentTray'],
-        bounds: { x1: 26, y1: 2.7, x2: 38, y2: 7.3 },
+        bounds: { x1: 26, y1: 2.8, x2: 38, y2: 9.2 },
         rowAligned: true
       },
       {
         id: 'secondaryWallCabinetZone',
         allowedTypes: ['filingCabinet'],
-        bounds: { x1: 39, y1: 2.5, x2: 41.5, y2: 7.5 },
+        bounds: { x1: 39, y1: 2.5, x2: 41.5, y2: 9.5 },
         wallBound: true
       },
       {
         id: 'secondaryObjectiveZone',
         allowedTypes: ['taskTerminal'],
-        bounds: { x1: 25.6, y1: 4.2, x2: 27.2, y2: 6.0 }
+        bounds: { x1: 25.6, y1: 5.2, x2: 27.2, y2: 7.0 }
       }
     ],
     signageZones: [
@@ -719,33 +762,33 @@ const level1V2RoomLayoutAnchors = {
     forbiddenZones: [
       {
         id: 'secondaryCentralAisle',
-        bounds: { x1: 31, y1: 2.4, x2: 34.5, y2: 7.6 },
+        bounds: { x1: 31, y1: 2.4, x2: 34.5, y2: 9.6 },
         rule: 'Accounts aisle stays clear for processing route.'
       },
       {
         id: 'level2AccessConnector',
-        bounds: { x1: 23, y1: 4.5, x2: 25, y2: 6.5 },
+        bounds: { x1: 22, y1: 6, x2: 24, y2: 6 },
         rule: 'Connector to H remains clear.'
       }
     ]
   },
   'level2-access': {
     roomId: 'level2-access',
-    roomBounds: { x1: 19, y1: 2, x2: 23, y2: 8 },
+    roomBounds: { x1: 18, y1: 2, x2: 22, y2: 10 },
     entranceSide: 'west from main corridor',
     exitSide: 'future Level 2 transition, not implemented',
     doorZones: [
       {
         id: 'elevatorDoorZone',
         allowedTypes: ['elevatorDoor'],
-        bounds: { x1: 20, y1: 7.45, x2: 22.1, y2: 8.0 },
+        bounds: { x1: 19, y1: 9.45, x2: 21.7, y2: 10.0 },
         focalPoint: true,
         wallBound: true
       },
       {
         id: 'stairwellDoorZone',
         allowedTypes: ['stairwellDoor'],
-        bounds: { x1: 19.3, y1: 2.0, x2: 22.7, y2: 2.55 },
+        bounds: { x1: 18.5, y1: 2.0, x2: 21.8, y2: 2.55 },
         wallBound: true
       }
     ],
@@ -753,7 +796,7 @@ const level1V2RoomLayoutAnchors = {
       {
         id: 'accessPanelZone',
         allowedTypes: ['accessPanel'],
-        bounds: { x1: 22.2, y1: 5.0, x2: 22.9, y2: 6.0 },
+        bounds: { x1: 21.2, y1: 5.5, x2: 21.9, y2: 6.5 },
         wallBound: true,
         notes: 'TODO: add dedicated accessPanel prefab later.'
       }
@@ -762,7 +805,7 @@ const level1V2RoomLayoutAnchors = {
       {
         id: 'level2AccessTrimZone',
         allowedTypes: ['warningTrim'],
-        bounds: { x1: 19.2, y1: 7.55, x2: 22.8, y2: 8.0 },
+        bounds: { x1: 18.5, y1: 9.55, x2: 21.8, y2: 10.0 },
         visualOnly: true
       }
     ],
@@ -772,7 +815,7 @@ const level1V2RoomLayoutAnchors = {
         prefab: 'wallSign',
         text: 'LEVEL 2\nACCESS',
         allowedTypes: ['level2Sign'],
-        bounds: { x1: 19.5, y1: 7.8, x2: 22.5, y2: 8.2 },
+        bounds: { x1: 18.8, y1: 9.8, x2: 21.8, y2: 10.2 },
         mount: 'wall',
         wall: 'south',
         coord: 21.0,
@@ -783,12 +826,12 @@ const level1V2RoomLayoutAnchors = {
     forbiddenZones: [
       {
         id: 'level2AccessApproach',
-        bounds: { x1: 19, y1: 4.0, x2: 23, y2: 7.2 },
+        bounds: { x1: 18, y1: 4.0, x2: 22, y2: 8.8 },
         rule: 'Approach to elevator/stairs stays clear by at least 1.5m.'
       },
       {
         id: 'mainCorridorEndpoint',
-        bounds: { x1: 14, y1: 2, x2: 19, y2: 8 },
+        bounds: { x1: 14, y1: 2, x2: 18, y2: 10 },
         rule: 'Main corridor endpoint remains clear.'
       }
     ]
@@ -853,6 +896,7 @@ export const level1V2 = {
   connectors: level1V2Doorways,
   doorways: level1V2Doorways,
   clearPathRules: level1V2ClearPathRules,
+  partitionBands: level1V2PartitionBands,
   objectives: [],
   hazards: [],
   storyBeats: [],
@@ -865,7 +909,7 @@ export const level1V2 = {
   roomLayoutAnchors: level1V2RoomLayoutAnchors,
   roomAssetManifest: LEVEL1_V2_ROOM_ASSET_MANIFEST,
   roomAssetManifestSummary: summarizeLevel1V2RoomAssetManifest(level1V2RoomLayoutAnchors),
-  playerStart: { x: 8.2, y: 20.65, yaw: 0.03, pitch: -0.045 },
+  playerStart: { x: 7.5, y: 26.0, yaw: 0, pitch: -0.04 },
   goals: [],
   checkpoints: [],
   triggers: [],
@@ -884,12 +928,13 @@ export const level1V2 = {
       label: 'Level 1 V2 Foundation Route',
       color: 0x86f7b2,
       points: [
-        { x: 7.5, y: 25.5 },
-        { x: 15, y: 25.5 },
-        { x: 15, y: 17 },
-        { x: 15, y: 10.8 },
-        { x: 15, y: 5.5 },
-        { x: 21, y: 5.5 }
+        { x: 7.5, y: 26.0 },
+        { x: 15, y: 26.0 },
+        { x: 15, y: 19.0 },
+        { x: 15, y: 13.0 },
+        { x: 15, y: 6.0 },
+        { x: 20.0, y: 6.0 },
+        { x: 25.0, y: 6.0 }
       ]
     }
   ],

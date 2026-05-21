@@ -34,8 +34,10 @@ const getSelectedLevelLabel = () => (
     : 'Level 1 V2 Preview'
 );
 const isMapShellLevel = level => level?.status?.startsWith('map-shell');
+const isRoomAShellLevel = level => level?.status === 'map-shell-room-a-test';
 const isEmptyFieldBaselineLevel = level => level?.status === 'empty-field-baseline';
 const getInitialLevelStatus = (level, freeExplore = false) => {
+  if (isRoomAShellLevel(level)) return 'Level 1 V2 Room A shell test. No tasks in shell mode.';
   if (isEmptyFieldBaselineLevel(level)) return 'Level 1 V2 empty field baseline. No tasks in baseline mode.';
   if (!isMapShellLevel(level)) return 'Retrieve Shift Assignment Form.';
   return freeExplore
@@ -174,7 +176,9 @@ export class Game {
     if (selectedLevelVersion === 'v2' && selectedLevel?.id !== 'level-1-v2') {
       console.warn('[MazeMind] Expected Level 1 V2 but selected level does not look like V2.', selectedLevel);
     }
-    if (isEmptyFieldBaselineLevel(selectedLevel)) {
+    if (isRoomAShellLevel(selectedLevel)) {
+      console.info('[MazeMind] Level 1 V2 loaded in Room A shell mode. Object placement disabled.');
+    } else if (isEmptyFieldBaselineLevel(selectedLevel)) {
       console.info('[MazeMind] Level 1 V2 loaded in empty-field baseline mode. Object placement disabled.');
     } else if (isMapShellLevel(selectedLevel)) {
       console.info('[MazeMind] Level 1 V2 loaded in map-shell mode. Object placement disabled.');
@@ -209,7 +213,7 @@ export class Game {
     this.cameraSystem.snap(this.player.mesh.position);
 
     this.stateSystem.setState(freeExplore ? CONSTANTS.STATE_DEV_EXPLORE : CONSTANTS.STATE_PLAYING);
-    if (isEmptyFieldBaselineLevel(level) || isMapShellLevel(level)) {
+    if (isRoomAShellLevel(level) || isEmptyFieldBaselineLevel(level) || isMapShellLevel(level)) {
       this.uiManager.updateStatus(getInitialLevelStatus(level, freeExplore));
     }
     this.syncDeveloperVisuals();

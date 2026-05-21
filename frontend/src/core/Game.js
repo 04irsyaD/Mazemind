@@ -33,7 +33,7 @@ const getSelectedLevelLabel = () => (
     ? 'Level 1 Legacy'
     : 'Level 1 V2 Preview'
 );
-const isMapShellLevel = level => level?.status === 'map-shell';
+const isMapShellLevel = level => level?.status?.startsWith('map-shell');
 const getInitialLevelStatus = (level, freeExplore = false) => {
   if (!isMapShellLevel(level)) return 'Retrieve Shift Assignment Form.';
   return freeExplore

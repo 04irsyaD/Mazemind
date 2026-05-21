@@ -4,8 +4,8 @@ const GRID_WIDTH = 32;
 const GRID_HEIGHT = 24;
 
 const ROOM_A_BOUNDS = { x1: 3, y1: 15, x2: 11, y2: 21 };
-const ROOM_A_OPEN_SIDE = { side: 'east', x: 11, y1: 17, y2: 19 };
-const ACCESS_STRIP_BOUNDS = { x1: 12, y1: 17, x2: 14, y2: 19 };
+const ROOM_A_OPEN_SIDE = { side: 'east', x: 11, y1: 17, y2: 21 };
+const ACCESS_STRIP_BOUNDS = { x1: 12, y1: 17, x2: 14, y2: 21 };
 
 function buildEmptyFieldGrid() {
   const grid = Array.from({ length: GRID_HEIGHT }, (_, y) =>
@@ -46,9 +46,12 @@ function addRoomAShell(grid) {
     setCell(grid, ROOM_A_BOUNDS.x1, y, CONSTANTS.CELL_WALL);
   }
 
-  for (let y = ROOM_A_BOUNDS.y1; y <= ROOM_A_BOUNDS.y2; y++) {
-    const isOpenSide = y >= ROOM_A_OPEN_SIDE.y1 && y <= ROOM_A_OPEN_SIDE.y2;
-    setCell(grid, ROOM_A_BOUNDS.x2, y, isOpenSide ? CONSTANTS.CELL_PATH : CONSTANTS.CELL_WALL);
+  for (let y = ROOM_A_BOUNDS.y1; y <= ROOM_A_BOUNDS.y1 + 1; y++) {
+    setCell(grid, ROOM_A_BOUNDS.x2, y, CONSTANTS.CELL_WALL);
+  }
+
+  for (let y = ROOM_A_OPEN_SIDE.y1; y <= ROOM_A_OPEN_SIDE.y2; y++) {
+    setCell(grid, ROOM_A_OPEN_SIDE.x, y, CONSTANTS.CELL_PATH);
   }
 
   setRect(grid, ACCESS_STRIP_BOUNDS, CONSTANTS.CELL_PATH);
@@ -212,15 +215,16 @@ function collectRoomAWallCells() {
 
   for (let x = ROOM_A_BOUNDS.x1; x <= ROOM_A_BOUNDS.x2; x++) {
     wallCells.push({ x, y: ROOM_A_BOUNDS.y1 });
-    wallCells.push({ x, y: ROOM_A_BOUNDS.y2 });
+    if (x !== ROOM_A_OPEN_SIDE.x) {
+      wallCells.push({ x, y: ROOM_A_BOUNDS.y2 });
+    }
   }
 
   for (let y = ROOM_A_BOUNDS.y1 + 1; y <= ROOM_A_BOUNDS.y2 - 1; y++) {
     wallCells.push({ x: ROOM_A_BOUNDS.x1, y });
   }
 
-  for (let y = ROOM_A_BOUNDS.y1 + 1; y <= ROOM_A_BOUNDS.y2 - 1; y++) {
-    if (y >= ROOM_A_OPEN_SIDE.y1 && y <= ROOM_A_OPEN_SIDE.y2) continue;
+  for (let y = ROOM_A_BOUNDS.y1 + 1; y <= ROOM_A_BOUNDS.y1 + 1; y++) {
     wallCells.push({ x: ROOM_A_BOUNDS.x2, y });
   }
 
@@ -272,7 +276,7 @@ function validateLevel1V2RoomAShell(level) {
   const roomAWallCells = collectRoomAWallCells();
   const roomAWallsExist = roomAWallCells.every(cell => grid[cell.y]?.[cell.x] === CONSTANTS.CELL_WALL);
   if (!roomAWallsExist) {
-    warnings.push('Room A north, south, west, and east stub wall cells must be CELL_WALL');
+    warnings.push('Room A north, south, west, and east upper return wall cells must be CELL_WALL');
   }
 
   const roomAOpenSideCells = collectRoomAOpenSideCells();
@@ -335,7 +339,7 @@ function validateLevel1V2RoomAShell(level) {
       roomAWallCells: roomAWallCells.length,
       roomAWallsExist,
       openSide: ROOM_A_OPEN_SIDE,
-      eastStubCells: roomAWallCells.filter(cell => cell.x === ROOM_A_BOUNDS.x2),
+      eastUpperReturnWallCells: roomAWallCells.filter(cell => cell.x === ROOM_A_BOUNDS.x2),
       roomAEastSideOpen,
       roomAInteriorPath,
       accessStripBounds: ACCESS_STRIP_BOUNDS,

@@ -1,11 +1,4 @@
 import { CONSTANTS } from '../core/Constants.js';
-import {
-  LEVEL1_V2_GLOBAL_PLACEMENT_RULES,
-  LEVEL1_V2_ROOM_ASSET_MANIFEST,
-  LEVEL1_V2_ROOM_REPAIR_PRIORITIES,
-  summarizeLevel1V2RoomAssetManifest,
-  validateLevel1V2ArchitectureAgainstManifest
-} from '../assets/level1V2RoomAssetManifest.js';
 
 const GRID_WIDTH = 32;
 const GRID_HEIGHT = 24;
@@ -75,75 +68,18 @@ const level1V2RoomA = createRoomMetadata({
   active: true
 });
 
-const level1V2FutureRooms = [
-  createRoomMetadata({
-    code: 'B',
-    id: 'canteen',
-    label: 'Staff Canteen',
-    bounds: { x1: 2, y1: 12, x2: 10, y2: 17 },
-    color: 0xb7c2b6,
-    purpose: 'future staff canteen / break area'
-  }),
-  createRoomMetadata({
-    code: 'C',
-    id: 'main-workstation-hall',
-    label: 'Main Workstation Hall',
-    bounds: { x1: 16, y1: 18, x2: 29, y2: 22 },
-    color: 0xb4bbbd,
-    purpose: 'future main employee workstation rows'
-  }),
-  createRoomMetadata({
-    code: 'D',
-    id: 'boardroom-review',
-    label: 'Boardroom / Review Room',
-    bounds: { x1: 16, y1: 9, x2: 29, y2: 17 },
-    color: 0xb0c8cc,
-    purpose: 'future boardroom / formal review chamber'
-  }),
-  createRoomMetadata({
-    code: 'E',
-    id: 'toilet',
-    label: 'Restroom',
-    bounds: { x1: 2, y1: 8, x2: 10, y2: 10 },
-    color: 0xc0d0d2,
-    purpose: 'future restroom / toilet area'
-  }),
-  createRoomMetadata({
-    code: 'F',
-    id: 'records-archive',
-    label: 'Records Archive',
-    bounds: { x1: 2, y1: 2, x2: 10, y2: 6 },
-    color: 0x929da2,
-    purpose: 'future archive / records storage'
-  }),
-  createRoomMetadata({
-    code: 'G',
-    id: 'secondary-workstation',
-    label: 'Secondary Workstation / Accounts Processing',
-    bounds: { x1: 22, y1: 2, x2: 29, y2: 6 },
-    color: 0xbebfb3,
-    purpose: 'future secondary workstation / accounts processing'
-  }),
-  createRoomMetadata({
-    code: 'H',
-    id: 'level2-access',
-    label: 'Lift / Stairs to Level 2',
-    bounds: { x1: 16, y1: 2, x2: 20, y2: 6 },
-    color: 0xaac6c0,
-    purpose: 'future elevator or stairwell access to level 2'
-  })
-];
+// Future rooms B-H are intentionally not exported or carved in this Room A shell pass.
 
 const level1V2MainCorridor = {
   id: 'main-corridor',
   label: 'Main Corridor',
   x1: 12,
-  y1: 2,
+  y1: 17,
   x2: 14,
   y2: 22,
-  bounds: { x1: 12, y1: 2, x2: 14, y2: 22 },
-  gridSizeCells: { width: 3, depth: 21 },
-  worldSizeMeters: { width: metersFromCells(3), depth: metersFromCells(21) },
+  bounds: { x1: 12, y1: 17, x2: 14, y2: 22 },
+  gridSizeCells: { width: 3, depth: 6 },
+  worldSizeMeters: { width: metersFromCells(3), depth: metersFromCells(6) },
   function: 'main vertical player route',
   purpose: 'route spine',
   decorativeRoom: false,
@@ -154,7 +90,7 @@ const level1V2MainCorridor = {
 
 const level1V2OpenAreas = [
   { id: 'room-a-open', roomId: 'front-admin-intake', x1: 2, y1: 18, x2: 10, y2: 22 },
-  { id: 'main-corridor-open', roomId: 'main-corridor', x1: 12, y1: 2, x2: 14, y2: 22 }
+  { id: 'main-corridor-open', roomId: 'main-corridor', x1: 12, y1: 17, x2: 14, y2: 22 }
 ];
 
 const level1V2WallLines = [
@@ -162,9 +98,9 @@ const level1V2WallLines = [
   { id: 'room-a-north-outer-wall', x1: 1, y1: 17, x2: 11, y2: 17 },
   { id: 'room-a-south-outer-wall', x1: 1, y1: 23, x2: 11, y2: 23 },
   { id: 'room-a-to-corridor-wall', x1: 11, y1: 18, x2: 11, y2: 22 },
-  { id: 'corridor-west-boundary', x1: 11, y1: 2, x2: 11, y2: 22 },
-  { id: 'corridor-east-boundary', x1: 15, y1: 2, x2: 15, y2: 22 },
-  { id: 'corridor-north-cap', x1: 12, y1: 1, x2: 14, y2: 1 },
+  { id: 'corridor-west-boundary', x1: 11, y1: 17, x2: 11, y2: 22 },
+  { id: 'corridor-east-boundary', x1: 15, y1: 17, x2: 15, y2: 22 },
+  { id: 'corridor-north-cap', x1: 12, y1: 16, x2: 14, y2: 16 },
   { id: 'corridor-south-cap', x1: 12, y1: 23, x2: 14, y2: 23 }
 ];
 
@@ -173,26 +109,11 @@ const level1V2DoorOpenings = [
     id: 'door-room-a-to-main-corridor',
     from: 'front-admin-intake',
     to: 'main-corridor',
-    x1: 11,
-    y1: 20,
-    x2: 11,
-    y2: 21,
+    wallOpening: { x1: 11, y1: 20, x2: 11, y2: 21 },
+    connector: { x1: 12, y1: 20, x2: 12, y2: 21 },
     clearWidthCells: 1,
     clearHeightCells: 2,
     clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters
-  },
-  {
-    id: 'door-room-a-corridor-touch',
-    from: 'front-admin-intake',
-    to: 'main-corridor',
-    x1: 12,
-    y1: 20,
-    x2: 12,
-    y2: 21,
-    clearWidthCells: 1,
-    clearHeightCells: 2,
-    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
-    helper: true
   }
 ];
 
@@ -247,7 +168,8 @@ function applyWallLine(grid, line) {
 }
 
 function carveDoor(grid, door) {
-  carveRect(grid, door);
+  carveRect(grid, door.wallOpening);
+  carveRect(grid, door.connector);
 }
 
 function buildLevel1V2CollisionGrid() {
@@ -378,13 +300,16 @@ function validateLevel1V2RoomAShell(level) {
   closedCorridorCells.forEach(cell => warnings.push(`main corridor has closed cell ${cell}`));
 
   const primaryDoor = level1V2DoorOpenings.find(door => door.id === 'door-room-a-to-main-corridor');
-  const closedDoorCells = collectClosedCells(grid, primaryDoor);
-  closedDoorCells.forEach(cell => warnings.push(`Room A door has closed cell ${cell}`));
+  const closedDoorWallOpeningCells = collectClosedCells(grid, primaryDoor.wallOpening);
+  closedDoorWallOpeningCells.forEach(cell => warnings.push(`Room A door wallOpening has closed cell ${cell}`));
+  const closedDoorConnectorCells = collectClosedCells(grid, primaryDoor.connector);
+  closedDoorConnectorCells.forEach(cell => warnings.push(`Room A door connector has closed cell ${cell}`));
 
   const roomAReachable = rectHasReachableCell(level1V2RoomA.bounds, reachable);
   const corridorReachable = rectHasReachableCell(level1V2MainCorridor.bounds, reachable);
-  const doorReachable = rectHasReachableCell(primaryDoor, reachable);
-  const roomAToCorridorReachable = roomAReachable && corridorReachable && doorReachable;
+  const doorWallOpeningReachable = rectHasReachableCell(primaryDoor.wallOpening, reachable);
+  const doorConnectorReachable = rectHasReachableCell(primaryDoor.connector, reachable);
+  const roomAToCorridorReachable = roomAReachable && corridorReachable && doorWallOpeningReachable && doorConnectorReachable;
 
   if (!roomAToCorridorReachable) {
     warnings.push('Room A cannot reach the main corridor through the active door');
@@ -398,10 +323,12 @@ function validateLevel1V2RoomAShell(level) {
       playerStartCell: startCell,
       playerStartOpen: isOpenCell(grid, startCell.x, startCell.y),
       closedCorridorCells,
-      closedDoorCells,
+      closedDoorWallOpeningCells,
+      closedDoorConnectorCells,
       roomAReachable,
       corridorReachable,
-      doorReachable,
+      doorWallOpeningReachable,
+      doorConnectorReachable,
       roomAToCorridorReachable,
       reachableCells: reachable.size,
       gridWidth: grid[0]?.length ?? 0,
@@ -421,13 +348,10 @@ export const level1V2 = {
   estimatedMinutes: 20,
   mapDimensions: level1V2MapDimensions,
   movementStandards: level1V2MovementStandards,
-  placementRules: LEVEL1_V2_GLOBAL_PLACEMENT_RULES,
   proceduralFallbackRules: [],
-  repairPriorities: LEVEL1_V2_ROOM_REPAIR_PRIORITIES,
   shellBlueprint: level1V2ShellBlueprint,
   spaces: level1V2Spaces,
   rooms: level1V2Rooms,
-  futureRooms: level1V2FutureRooms,
   corridors: [level1V2MainCorridor],
   connectors: level1V2DoorOpenings,
   doorways: level1V2DoorOpenings,
@@ -442,10 +366,6 @@ export const level1V2 = {
   collisionVolumes: [],
   collisionGrid: level1V2CollisionGrid,
   grid: level1V2CollisionGrid,
-  roomLayoutSpecs: {},
-  roomLayoutAnchors: {},
-  roomAssetManifest: LEVEL1_V2_ROOM_ASSET_MANIFEST,
-  roomAssetManifestSummary: null,
   playerStart: { x: 6.5, y: 20.5, yaw: 0, pitch: -0.04 },
   goals: [],
   checkpoints: [],

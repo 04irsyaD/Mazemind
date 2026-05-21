@@ -7,8 +7,8 @@ import {
   validateLevel1V2ArchitectureAgainstManifest
 } from '../assets/level1V2RoomAssetManifest.js';
 
-const GRID_WIDTH = 36;
-const GRID_HEIGHT = 26;
+const GRID_WIDTH = 32;
+const GRID_HEIGHT = 24;
 
 export const level1V2MapDimensions = {
   gridWidth: GRID_WIDTH,
@@ -69,7 +69,7 @@ const level1V2Rooms = [
     code: 'A',
     id: 'front-admin-intake',
     label: 'Front Admin / Employee Intake',
-    bounds: { x1: 2, y1: 19, x2: 10, y2: 24 },
+    bounds: { x1: 2, y1: 18, x2: 10, y2: 22 },
     color: 0xb8c6cc,
     purpose: 'first admin/intake space',
     roomFunction: 'first admin/intake space'
@@ -78,7 +78,7 @@ const level1V2Rooms = [
     code: 'B',
     id: 'canteen',
     label: 'Staff Canteen',
-    bounds: { x1: 2, y1: 12, x2: 10, y2: 18 },
+    bounds: { x1: 2, y1: 12, x2: 10, y2: 17 },
     color: 0xb7c2b6,
     purpose: 'staff canteen / break area',
     roomFunction: 'staff canteen / break area'
@@ -87,7 +87,7 @@ const level1V2Rooms = [
     code: 'E',
     id: 'toilet',
     label: 'Restroom',
-    bounds: { x1: 2, y1: 8, x2: 7, y2: 11 },
+    bounds: { x1: 2, y1: 8, x2: 10, y2: 10 },
     color: 0xc0d0d2,
     purpose: 'restroom / toilet area',
     roomFunction: 'restroom / toilet area'
@@ -96,7 +96,7 @@ const level1V2Rooms = [
     code: 'F',
     id: 'records-archive',
     label: 'Records Archive',
-    bounds: { x1: 2, y1: 2, x2: 12, y2: 7 },
+    bounds: { x1: 2, y1: 2, x2: 10, y2: 6 },
     color: 0x929da2,
     purpose: 'archive / records storage',
     roomFunction: 'archive / records storage',
@@ -106,7 +106,7 @@ const level1V2Rooms = [
     code: 'C',
     id: 'main-workstation-hall',
     label: 'Main Workstation Hall',
-    bounds: { x1: 16, y1: 19, x2: 32, y2: 24 },
+    bounds: { x1: 16, y1: 18, x2: 29, y2: 22 },
     color: 0xb4bbbd,
     purpose: 'main employee workstation rows',
     roomFunction: 'main employee workstation rows'
@@ -115,7 +115,7 @@ const level1V2Rooms = [
     code: 'D',
     id: 'boardroom-review',
     label: 'Boardroom / Review Room',
-    bounds: { x1: 16, y1: 10, x2: 31, y2: 18 },
+    bounds: { x1: 16, y1: 9, x2: 29, y2: 17 },
     color: 0xb0c8cc,
     purpose: 'boardroom / formal review chamber',
     roomFunction: 'boardroom / formal review chamber'
@@ -124,7 +124,7 @@ const level1V2Rooms = [
     code: 'G',
     id: 'secondary-workstation',
     label: 'Secondary Workstation / Accounts Processing',
-    bounds: { x1: 22, y1: 2, x2: 32, y2: 7 },
+    bounds: { x1: 22, y1: 2, x2: 29, y2: 6 },
     color: 0xbebfb3,
     purpose: 'secondary workstation / accounts processing',
     roomFunction: 'secondary workstation / accounts processing'
@@ -133,7 +133,7 @@ const level1V2Rooms = [
     code: 'H',
     id: 'level2-access',
     label: 'Lift / Stairs to Level 2',
-    bounds: { x1: 16, y1: 2, x2: 20, y2: 7 },
+    bounds: { x1: 16, y1: 2, x2: 20, y2: 6 },
     color: 0xaac6c0,
     purpose: 'elevator or stairwell access to level 2',
     roomFunction: 'elevator or stairwell access to level 2'
@@ -146,10 +146,10 @@ const level1V2MainCorridor = {
   x1: 12,
   y1: 2,
   x2: 14,
-  y2: 24,
-  bounds: { x1: 12, y1: 2, x2: 14, y2: 24 },
-  gridSizeCells: { width: 3, depth: 22 },
-  worldSizeMeters: { width: metersFromCells(3), depth: metersFromCells(22) },
+  y2: 22,
+  bounds: { x1: 12, y1: 2, x2: 14, y2: 22 },
+  gridSizeCells: { width: 3, depth: 21 },
+  worldSizeMeters: { width: metersFromCells(3), depth: metersFromCells(21) },
   function: 'main vertical player route',
   purpose: 'route spine',
   decorativeRoom: false,
@@ -158,82 +158,154 @@ const level1V2MainCorridor = {
   color: 0x7f8888
 };
 
+const level1V2CorridorNodes = [
+  { id: 'front-node', label: 'Admin / Canteen Node', x1: 11, y1: 16, x2: 15, y2: 22, color: 0x848f8d },
+  { id: 'mid-node', label: 'Restroom / Boardroom Node', x1: 11, y1: 9, x2: 15, y2: 14, color: 0x838e8d },
+  { id: 'rear-node', label: 'Archive / Level 2 Node', x1: 11, y1: 4, x2: 15, y2: 7, color: 0x858f8c }
+].map(node => ({
+  ...node,
+  bounds: { x1: node.x1, y1: node.y1, x2: node.x2, y2: node.y2 },
+  function: 'corridor node',
+  purpose: 'subtle open-area widening',
+  decorativeRoom: false,
+  furnitureAllowed: false,
+  mustStayMostlyClear: true
+}));
+
+const level1V2DoorArchetypes = {
+  adminEntry: {
+    openingWidthCells: 2,
+    recessDepthCells: 1,
+    description: 'front admin approach, slightly wider and welcoming'
+  },
+  canteenSideEntry: {
+    openingWidthCells: 2,
+    recessDepthCells: 0,
+    description: 'casual break-room opening'
+  },
+  restroomNarrowEntry: {
+    openingWidthCells: 1,
+    recessDepthCells: 1,
+    connectorStyle: 'short-side-connector',
+    description: 'small restroom access, narrower than office rooms'
+  },
+  archiveRecessedDoor: {
+    openingWidthCells: 1,
+    recessDepthCells: 1,
+    description: 'controlled archive/storage access'
+  },
+  workstationThreshold: {
+    openingWidthCells: 2,
+    recessDepthCells: 1,
+    description: 'office floor threshold, slightly wider'
+  },
+  boardroomFormalDoor: {
+    openingWidthCells: 1,
+    recessDepthCells: 1,
+    centered: true,
+    description: 'formal meeting room entry'
+  },
+  level2AccessDoor: {
+    openingWidthCells: 1,
+    recessDepthCells: 2,
+    description: 'progression access toward lift/stairs'
+  },
+  rearWorkstationConnector: {
+    openingWidthCells: 1,
+    recessDepthCells: 0,
+    description: 'small rear connector from level2 access to secondary workstation'
+  }
+};
+
+function createDoorway({ archetype, bounds, recessBounds = [], connectorPathIds = [], ...doorway }) {
+  const archetypeSpec = level1V2DoorArchetypes[archetype];
+  return {
+    ...doorway,
+    archetype,
+    archetypeSpec,
+    bounds,
+    recessBounds,
+    connectorPathIds,
+    clearWidthCells: archetypeSpec.openingWidthCells,
+    clearWidthMeters: metersFromCells(archetypeSpec.openingWidthCells),
+    recessDepthCells: archetypeSpec.recessDepthCells,
+    connectorStyle: archetypeSpec.connectorStyle,
+    accessDescription: archetypeSpec.description
+  };
+}
+
 const level1V2Doorways = [
-  {
+  createDoorway({
     id: 'door-front-admin-to-main-corridor',
     from: 'front-admin-intake',
     to: 'main-corridor',
-    bounds: { x1: 11, y1: 21, x2: 12, y2: 21 },
-    clearWidthCells: 1,
-    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
+    archetype: 'adminEntry',
+    bounds: [{ x1: 10, y1: 20, x2: 12, y2: 21 }],
+    recessBounds: [{ x1: 9, y1: 20, x2: 10, y2: 21 }],
     rule: 'Front intake doorway stays free of desks, chairs, signs, and plants.'
-  },
-  {
+  }),
+  createDoorway({
     id: 'door-canteen-to-main-corridor',
     from: 'canteen',
     to: 'main-corridor',
-    bounds: { x1: 11, y1: 15, x2: 12, y2: 15 },
-    clearWidthCells: 1,
-    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
+    archetype: 'canteenSideEntry',
+    bounds: [{ x1: 10, y1: 16, x2: 12, y2: 17 }],
     rule: 'No seating or utility props in canteen doorway.'
-  },
-  {
+  }),
+  createDoorway({
     id: 'door-toilet-to-main-corridor',
     from: 'toilet',
     to: 'main-corridor',
-    bounds: [
-      { x1: 7, y1: 9, x2: 8, y2: 9 },
-      { x1: 11, y1: 9, x2: 12, y2: 9 }
-    ],
-    clearWidthCells: 1,
-    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
+    archetype: 'restroomNarrowEntry',
+    bounds: [{ x1: 10, y1: 9, x2: 12, y2: 9 }],
+    recessBounds: [{ x1: 9, y1: 9, x2: 10, y2: 9 }],
+    connectorPathIds: ['restroom-short-side-connector'],
     rule: 'Restroom fixtures never intrude into the doorway.'
-  },
-  {
+  }),
+  createDoorway({
     id: 'door-records-to-main-corridor',
     from: 'records-archive',
     to: 'main-corridor',
-    bounds: { x1: 11, y1: 5, x2: 12, y2: 5 },
-    clearWidthCells: 1,
-    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
+    archetype: 'archiveRecessedDoor',
+    bounds: [{ x1: 10, y1: 5, x2: 12, y2: 5 }],
+    recessBounds: [{ x1: 9, y1: 5, x2: 10, y2: 5 }],
     rule: 'Archive rack rows keep this doorway and aisle readable.'
-  },
-  {
+  }),
+  createDoorway({
     id: 'door-main-corridor-to-main-workstation',
     from: 'main-corridor',
     to: 'main-workstation-hall',
-    bounds: { x1: 15, y1: 21, x2: 16, y2: 21 },
-    clearWidthCells: 1,
-    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
+    archetype: 'workstationThreshold',
+    bounds: [{ x1: 15, y1: 20, x2: 17, y2: 21 }],
+    recessBounds: [{ x1: 17, y1: 20, x2: 18, y2: 21 }],
     rule: 'Workstation chairs and clusters do not spill into this connector.'
-  },
-  {
+  }),
+  createDoorway({
     id: 'door-main-corridor-to-boardroom',
     from: 'main-corridor',
     to: 'boardroom-review',
-    bounds: { x1: 15, y1: 14, x2: 16, y2: 14 },
-    clearWidthCells: 1,
-    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
+    archetype: 'boardroomFormalDoor',
+    bounds: [{ x1: 15, y1: 13, x2: 17, y2: 13 }],
+    recessBounds: [{ x1: 17, y1: 13, x2: 18, y2: 13 }],
     rule: 'Meeting furniture stays clear of the boardroom approach.'
-  },
-  {
+  }),
+  createDoorway({
     id: 'door-main-corridor-to-level2-access',
     from: 'main-corridor',
     to: 'level2-access',
-    bounds: { x1: 15, y1: 5, x2: 16, y2: 5 },
-    clearWidthCells: 1,
-    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
+    archetype: 'level2AccessDoor',
+    bounds: [{ x1: 15, y1: 5, x2: 17, y2: 5 }],
+    recessBounds: [{ x1: 17, y1: 4, x2: 17, y2: 6 }],
     rule: 'The elevator/stair approach remains clear by at least 1.5m.'
-  },
-  {
+  }),
+  createDoorway({
     id: 'door-level2-access-to-secondary-workstation',
     from: 'level2-access',
     to: 'secondary-workstation',
-    bounds: { x1: 21, y1: 5, x2: 22, y2: 5 },
-    clearWidthCells: 1,
-    clearWidthMeters: level1V2MapDimensions.standardDoorWidthMeters,
+    archetype: 'rearWorkstationConnector',
+    bounds: [{ x1: 21, y1: 5, x2: 22, y2: 5 }],
     rule: 'Accounts furniture must not block Level 2 access circulation.'
-  }
+  })
 ];
 
 const level1V2ClearPathRules = [
@@ -277,7 +349,7 @@ const level1V2WallSegments = [
     x1: 1,
     y1: 1,
     x2: 1,
-    y2: 25,
+    y2: 23,
     purpose: 'Defines the outside edge of the A/B/E/F wing.'
   },
   {
@@ -285,7 +357,7 @@ const level1V2WallSegments = [
     kind: 'outer-wall',
     x1: 1,
     y1: 1,
-    x2: 12,
+    x2: 11,
     y2: 1,
     purpose: 'Defines the top edge of the left room stack.'
   },
@@ -293,52 +365,133 @@ const level1V2WallSegments = [
     id: 'left-wing-south-outer-wall',
     kind: 'outer-wall',
     x1: 1,
-    y1: 25,
+    y1: 23,
     x2: 11,
-    y2: 25,
+    y2: 23,
     purpose: 'Defines the lower edge of the admin room.'
   },
   {
-    id: 'left-corridor-boundary-wall',
+    id: 'left-room-corridor-wall',
     kind: 'corridor-boundary',
-    x1: 11,
+    x1: 10,
     y1: 2,
-    x2: 11,
-    y2: 24,
+    x2: 10,
+    y2: 22,
     doorwayIds: [
       'door-front-admin-to-main-corridor',
       'door-canteen-to-main-corridor',
       'door-toilet-to-main-corridor',
       'door-records-to-main-corridor'
     ],
-    purpose: 'Keeps corridor cells x=12..14 open while separating the left rooms.'
+    purpose: 'Separates left room interiors from the widened corridor nodes; archetype door cuts are carved last.'
+  },
+  {
+    id: 'left-corridor-west-wall-north-stub',
+    kind: 'corridor-boundary',
+    x1: 11,
+    y1: 2,
+    x2: 11,
+    y2: 3,
+    purpose: 'Keeps the north corridor approach from becoming one continuous widened tunnel.'
+  },
+  {
+    id: 'left-corridor-west-wall-archive-to-restroom-stub',
+    kind: 'corridor-boundary',
+    x1: 11,
+    y1: 8,
+    x2: 11,
+    y2: 8,
+    purpose: 'Pinches the corridor between rear and mid nodes.'
+  },
+  {
+    id: 'left-corridor-west-wall-mid-to-front-stub',
+    kind: 'corridor-boundary',
+    x1: 11,
+    y1: 15,
+    x2: 11,
+    y2: 15,
+    purpose: 'Pinches the corridor between the boardroom/restroom node and admin/canteen node.'
   },
   {
     id: 'left-stack-admin-canteen-separator',
     kind: 'room-separator',
     x1: 2,
-    y1: 19,
-    x2: 11,
-    y2: 19,
+    y1: 18,
+    x2: 10,
+    y2: 18,
     purpose: 'Separates A from B.'
   },
   {
     id: 'left-stack-canteen-toilet-separator',
     kind: 'room-separator',
     x1: 2,
-    y1: 12,
-    x2: 11,
-    y2: 12,
+    y1: 11,
+    x2: 10,
+    y2: 11,
     purpose: 'Separates B from E.'
   },
   {
     id: 'left-stack-toilet-archive-separator',
     kind: 'room-separator',
     x1: 2,
-    y1: 8,
-    x2: 11,
-    y2: 8,
+    y1: 7,
+    x2: 10,
+    y2: 7,
     purpose: 'Separates E from F and keeps the toilet compact.'
+  },
+  {
+    id: 'admin-entry-upper-frame-stub',
+    kind: 'internal-stub',
+    x1: 9,
+    y1: 19,
+    x2: 9,
+    y2: 19,
+    purpose: 'Frames A as a wider front entry without adding a sign or prop.'
+  },
+  {
+    id: 'admin-entry-lower-frame-stub',
+    kind: 'internal-stub',
+    x1: 9,
+    y1: 22,
+    x2: 9,
+    y2: 22,
+    purpose: 'Completes the shallow A entry recess.'
+  },
+  {
+    id: 'restroom-entry-north-frame-stub',
+    kind: 'internal-stub',
+    x1: 8,
+    y1: 8,
+    x2: 8,
+    y2: 8,
+    purpose: 'Keeps E to a one-cell restroom opening before the short side connector.'
+  },
+  {
+    id: 'restroom-entry-south-frame-stub',
+    kind: 'internal-stub',
+    x1: 8,
+    y1: 10,
+    x2: 8,
+    y2: 10,
+    purpose: 'Keeps E to a one-cell restroom opening before the short side connector.'
+  },
+  {
+    id: 'records-archive-door-north-frame-stub',
+    kind: 'internal-stub',
+    x1: 9,
+    y1: 4,
+    x2: 9,
+    y2: 4,
+    purpose: 'Gives F a controlled one-cell recessed doorway.'
+  },
+  {
+    id: 'records-archive-door-south-frame-stub',
+    kind: 'internal-stub',
+    x1: 9,
+    y1: 6,
+    x2: 9,
+    y2: 6,
+    purpose: 'Gives F a controlled one-cell recessed doorway.'
   },
   {
     id: 'records-archive-internal-wall-stub',
@@ -346,30 +499,57 @@ const level1V2WallSegments = [
     x1: 6,
     y1: 3,
     x2: 6,
-    y2: 5,
+    y2: 4,
     purpose: 'Adds a structural notch to F without placing archive objects.'
   },
   {
-    id: 'right-corridor-boundary-wall',
+    id: 'right-corridor-east-wall-north-stub',
     kind: 'corridor-boundary',
     x1: 15,
     y1: 2,
     x2: 15,
-    y2: 24,
+    y2: 3,
+    purpose: 'Keeps the north corridor approach from becoming one continuous widened tunnel.'
+  },
+  {
+    id: 'right-corridor-east-wall-rear-to-mid-stub',
+    kind: 'corridor-boundary',
+    x1: 15,
+    y1: 8,
+    x2: 15,
+    y2: 8,
+    purpose: 'Pinches the corridor between rear and mid nodes.'
+  },
+  {
+    id: 'right-corridor-east-wall-mid-to-front-stub',
+    kind: 'corridor-boundary',
+    x1: 15,
+    y1: 15,
+    x2: 15,
+    y2: 15,
+    purpose: 'Pinches the corridor between the boardroom/restroom node and admin/canteen node.'
+  },
+  {
+    id: 'right-room-corridor-wall',
+    kind: 'corridor-boundary',
+    x1: 16,
+    y1: 2,
+    x2: 16,
+    y2: 22,
     doorwayIds: [
       'door-main-corridor-to-main-workstation',
       'door-main-corridor-to-boardroom',
       'door-main-corridor-to-level2-access'
     ],
-    purpose: 'Keeps corridor cells x=12..14 open while separating the right rooms.'
+    purpose: 'Separates right room interiors from the widened corridor nodes; archetype door cuts are carved last.'
   },
   {
     id: 'right-wing-east-outer-wall',
     kind: 'outer-wall',
-    x1: 33,
+    x1: 30,
     y1: 1,
-    x2: 33,
-    y2: 25,
+    x2: 30,
+    y2: 23,
     purpose: 'Leaves a wall/void buffer beyond the right-side rooms.'
   },
   {
@@ -377,7 +557,7 @@ const level1V2WallSegments = [
     kind: 'outer-wall',
     x1: 15,
     y1: 1,
-    x2: 33,
+    x2: 30,
     y2: 1,
     purpose: 'Defines the top edge of the H/G rooms.'
   },
@@ -385,18 +565,18 @@ const level1V2WallSegments = [
     id: 'right-wing-south-outer-wall',
     kind: 'outer-wall',
     x1: 15,
-    y1: 25,
-    x2: 33,
-    y2: 25,
+    y1: 23,
+    x2: 30,
+    y2: 23,
     purpose: 'Defines the lower edge of the main workstation hall.'
   },
   {
     id: 'main-workstation-boardroom-separator',
     kind: 'room-separator',
     x1: 16,
-    y1: 19,
-    x2: 33,
-    y2: 19,
+    y1: 18,
+    x2: 30,
+    y2: 18,
     purpose: 'Separates C from D.'
   },
   {
@@ -404,7 +584,7 @@ const level1V2WallSegments = [
     kind: 'room-separator',
     x1: 16,
     y1: 8,
-    x2: 33,
+    x2: 30,
     y2: 8,
     purpose: 'Separates D from H/G.'
   },
@@ -414,48 +594,78 @@ const level1V2WallSegments = [
     x1: 21,
     y1: 2,
     x2: 21,
-    y2: 7,
+    y2: 6,
     doorwayIds: ['door-level2-access-to-secondary-workstation'],
     purpose: 'Keeps H and G separate with one controlled connector.'
   },
   {
-    id: 'main-workstation-entry-stub',
+    id: 'main-workstation-entry-upper-frame-stub',
     kind: 'internal-stub',
-    x1: 16,
-    y1: 22,
-    x2: 18,
-    y2: 22,
-    purpose: 'Breaks the C doorway silhouette without adding furniture.'
+    x1: 17,
+    y1: 19,
+    x2: 17,
+    y2: 19,
+    purpose: 'Frames the wider C threshold without adding furniture.'
   },
   {
-    id: 'boardroom-entry-stub',
+    id: 'main-workstation-entry-lower-frame-stub',
     kind: 'internal-stub',
-    x1: 16,
-    y1: 15,
-    x2: 18,
-    y2: 15,
-    purpose: 'Gives D a recessed entry rather than a flat rectangular opening.'
+    x1: 17,
+    y1: 22,
+    x2: 17,
+    y2: 22,
+    purpose: 'Frames the wider C threshold without adding furniture.'
+  },
+  {
+    id: 'boardroom-entry-upper-frame-stub',
+    kind: 'internal-stub',
+    x1: 17,
+    y1: 12,
+    x2: 17,
+    y2: 12,
+    purpose: 'Gives D a focused formal entry rather than a flat rectangular opening.'
+  },
+  {
+    id: 'boardroom-entry-lower-frame-stub',
+    kind: 'internal-stub',
+    x1: 17,
+    y1: 14,
+    x2: 17,
+    y2: 14,
+    purpose: 'Gives D a focused formal entry rather than a flat rectangular opening.'
   }
 ];
 
 const level1V2FloorplanBlueprint = {
   gridWidth: GRID_WIDTH,
   gridHeight: GRID_HEIGHT,
+  mainCorridor: level1V2MainCorridor.bounds,
+  corridorNodes: level1V2CorridorNodes,
   openAreas: [
-    { id: 'A-open', roomId: 'front-admin-intake', x1: 2, y1: 19, x2: 10, y2: 24 },
-    { id: 'B-open', roomId: 'canteen', x1: 2, y1: 12, x2: 10, y2: 18 },
-    { id: 'E-open', roomId: 'toilet', x1: 2, y1: 8, x2: 7, y2: 11 },
-    { id: 'E-connector-open', roomId: 'toilet', x1: 8, y1: 9, x2: 12, y2: 9 },
-    { id: 'F-open', roomId: 'records-archive', x1: 2, y1: 2, x2: 10, y2: 7 },
-    { id: 'main-corridor-open', roomId: 'main-corridor', x1: 12, y1: 2, x2: 14, y2: 24 },
-    { id: 'C-open', roomId: 'main-workstation-hall', x1: 16, y1: 19, x2: 32, y2: 24 },
-    { id: 'D-open', roomId: 'boardroom-review', x1: 16, y1: 10, x2: 31, y2: 18 },
-    { id: 'H-open', roomId: 'level2-access', x1: 16, y1: 2, x2: 20, y2: 7 },
-    { id: 'G-open', roomId: 'secondary-workstation', x1: 22, y1: 2, x2: 32, y2: 7 }
+    { id: 'A-open', roomId: 'front-admin-intake', x1: 2, y1: 19, x2: 9, y2: 22 },
+    { id: 'B-open', roomId: 'canteen', x1: 2, y1: 12, x2: 9, y2: 17 },
+    { id: 'E-open', roomId: 'toilet', x1: 2, y1: 8, x2: 8, y2: 10 },
+    { id: 'F-open', roomId: 'records-archive', x1: 2, y1: 2, x2: 9, y2: 6 },
+    { id: 'C-open', roomId: 'main-workstation-hall', x1: 18, y1: 19, x2: 29, y2: 22 },
+    { id: 'D-open', roomId: 'boardroom-review', x1: 18, y1: 9, x2: 29, y2: 17 },
+    { id: 'H-open', roomId: 'level2-access', x1: 18, y1: 2, x2: 20, y2: 6 },
+    { id: 'G-open', roomId: 'secondary-workstation', x1: 22, y1: 2, x2: 29, y2: 6 }
+  ],
+  connectorPaths: [
+    {
+      id: 'restroom-short-side-connector',
+      roomId: 'toilet',
+      archetype: 'restroomNarrowEntry',
+      x1: 9,
+      y1: 9,
+      x2: 9,
+      y2: 9,
+      purpose: 'A one-cell side connector so E does not read as a long hallway.'
+    }
   ],
   wallLines: level1V2WallSegments,
   doorOpenings: level1V2Doorways,
-  roomMetadata: [...level1V2Rooms, level1V2MainCorridor]
+  roomMetadata: [...level1V2Rooms, level1V2MainCorridor, ...level1V2CorridorNodes]
 };
 
 const level1V2ProceduralFallbackRules = [
@@ -1103,7 +1313,7 @@ const level1V2RoomLayoutAnchors = {
 
 const level1V2Architecture = [];
 
-const level1V2Spaces = [...level1V2Rooms, level1V2MainCorridor];
+const level1V2Spaces = [...level1V2Rooms, level1V2MainCorridor, ...level1V2CorridorNodes];
 const toCollisionRect = rectangle => ({
   x1: Math.floor(rectangle.x1),
   y1: Math.floor(rectangle.y1),
@@ -1149,36 +1359,74 @@ function applyWallLine(grid, line) {
 }
 
 function carveDoorOpening(grid, opening) {
-  asRectList(opening.bounds).forEach(bounds => carveOpenRect(grid, bounds));
+  [
+    ...asRectList(opening.bounds),
+    ...asRectList(opening.recessBounds)
+  ].forEach(bounds => carveOpenRect(grid, bounds));
+}
+
+function collectBlockedCells(grid, rectangle) {
+  const blocked = [];
+  const rect = toCollisionRect(rectangle);
+
+  for (let y = rect.y1; y <= rect.y2; y++) {
+    for (let x = rect.x1; x <= rect.x2; x++) {
+      if (grid[y]?.[x] === CONSTANTS.CELL_WALL) blocked.push(cellKey(x, y));
+    }
+  }
+
+  return blocked;
+}
+
+function verifyCorridorOpenCells(grid, blueprint) {
+  const blocked = [
+    ...collectBlockedCells(grid, blueprint.mainCorridor),
+    ...(blueprint.corridorNodes ?? []).flatMap(node => collectBlockedCells(grid, node))
+  ];
+
+  if (blocked.length && CONSTANTS.DEV_MODE) {
+    console.warn('Level 1 V2 corridor verification found blocked cells', blocked);
+  }
+
+  return blocked;
 }
 
 function buildLevel1V2CollisionGrid(blueprint) {
   const grid = createWallGrid(blueprint.gridWidth, blueprint.gridHeight);
 
   blueprint.openAreas.forEach(area => carveOpenRect(grid, area));
+  carveOpenRect(grid, blueprint.mainCorridor);
+  blueprint.corridorNodes.forEach(node => carveOpenRect(grid, node));
   blueprint.wallLines.forEach(line => applyWallLine(grid, line));
   blueprint.doorOpenings.forEach(opening => carveDoorOpening(grid, opening));
+  blueprint.connectorPaths.forEach(connector => carveOpenRect(grid, connector));
+  verifyCorridorOpenCells(grid, blueprint);
 
   return grid;
 }
 
 const level1V2CollisionGrid = buildLevel1V2CollisionGrid(level1V2FloorplanBlueprint);
 
-const level1V2FloorZones = level1V2Spaces.map(space => ({
-  id: space.id,
-  x1: space.x1,
-  y1: space.y1,
-  x2: space.x2,
-  y2: space.y2,
-  color: space.color,
-  emissive: 0x101616,
-  emissiveIntensity: space.id === 'level2-access' ? 0.07 : 0.04,
-  roughness: 0.76,
-  height: 0,
-  floorLineColor: 0x7f8988,
-  floorLineOpacity: space.id === 'main-corridor' ? 0.12 : 0.18,
-  floorLineStep: space.id === 'main-corridor' ? 3 : 2
-}));
+const level1V2FloorZones = level1V2Spaces.map(space => {
+  const isMainCorridor = space.id === 'main-corridor';
+  const isCorridorNode = space.function === 'corridor node';
+
+  return {
+    id: space.id,
+    x1: space.x1,
+    y1: space.y1,
+    x2: space.x2,
+    y2: space.y2,
+    color: space.color,
+    emissive: 0x101616,
+    emissiveIntensity: space.id === 'level2-access' ? 0.07 : isCorridorNode ? 0.03 : 0.04,
+    roughness: 0.76,
+    height: 0,
+    floorLineColor: 0x7f8988,
+    floorLineOpacity: isMainCorridor ? 0.12 : isCorridorNode ? 0.1 : 0.18,
+    floorLineStep: isMainCorridor || isCorridorNode ? 3 : 2
+  };
+});
 
 export const level1V2 = {
   schemaVersion: 1,
@@ -1197,9 +1445,11 @@ export const level1V2 = {
   floorplanBlueprint: level1V2FloorplanBlueprint,
   spaces: level1V2Spaces,
   rooms: level1V2Rooms,
-  corridors: [level1V2MainCorridor],
+  corridors: [level1V2MainCorridor, ...level1V2CorridorNodes],
+  corridorNodes: level1V2CorridorNodes,
   connectors: level1V2Doorways,
   doorways: level1V2Doorways,
+  doorArchetypes: level1V2DoorArchetypes,
   clearPathRules: level1V2ClearPathRules,
   wallSegments: level1V2WallSegments,
   partitionBands: level1V2WallSegments,
@@ -1305,32 +1555,166 @@ function rectHasReachableCell(rect, reachable) {
   return false;
 }
 
+function collectRectCellKeys(rectangles) {
+  const keys = new Set();
+  asRectList(rectangles).forEach(rectangle => {
+    const rect = toCollisionRect(rectangle);
+    for (let y = rect.y1; y <= rect.y2; y++) {
+      for (let x = rect.x1; x <= rect.x2; x++) {
+        keys.add(cellKey(x, y));
+      }
+    }
+  });
+  return keys;
+}
+
+function rectContainsCell(rectangle, x, y) {
+  const rect = toCollisionRect(rectangle);
+  return x >= rect.x1 && x <= rect.x2 && y >= rect.y1 && y <= rect.y2;
+}
+
+function collectCorridorCellKeys(level) {
+  return collectRectCellKeys(level.corridors?.map(corridor => corridor.bounds ?? corridor) ?? []);
+}
+
+function collectDoorwayCellKeys(doorways, connectorPaths) {
+  const keysByRoom = new Map();
+
+  const addRoomKeys = (roomId, rectangles) => {
+    if (!roomId) return;
+    const keys = keysByRoom.get(roomId) ?? new Set();
+    collectRectCellKeys(rectangles).forEach(key => keys.add(key));
+    keysByRoom.set(roomId, keys);
+  };
+
+  doorways.forEach(doorway => {
+    const rectangles = [
+      ...asRectList(doorway.bounds),
+      ...asRectList(doorway.recessBounds)
+    ];
+    addRoomKeys(doorway.from, rectangles);
+    addRoomKeys(doorway.to, rectangles);
+  });
+
+  connectorPaths.forEach(connector => {
+    addRoomKeys(connector.roomId, [connector]);
+  });
+
+  return keysByRoom;
+}
+
+function collectUnexpectedCorridorMerges(level) {
+  const grid = level.grid;
+  const corridorCells = collectCorridorCellKeys(level);
+  const allowedDoorwayCells = collectDoorwayCellKeys(
+    level.doorways ?? [],
+    level.floorplanBlueprint.connectorPaths ?? []
+  );
+  const merges = [];
+
+  level.rooms.forEach(room => {
+    const allowedCells = allowedDoorwayCells.get(room.id) ?? new Set();
+    const bounds = toCollisionRect(room.bounds);
+
+    for (let y = bounds.y1; y <= bounds.y2; y++) {
+      for (let x = bounds.x1; x <= bounds.x2; x++) {
+        const key = cellKey(x, y);
+        if (!isOpenCell(grid, x, y) || allowedCells.has(key)) continue;
+
+        [
+          { x: x + 1, y },
+          { x: x - 1, y },
+          { x, y: y + 1 },
+          { x, y: y - 1 }
+        ].forEach(neighbor => {
+          const neighborKey = cellKey(neighbor.x, neighbor.y);
+          if (
+            !rectContainsCell(room.bounds, neighbor.x, neighbor.y) &&
+            corridorCells.has(neighborKey) &&
+            isOpenCell(grid, neighbor.x, neighbor.y)
+          ) {
+            merges.push(`${room.code} / ${room.id} has unexpected corridor merge at ${key} -> ${neighborKey}`);
+          }
+        });
+      }
+    }
+  });
+
+  return merges;
+}
+
+const level1V2AccessValidationChecks = [
+  { roomCode: 'A', roomId: 'front-admin-intake', doorwayId: 'door-front-admin-to-main-corridor', target: 'main-corridor' },
+  { roomCode: 'B', roomId: 'canteen', doorwayId: 'door-canteen-to-main-corridor', target: 'main-corridor' },
+  { roomCode: 'E', roomId: 'toilet', doorwayId: 'door-toilet-to-main-corridor', target: 'main-corridor' },
+  { roomCode: 'F', roomId: 'records-archive', doorwayId: 'door-records-to-main-corridor', target: 'main-corridor' },
+  { roomCode: 'C', roomId: 'main-workstation-hall', doorwayId: 'door-main-corridor-to-main-workstation', target: 'main-corridor' },
+  { roomCode: 'D', roomId: 'boardroom-review', doorwayId: 'door-main-corridor-to-boardroom', target: 'main-corridor' },
+  { roomCode: 'H', roomId: 'level2-access', doorwayId: 'door-main-corridor-to-level2-access', target: 'main-corridor' },
+  { roomCode: 'G', roomId: 'secondary-workstation', doorwayId: 'door-level2-access-to-secondary-workstation', target: 'level2-access' }
+];
+
 function validateLevel1V2BlueprintReachability(level) {
   const grid = level.grid;
   const start = getStartCell(level.playerStart);
   const reachable = collectReachableCells(grid, start);
   const warnings = [];
+  const roomReachability = {};
+  const accessReachability = {};
 
   if (!isOpenCell(grid, start.x, start.y)) {
     warnings.push(`playerStart is not open at ${cellKey(start.x, start.y)}`);
   }
 
   level.rooms.forEach(room => {
-    if (!rectHasReachableCell(room.bounds, reachable)) {
+    const reachableRoom = rectHasReachableCell(room.bounds, reachable);
+    roomReachability[room.code] = reachableRoom;
+    if (!reachableRoom) {
       warnings.push(`${room.code} / ${room.id} is not reachable from playerStart`);
     }
   });
 
   level.doorways.forEach(doorway => {
-    const reachableDoor = asRectList(doorway.bounds).some(bounds => rectHasReachableCell(bounds, reachable));
+    const reachableDoor = [
+      ...asRectList(doorway.bounds),
+      ...asRectList(doorway.recessBounds)
+    ].some(bounds => rectHasReachableCell(bounds, reachable));
     if (!reachableDoor) warnings.push(`${doorway.id} is not reachable from playerStart`);
   });
 
-  for (let y = level1V2MainCorridor.y1; y <= level1V2MainCorridor.y2; y++) {
-    for (let x = level1V2MainCorridor.x1; x <= level1V2MainCorridor.x2; x++) {
-      if (!isOpenCell(grid, x, y)) warnings.push(`main corridor has blocked cell ${cellKey(x, y)}`);
+  level1V2AccessValidationChecks.forEach(check => {
+    const room = level.rooms.find(candidate => candidate.id === check.roomId);
+    const doorway = level.doorways.find(candidate => candidate.id === check.doorwayId);
+    const target = level.corridors.find(candidate => candidate.id === check.target) ??
+      level.rooms.find(candidate => candidate.id === check.target);
+    const roomReachable = room ? rectHasReachableCell(room.bounds, reachable) : false;
+    const doorwayReachable = doorway ? [
+      ...asRectList(doorway.bounds),
+      ...asRectList(doorway.recessBounds)
+    ].some(bounds => rectHasReachableCell(bounds, reachable)) : false;
+    const targetReachable = target ? rectHasReachableCell(target.bounds, reachable) : false;
+    const valid = roomReachable && doorwayReachable && targetReachable;
+    accessReachability[check.roomCode] = {
+      valid,
+      roomId: check.roomId,
+      target: check.target,
+      doorwayId: check.doorwayId,
+      archetype: doorway?.archetype ?? null
+    };
+
+    if (!valid) {
+      warnings.push(`${check.roomCode} / ${check.roomId} cannot reach ${check.target} through ${check.doorwayId}`);
     }
-  }
+  });
+
+  const blockedCorridorCells = [
+    ...collectBlockedCells(grid, level1V2MainCorridor),
+    ...level1V2CorridorNodes.flatMap(node => collectBlockedCells(grid, node))
+  ];
+  blockedCorridorCells.forEach(cell => warnings.push(`corridor has blocked cell ${cell}`));
+
+  const unexpectedMerges = collectUnexpectedCorridorMerges(level);
+  unexpectedMerges.forEach(warning => warnings.push(warning));
 
   return {
     valid: warnings.length === 0,
@@ -1338,6 +1722,11 @@ function validateLevel1V2BlueprintReachability(level) {
     details: {
       reachableCells: reachable.size,
       playerStartCell: start,
+      playerStartOpen: isOpenCell(grid, start.x, start.y),
+      roomReachability,
+      accessReachability,
+      blockedCorridorCells,
+      unexpectedMerges,
       gridWidth: grid[0]?.length ?? 0,
       gridHeight: grid.length
     }
@@ -1353,7 +1742,7 @@ if (CONSTANTS.DEV_MODE && (!level1V2Validation.valid || level1V2Validation.warni
   console.warn('Level 1 V2 architecture validation', level1V2Validation);
 }
 
-const level1V2BlueprintValidation = validateLevel1V2BlueprintReachability(level1V2);
+export const level1V2BlueprintValidation = validateLevel1V2BlueprintReachability(level1V2);
 
 if (CONSTANTS.DEV_MODE && !level1V2BlueprintValidation.valid) {
   console.warn('Level 1 V2 blueprint reachability validation', level1V2BlueprintValidation);

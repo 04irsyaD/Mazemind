@@ -4,15 +4,8 @@ const GRID_WIDTH = 32;
 const GRID_HEIGHT = 24;
 
 const ROOM_A_BOUNDS = { x1: 3, y1: 15, x2: 11, y2: 21 };
-const ROOM_A_DOORWAY_CELLS = [
-  { x: 11, y: 18 },
-  { x: 11, y: 19 }
-];
-const ACCESS_STRIP_BOUNDS = { x1: 12, y1: 18, x2: 15, y2: 19 };
-
-function isRoomADoorwayCell(x, y) {
-  return ROOM_A_DOORWAY_CELLS.some(cell => cell.x === x && cell.y === y);
-}
+const ROOM_A_OPEN_SIDE = { side: 'east', x: 11, y1: 16, y2: 20 };
+const ACCESS_STRIP_BOUNDS = { x1: 12, y1: 16, x2: 15, y2: 20 };
 
 function buildEmptyFieldGrid() {
   const grid = Array.from({ length: GRID_HEIGHT }, (_, y) =>
@@ -51,12 +44,11 @@ function addRoomAShell(grid) {
 
   for (let y = ROOM_A_BOUNDS.y1; y <= ROOM_A_BOUNDS.y2; y++) {
     setCell(grid, ROOM_A_BOUNDS.x1, y, CONSTANTS.CELL_WALL);
-    setCell(grid, ROOM_A_BOUNDS.x2, y, CONSTANTS.CELL_WALL);
   }
 
-  ROOM_A_DOORWAY_CELLS.forEach(cell => {
-    setCell(grid, cell.x, cell.y, CONSTANTS.CELL_PATH);
-  });
+  for (let y = ROOM_A_OPEN_SIDE.y1; y <= ROOM_A_OPEN_SIDE.y2; y++) {
+    setCell(grid, ROOM_A_OPEN_SIDE.x, y, CONSTANTS.CELL_PATH);
+  }
   setRect(grid, ACCESS_STRIP_BOUNDS, CONSTANTS.CELL_PATH);
 }
 
@@ -81,18 +73,11 @@ const level1V2Rooms = [
   }
 ];
 
-const level1V2Doorways = [
+const level1V2OpenSides = [
   {
-    id: 'front-admin-intake-east-doorway',
+    id: 'front-admin-intake-east-open-side',
     roomId: 'front-admin-intake',
-    from: 'front-admin-intake',
-    to: 'empty-field',
-    wall: 'east',
-    cells: ROOM_A_DOORWAY_CELLS,
-    x: 11,
-    y1: 18,
-    y2: 19,
-    widthCells: 2
+    ...ROOM_A_OPEN_SIDE
   }
 ];
 
@@ -102,16 +87,8 @@ const level1V2OpenAreas = [
     roomId: 'front-admin-intake',
     x1: ROOM_A_BOUNDS.x1 + 1,
     y1: ROOM_A_BOUNDS.y1 + 1,
-    x2: ROOM_A_BOUNDS.x2 - 1,
+    x2: ROOM_A_BOUNDS.x2,
     y2: ROOM_A_BOUNDS.y2 - 1
-  },
-  {
-    id: 'front-admin-intake-doorway',
-    roomId: 'front-admin-intake',
-    x1: 11,
-    y1: 18,
-    x2: 11,
-    y2: 19
   },
   {
     id: 'front-admin-intake-access-strip',
@@ -127,7 +104,7 @@ const level1V2FloorZones = [
     id: 'front-admin-intake',
     x1: ROOM_A_BOUNDS.x1 + 1,
     y1: ROOM_A_BOUNDS.y1 + 1,
-    x2: ROOM_A_BOUNDS.x2 - 1,
+    x2: ROOM_A_BOUNDS.x2,
     y2: ROOM_A_BOUNDS.y2 - 1,
     color: 0x9caeae,
     emissive: 0x101616,
@@ -228,10 +205,19 @@ function collectRoomAWallCells() {
 
   for (let y = ROOM_A_BOUNDS.y1 + 1; y <= ROOM_A_BOUNDS.y2 - 1; y++) {
     wallCells.push({ x: ROOM_A_BOUNDS.x1, y });
-    wallCells.push({ x: ROOM_A_BOUNDS.x2, y });
   }
 
-  return wallCells.filter(cell => !isRoomADoorwayCell(cell.x, cell.y));
+  return wallCells;
+}
+
+function collectRoomAOpenSideCells() {
+  const cells = [];
+
+  for (let y = ROOM_A_OPEN_SIDE.y1; y <= ROOM_A_OPEN_SIDE.y2; y++) {
+    cells.push({ x: ROOM_A_OPEN_SIDE.x, y });
+  }
+
+  return cells;
 }
 
 function validateLevel1V2RoomAShell(level) {
@@ -269,17 +255,18 @@ function validateLevel1V2RoomAShell(level) {
   const roomAWallCells = collectRoomAWallCells();
   const roomAWallsExist = roomAWallCells.every(cell => grid[cell.y]?.[cell.x] === CONSTANTS.CELL_WALL);
   if (!roomAWallsExist) {
-    warnings.push('Room A shell wall cells must be CELL_WALL except doorway openings');
+    warnings.push('Room A north, south, and west wall cells must be CELL_WALL');
   }
 
-  const doorwayCellsOpen = ROOM_A_DOORWAY_CELLS.every(cell => isPathCell(grid, cell.x, cell.y));
-  if (!doorwayCellsOpen) {
-    warnings.push('Room A doorway cells must be CELL_PATH');
+  const roomAOpenSideCells = collectRoomAOpenSideCells();
+  const roomAEastSideOpen = roomAOpenSideCells.every(cell => isPathCell(grid, cell.x, cell.y));
+  if (!roomAEastSideOpen) {
+    warnings.push('Room A east open side cells must stay CELL_PATH');
   }
 
   let roomAInteriorPath = true;
   for (let y = ROOM_A_BOUNDS.y1 + 1; y <= ROOM_A_BOUNDS.y2 - 1; y++) {
-    for (let x = ROOM_A_BOUNDS.x1 + 1; x <= ROOM_A_BOUNDS.x2 - 1; x++) {
+    for (let x = ROOM_A_BOUNDS.x1 + 1; x <= ROOM_A_BOUNDS.x2; x++) {
       if (!isPathCell(grid, x, y)) roomAInteriorPath = false;
     }
   }
@@ -317,7 +304,7 @@ function validateLevel1V2RoomAShell(level) {
   }
 
   if (!accessStripReachable) {
-    warnings.push('playerStart cannot reach the Room A access strip through the doorway');
+    warnings.push('playerStart cannot reach the Room A access strip through the open side');
   }
 
   return {
@@ -330,8 +317,8 @@ function validateLevel1V2RoomAShell(level) {
       outerBoundaryWallsIntact,
       roomAWallCells: roomAWallCells.length,
       roomAWallsExist,
-      doorwayCells: ROOM_A_DOORWAY_CELLS,
-      doorwayCellsOpen,
+      openSide: ROOM_A_OPEN_SIDE,
+      roomAEastSideOpen,
       roomAInteriorPath,
       accessStripBounds: ACCESS_STRIP_BOUNDS,
       accessStripPath,
@@ -341,6 +328,44 @@ function validateLevel1V2RoomAShell(level) {
       reachableCells: reachable.size
     }
   };
+}
+
+function isCellInRect(x, y, rect) {
+  return x >= rect.x1 && x <= rect.x2 && y >= rect.y1 && y <= rect.y2;
+}
+
+function printLevel1V2AsciiGrid(level) {
+  const playerStartCell = {
+    x: Math.floor(level.playerStart.x),
+    y: Math.floor(level.playerStart.y)
+  };
+  const roomAInterior = {
+    x1: ROOM_A_BOUNDS.x1 + 1,
+    y1: ROOM_A_BOUNDS.y1 + 1,
+    x2: ROOM_A_BOUNDS.x2,
+    y2: ROOM_A_BOUNDS.y2 - 1
+  };
+  const openSideCells = collectRoomAOpenSideCells();
+  const rows = level.grid.map((row, y) => row.map((cell, x) => {
+    if (x === playerStartCell.x && y === playerStartCell.y) return 'P';
+    if (openSideCells.some(openCell => openCell.x === x && openCell.y === y)) return 'O';
+    if (isCellInRect(x, y, ACCESS_STRIP_BOUNDS)) return 'S';
+    if (isCellInRect(x, y, roomAInterior) && cell === CONSTANTS.CELL_PATH) return 'A';
+    if (cell === CONSTANTS.CELL_WALL) return '#';
+    if (cell === CONSTANTS.CELL_PATH) return '.';
+    return '?';
+  }).join(''));
+
+  console.info([
+    '[MazeMind] Level 1 V2 ASCII grid debug',
+    `grid: ${level.grid[0]?.length ?? 0} x ${level.grid.length}`,
+    `Room A bounds: x1=${ROOM_A_BOUNDS.x1}, y1=${ROOM_A_BOUNDS.y1}, x2=${ROOM_A_BOUNDS.x2}, y2=${ROOM_A_BOUNDS.y2}`,
+    `Room A open side: side=${ROOM_A_OPEN_SIDE.side}, x=${ROOM_A_OPEN_SIDE.x}, y1=${ROOM_A_OPEN_SIDE.y1}, y2=${ROOM_A_OPEN_SIDE.y2}`,
+    `access strip bounds: x1=${ACCESS_STRIP_BOUNDS.x1}, y1=${ACCESS_STRIP_BOUNDS.y1}, x2=${ACCESS_STRIP_BOUNDS.x2}, y2=${ACCESS_STRIP_BOUNDS.y2}`,
+    `playerStart cell: (${playerStartCell.x},${playerStartCell.y})`,
+    'legend: # wall, . path, P playerStart, O open side, A Room A interior, S access strip',
+    ...rows
+  ].join('\n'));
 }
 
 export const level1V2 = {
@@ -358,9 +383,10 @@ export const level1V2 = {
   floorZones: level1V2FloorZones,
   rooms: level1V2Rooms,
   openAreas: level1V2OpenAreas,
+  openSides: level1V2OpenSides,
   corridors: [],
   connectors: [],
-  doorways: level1V2Doorways,
+  doorways: [],
   wallSegments: [],
   partitionBands: [],
   objectives: [],
@@ -395,4 +421,8 @@ export const level1V2RoomAShellValidation = validateLevel1V2RoomAShell(level1V2)
 
 if (CONSTANTS.DEV_MODE && !level1V2RoomAShellValidation.valid) {
   console.warn('Level 1 V2 Room A shell validation', level1V2RoomAShellValidation);
+}
+
+if (CONSTANTS.DEV_MODE) {
+  printLevel1V2AsciiGrid(level1V2);
 }

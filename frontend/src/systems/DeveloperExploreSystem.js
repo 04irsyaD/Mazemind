@@ -50,7 +50,7 @@ export class DeveloperExploreSystem {
     if (inputManager.wasKeyPressed('KeyR')) this.teleportToStart(player, cameraSystem);
 
     this.handleTeleportKeys(inputManager, player, cameraSystem);
-    this.activeRoom = this.getRoomAtWorld(player.position.x, player.position.z);
+    this.activeRoom = this.getAuthoredAreaAtWorld(player.position.x, player.position.z);
 
     if (this.flyMode) {
       this.updateFlyCamera(delta, inputManager, cameraSystem, player);
@@ -465,12 +465,24 @@ export class DeveloperExploreSystem {
   }
 
   getRoomAtWorld(worldX, worldZ) {
+    return this.getAuthoredAreaAtWorld(worldX, worldZ);
+  }
+
+  getAuthoredAreaAtWorld(worldX, worldZ) {
     const gridX = Math.floor(worldX / CONSTANTS.CELL_SIZE + 0.5);
     const gridY = Math.floor(worldZ / CONSTANTS.CELL_SIZE + 0.5);
-    return this.mapData?.rooms?.find(room => (
-      gridX >= room.x1 && gridX <= room.x2 &&
-      gridY >= room.y1 && gridY <= room.y2
-    )) ?? null;
+    const contains = area => (
+      gridX >= area.x1 && gridX <= area.x2 &&
+      gridY >= area.y1 && gridY <= area.y2
+    );
+
+    return (
+      this.mapData?.rooms?.find(contains) ??
+      this.mapData?.corridors?.find(contains) ??
+      this.mapData?.spaces?.find(contains) ??
+      this.mapData?.openAreas?.find(contains) ??
+      null
+    );
   }
 
   dispose() {

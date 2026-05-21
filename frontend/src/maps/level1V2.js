@@ -4,8 +4,8 @@ const GRID_WIDTH = 32;
 const GRID_HEIGHT = 24;
 
 const ROOM_A_BOUNDS = { x1: 3, y1: 15, x2: 11, y2: 21 };
-const ROOM_A_OPEN_SIDE = { side: 'east', x: 11, y1: 16, y2: 20 };
-const ACCESS_STRIP_BOUNDS = { x1: 12, y1: 16, x2: 15, y2: 20 };
+const ROOM_A_OPEN_SIDE = { side: 'east', x: 11, y1: 17, y2: 19 };
+const ACCESS_STRIP_BOUNDS = { x1: 12, y1: 17, x2: 14, y2: 19 };
 
 function buildEmptyFieldGrid() {
   const grid = Array.from({ length: GRID_HEIGHT }, (_, y) =>
@@ -46,9 +46,11 @@ function addRoomAShell(grid) {
     setCell(grid, ROOM_A_BOUNDS.x1, y, CONSTANTS.CELL_WALL);
   }
 
-  for (let y = ROOM_A_OPEN_SIDE.y1; y <= ROOM_A_OPEN_SIDE.y2; y++) {
-    setCell(grid, ROOM_A_OPEN_SIDE.x, y, CONSTANTS.CELL_PATH);
+  for (let y = ROOM_A_BOUNDS.y1; y <= ROOM_A_BOUNDS.y2; y++) {
+    const isOpenSide = y >= ROOM_A_OPEN_SIDE.y1 && y <= ROOM_A_OPEN_SIDE.y2;
+    setCell(grid, ROOM_A_BOUNDS.x2, y, isOpenSide ? CONSTANTS.CELL_PATH : CONSTANTS.CELL_WALL);
   }
+
   setRect(grid, ACCESS_STRIP_BOUNDS, CONSTANTS.CELL_PATH);
 }
 
@@ -81,13 +83,23 @@ const level1V2OpenSides = [
   }
 ];
 
+const level1V2Corridors = [
+  {
+    id: 'room-a-access-strip',
+    label: 'Room A Access Strip',
+    ...ACCESS_STRIP_BOUNDS,
+    temporary: true,
+    status: 'map-shell-access'
+  }
+];
+
 const level1V2OpenAreas = [
   {
     id: 'front-admin-intake-interior',
     roomId: 'front-admin-intake',
     x1: ROOM_A_BOUNDS.x1 + 1,
     y1: ROOM_A_BOUNDS.y1 + 1,
-    x2: ROOM_A_BOUNDS.x2,
+    x2: ROOM_A_BOUNDS.x2 - 1,
     y2: ROOM_A_BOUNDS.y2 - 1
   },
   {
@@ -207,6 +219,11 @@ function collectRoomAWallCells() {
     wallCells.push({ x: ROOM_A_BOUNDS.x1, y });
   }
 
+  for (let y = ROOM_A_BOUNDS.y1 + 1; y <= ROOM_A_BOUNDS.y2 - 1; y++) {
+    if (y >= ROOM_A_OPEN_SIDE.y1 && y <= ROOM_A_OPEN_SIDE.y2) continue;
+    wallCells.push({ x: ROOM_A_BOUNDS.x2, y });
+  }
+
   return wallCells;
 }
 
@@ -255,7 +272,7 @@ function validateLevel1V2RoomAShell(level) {
   const roomAWallCells = collectRoomAWallCells();
   const roomAWallsExist = roomAWallCells.every(cell => grid[cell.y]?.[cell.x] === CONSTANTS.CELL_WALL);
   if (!roomAWallsExist) {
-    warnings.push('Room A north, south, and west wall cells must be CELL_WALL');
+    warnings.push('Room A north, south, west, and east stub wall cells must be CELL_WALL');
   }
 
   const roomAOpenSideCells = collectRoomAOpenSideCells();
@@ -266,7 +283,7 @@ function validateLevel1V2RoomAShell(level) {
 
   let roomAInteriorPath = true;
   for (let y = ROOM_A_BOUNDS.y1 + 1; y <= ROOM_A_BOUNDS.y2 - 1; y++) {
-    for (let x = ROOM_A_BOUNDS.x1 + 1; x <= ROOM_A_BOUNDS.x2; x++) {
+    for (let x = ROOM_A_BOUNDS.x1 + 1; x <= ROOM_A_BOUNDS.x2 - 1; x++) {
       if (!isPathCell(grid, x, y)) roomAInteriorPath = false;
     }
   }
@@ -318,6 +335,7 @@ function validateLevel1V2RoomAShell(level) {
       roomAWallCells: roomAWallCells.length,
       roomAWallsExist,
       openSide: ROOM_A_OPEN_SIDE,
+      eastStubCells: roomAWallCells.filter(cell => cell.x === ROOM_A_BOUNDS.x2),
       roomAEastSideOpen,
       roomAInteriorPath,
       accessStripBounds: ACCESS_STRIP_BOUNDS,
@@ -342,14 +360,14 @@ function printLevel1V2AsciiGrid(level) {
   const roomAInterior = {
     x1: ROOM_A_BOUNDS.x1 + 1,
     y1: ROOM_A_BOUNDS.y1 + 1,
-    x2: ROOM_A_BOUNDS.x2,
+    x2: ROOM_A_BOUNDS.x2 - 1,
     y2: ROOM_A_BOUNDS.y2 - 1
   };
   const openSideCells = collectRoomAOpenSideCells();
   const rows = level.grid.map((row, y) => row.map((cell, x) => {
     if (x === playerStartCell.x && y === playerStartCell.y) return 'P';
     if (openSideCells.some(openCell => openCell.x === x && openCell.y === y)) return 'O';
-    if (isCellInRect(x, y, ACCESS_STRIP_BOUNDS)) return 'S';
+    if (isCellInRect(x, y, ACCESS_STRIP_BOUNDS)) return 'O';
     if (isCellInRect(x, y, roomAInterior) && cell === CONSTANTS.CELL_PATH) return 'A';
     if (cell === CONSTANTS.CELL_WALL) return '#';
     if (cell === CONSTANTS.CELL_PATH) return '.';
@@ -363,7 +381,7 @@ function printLevel1V2AsciiGrid(level) {
     `Room A open side: side=${ROOM_A_OPEN_SIDE.side}, x=${ROOM_A_OPEN_SIDE.x}, y1=${ROOM_A_OPEN_SIDE.y1}, y2=${ROOM_A_OPEN_SIDE.y2}`,
     `access strip bounds: x1=${ACCESS_STRIP_BOUNDS.x1}, y1=${ACCESS_STRIP_BOUNDS.y1}, x2=${ACCESS_STRIP_BOUNDS.x2}, y2=${ACCESS_STRIP_BOUNDS.y2}`,
     `playerStart cell: (${playerStartCell.x},${playerStartCell.y})`,
-    'legend: # wall, . path, P playerStart, O open side, A Room A interior, S access strip',
+    'legend: # wall, . path, P playerStart, A Room A interior, O open side/access strip',
     ...rows
   ].join('\n'));
 }
@@ -382,9 +400,10 @@ export const level1V2 = {
   playerStart,
   floorZones: level1V2FloorZones,
   rooms: level1V2Rooms,
+  spaces: [...level1V2Rooms, ...level1V2Corridors],
   openAreas: level1V2OpenAreas,
   openSides: level1V2OpenSides,
-  corridors: [],
+  corridors: level1V2Corridors,
   connectors: [],
   doorways: [],
   wallSegments: [],

@@ -128,10 +128,14 @@ export class UIManager {
     }
 
     if (this.debugStateLine) {
+      const objectiveSummary = state.activeObjectiveId
+        ? `Objective ${state.currentObjectiveIndex ?? 1}/${state.totalCheckpoints ?? 0} ${state.activeObjectiveId} @ ${state.activeObjectiveRoom ?? '-'}`
+        : `Objective ${state.totalCheckpoints ?? 0}/${state.totalCheckpoints ?? 0} complete`;
       this.debugStateLine.innerText = [
         state.levelLabel ?? 'Level 1',
         `Documents ${state.checkpointsCollected ?? 0}/${state.totalCheckpoints ?? 0}`,
-        `Flow ${state.progressionState ?? 'unknown'}`,
+        objectiveSummary,
+        `Flow ${state.flowComplete ? 'Complete' : 'Incomplete'}`,
         `Exit ${state.exitUnlocked ? 'Unlocked' : 'Locked'}`,
         `Player ${state.playerGrid ?? '-'}`,
         `FPS ${state.fps ?? '-'}`

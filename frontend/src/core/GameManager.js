@@ -31,6 +31,9 @@ export class GameManager {
     this.respawnPoint.copy(checkpoint.respawnPoint);
     this.uiManager.updateProgress(this.checkpointsCollected, this.totalCheckpoints);
     const fallbackStatus = `${checkpoint.label} collected. Records pending.`;
+    if (checkpoint.completeText) {
+      this.uiManager.showWarning(checkpoint.completeText);
+    }
     this.uiManager.updateStatus(checkpoint.nextTaskText || fallbackStatus);
 
     this.eventBus.emit(CONSTANTS.EVENTS.CHECKPOINT_COLLECTED, {
@@ -42,6 +45,11 @@ export class GameManager {
     if (this.hasAllCheckpoints()) {
       this.exitUnlocked = true;
       this.uiManager.updateStatus(checkpoint.completionText || 'All documents verified. Public exit route accepted.');
+      if (checkpoint.finalFeedbackText) {
+        window.setTimeout(() => {
+          this.uiManager.showWarning(checkpoint.finalFeedbackText);
+        }, checkpoint.completeText ? 900 : 0);
+      }
     }
 
     return true;

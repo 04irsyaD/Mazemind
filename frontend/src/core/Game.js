@@ -38,6 +38,10 @@ const isMapShellLevel = level => level?.status?.startsWith('map-shell') || isFlo
 const isRoomAShellLevel = level => level?.status === 'map-shell-room-a-test';
 const isEmptyFieldBaselineLevel = level => level?.status === 'empty-field-baseline';
 const isMvpObjectiveLevel = level => level?.status === 'mvp-objective-preview' || level?.mvpObjectiveMode === true;
+const getActiveTaskObjective = (level, progression) => {
+  const tasks = getTaskObjectives(level ?? {});
+  return tasks[progression?.completedTasks ?? 0] ?? null;
+};
 const getInitialLevelStatus = (level, freeExplore = false) => {
   if (isMvpObjectiveLevel(level)) return getTaskObjectives(level)[0]?.taskText ?? 'Retrieve Shift Assignment Form.';
   if (isFloorplanZonePreviewLevel(level)) return 'Level 1 V2 floorplan zone preview. No walls or tasks yet.';
@@ -319,6 +323,7 @@ export class Game {
       eventBus: this.eventBus,
       collisionSystem: this.collisionSystem,
       gameManager: this.gameManager,
+      uiManager: this.uiManager,
       departmentControl: this.departmentControlSystem,
       progressionSystem: this.progressionSystem,
       progressionState: this.progressionSystem.getState(),
@@ -364,12 +369,18 @@ export class Game {
     const gridX = this.collisionSystem?.worldToGrid(this.player.position.x) ?? 0;
     const gridY = this.collisionSystem?.worldToGrid(this.player.position.z) ?? 0;
     const progression = this.progressionSystem.getState();
+    const activeObjective = getActiveTaskObjective(this.levelRuntime.level, progression);
     const department = this.departmentControlSystem.getState();
     const runtime = this.levelRuntime.getState();
+    const flowComplete = progression.state === 'complete' || progression.completedTasks >= progression.totalTasks;
     return {
       ...this.developerExploreSystem.getState(),
       checkpointsCollected: progression.completedTasks,
       totalCheckpoints: progression.totalTasks,
+      currentObjectiveIndex: activeObjective ? progression.completedTasks + 1 : progression.totalTasks,
+      activeObjectiveId: activeObjective?.id ?? '',
+      activeObjectiveRoom: activeObjective?.roomId ?? '',
+      flowComplete,
       exitUnlocked: progression.finalRouteUnlocked,
       progressionState: progression.state,
       freeExplore: this.isFreeExplore(),

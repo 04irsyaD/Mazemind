@@ -62,7 +62,7 @@ export class ProgressionSystem {
       this.finalRouteUnlocked = true;
       this.departmentControlSystem?.setRouteLocked('records-hall', false, 'tasks-verified');
       this.departmentControlSystem?.setLightChannelScale('ai-cyan', 1.15);
-      this.setState('finalRouteUnlocked');
+      this.setState(this.level?.mvpObjectiveMode ? 'complete' : 'finalRouteUnlocked');
       this.eventBus.emit(CONSTANTS.EVENTS.FINAL_ROUTE_UNLOCKED, this.getState());
       this.eventBus.emit(CONSTANTS.EVENTS.EXIT_UNLOCKED, this.getState());
       return true;

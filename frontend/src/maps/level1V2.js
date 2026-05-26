@@ -502,14 +502,29 @@ const level1V2MvpObjects = [
   }))
 ];
 
+const objectiveActiveColor = 0xb7f7ff;
+const objectiveInactiveColor = 0x55727a;
+const objectiveCompletedColor = 0x3f4b4d;
+
 const level1V2MvpObjectives = [
   {
-    id: 'v2-shift-assignment-form',
+    id: 'shift-assignment-form',
     type: 'task',
+    order: 1,
+    objectiveIndex: 0,
     label: 'Shift Assignment Form',
     documentName: 'Shift Assignment Form',
     taskText: 'Retrieve Shift Assignment Form.',
     nextTaskText: 'Check workstation logs.',
+    promptText: 'Press E to retrieve Shift Assignment Form',
+    interactionPrompt: 'Press E to retrieve Shift Assignment Form',
+    completeText: 'Shift Assignment Form collected.',
+    activeGlow: true,
+    inactiveGlow: false,
+    markerColor: objectiveInactiveColor,
+    activeColor: objectiveActiveColor,
+    completedColor: objectiveCompletedColor,
+    routeHint: 'active-objective-beacon',
     visualType: 'document',
     documentTitle: 'SHIFT ASSIGNMENT\nFORM',
     surfaceHeight: 0.08,
@@ -517,15 +532,28 @@ const level1V2MvpObjectives = [
     x: 5.5,
     y: 5.5,
     radius: 2.4,
+    interactionRadius: 2.4,
+    promptRadius: 4.8,
     status: 'mvp-objective'
   },
   {
-    id: 'v2-workstation-log',
+    id: 'workstation-log',
     type: 'task',
+    order: 2,
+    objectiveIndex: 1,
     label: 'Workstation Log',
     documentName: 'Workstation Log',
     taskText: 'Check workstation logs.',
     nextTaskText: 'Review pending ledger.',
+    promptText: 'Press E to check workstation logs',
+    interactionPrompt: 'Press E to check workstation logs',
+    completeText: 'Workstation Log checked.',
+    activeGlow: true,
+    inactiveGlow: false,
+    markerColor: objectiveInactiveColor,
+    activeColor: objectiveActiveColor,
+    completedColor: objectiveCompletedColor,
+    routeHint: 'active-objective-beacon',
     visualType: 'document',
     documentTitle: 'WORKSTATION\nLOG',
     surfaceHeight: 0.08,
@@ -533,15 +561,28 @@ const level1V2MvpObjectives = [
     x: 21.5,
     y: 5.5,
     radius: 2.55,
+    interactionRadius: 2.55,
+    promptRadius: 4.95,
     status: 'mvp-objective'
   },
   {
-    id: 'v2-pending-ledger',
+    id: 'pending-ledger',
     type: 'task',
+    order: 3,
+    objectiveIndex: 2,
     label: 'Pending Ledger',
     documentName: 'Pending Ledger',
     taskText: 'Review pending ledger.',
     nextTaskText: 'Collect archive record.',
+    promptText: 'Press E to review pending ledger',
+    interactionPrompt: 'Press E to review pending ledger',
+    completeText: 'Pending Ledger reviewed.',
+    activeGlow: true,
+    inactiveGlow: false,
+    markerColor: objectiveInactiveColor,
+    activeColor: objectiveActiveColor,
+    completedColor: objectiveCompletedColor,
+    routeHint: 'active-objective-beacon',
     visualType: 'document',
     documentTitle: 'PENDING\nLEDGER',
     surfaceHeight: 0.08,
@@ -549,15 +590,28 @@ const level1V2MvpObjectives = [
     x: 21.5,
     y: 12.5,
     radius: 2.55,
+    interactionRadius: 2.55,
+    promptRadius: 4.95,
     status: 'mvp-objective'
   },
   {
-    id: 'v2-archive-record',
+    id: 'archive-record',
     type: 'task',
+    order: 4,
+    objectiveIndex: 3,
     label: 'Archive Record',
     documentName: 'Archive Record',
     taskText: 'Collect archive record.',
     nextTaskText: 'Proceed to Level 2 access.',
+    promptText: 'Press E to collect archive record',
+    interactionPrompt: 'Press E to collect archive record',
+    completeText: 'Archive Record collected.',
+    activeGlow: true,
+    inactiveGlow: false,
+    markerColor: objectiveInactiveColor,
+    activeColor: objectiveActiveColor,
+    completedColor: objectiveCompletedColor,
+    routeHint: 'active-objective-beacon',
     visualType: 'document',
     documentTitle: 'ARCHIVE\nRECORD',
     surfaceHeight: 0.08,
@@ -565,15 +619,29 @@ const level1V2MvpObjectives = [
     x: 7,
     y: 20,
     radius: 2.55,
+    interactionRadius: 2.55,
+    promptRadius: 4.95,
     status: 'mvp-objective'
   },
   {
-    id: 'v2-level2-access-note',
+    id: 'level2-access-note',
     type: 'task',
+    order: 5,
+    objectiveIndex: 4,
     label: 'Level 2 Access Note',
     documentName: 'Level 2 Access Note',
     taskText: 'Proceed to Level 2 access.',
     completionText: 'Level 1 V2 route complete.',
+    finalFeedbackText: 'Level 2 access ready. Next level not implemented in this MVP.',
+    promptText: 'Press E to proceed to Level 2 access',
+    interactionPrompt: 'Press E to proceed to Level 2 access',
+    completeText: 'Level 2 access confirmed.',
+    activeGlow: true,
+    inactiveGlow: false,
+    markerColor: objectiveInactiveColor,
+    activeColor: objectiveActiveColor,
+    completedColor: objectiveCompletedColor,
+    routeHint: 'active-objective-beacon',
     visualType: 'document',
     documentTitle: 'LEVEL 2\nACCESS',
     surfaceHeight: 0.08,
@@ -581,7 +649,73 @@ const level1V2MvpObjectives = [
     x: 15.5,
     y: 20,
     radius: 2.55,
+    interactionRadius: 2.55,
+    promptRadius: 4.95,
     status: 'mvp-objective'
+  }
+];
+
+const level1V2ManualTestSteps = [
+  'Start in A.',
+  'Collect Shift Assignment Form.',
+  'Confirm Documents 1/5.',
+  'Confirm active objective changes to C.',
+  'Go to C and collect Workstation Log.',
+  'Confirm Documents 2/5.',
+  'Go to D and collect Pending Ledger.',
+  'Confirm Documents 3/5.',
+  'Go to F and collect Archive Record.',
+  'Confirm Documents 4/5.',
+  'Go to H and complete Level 2 Access Note.',
+  'Confirm Documents 5/5.',
+  'Confirm task text says Level 1 V2 route complete.'
+];
+
+const expectedLevel1V2ObjectiveFlow = [
+  {
+    id: 'shift-assignment-form',
+    roomId: 'front-admin-intake',
+    x: 5.5,
+    y: 5.5,
+    taskText: 'Retrieve Shift Assignment Form.',
+    promptText: 'Press E to retrieve Shift Assignment Form',
+    completeText: 'Shift Assignment Form collected.'
+  },
+  {
+    id: 'workstation-log',
+    roomId: 'main-workstation-hall',
+    x: 21.5,
+    y: 5.5,
+    taskText: 'Check workstation logs.',
+    promptText: 'Press E to check workstation logs',
+    completeText: 'Workstation Log checked.'
+  },
+  {
+    id: 'pending-ledger',
+    roomId: 'boardroom-review',
+    x: 21.5,
+    y: 12.5,
+    taskText: 'Review pending ledger.',
+    promptText: 'Press E to review pending ledger',
+    completeText: 'Pending Ledger reviewed.'
+  },
+  {
+    id: 'archive-record',
+    roomId: 'records-archive',
+    x: 7,
+    y: 20,
+    taskText: 'Collect archive record.',
+    promptText: 'Press E to collect archive record',
+    completeText: 'Archive Record collected.'
+  },
+  {
+    id: 'level2-access-note',
+    roomId: 'level2-access',
+    x: 15.5,
+    y: 20,
+    taskText: 'Proceed to Level 2 access.',
+    promptText: 'Press E to proceed to Level 2 access',
+    completeText: 'Level 2 access confirmed.'
   }
 ];
 
@@ -877,21 +1011,65 @@ function getObjectiveTargetArea(objective) {
 
 function validateMvpObjectives(level, reachableCells, warnings) {
   const objectives = level.objectives ?? [];
-  const expectedObjectiveOrder = [
-    'v2-shift-assignment-form',
-    'v2-workstation-log',
-    'v2-pending-ledger',
-    'v2-archive-record',
-    'v2-level2-access-note'
-  ];
 
   if (objectives.length !== 5) {
     warnings.push(`objectives count must be 5, found ${objectives.length}`);
   }
 
-  expectedObjectiveOrder.forEach((id, index) => {
-    if (objectives[index]?.id !== id) {
-      warnings.push(`objective ${index + 1} must be ${id}`);
+  if (level.objectiveFlow?.documentCountTarget !== 5) {
+    warnings.push('documentCountTarget must be 5 for Level 1 V2 MVP flow');
+  }
+
+  const expectedRouteCodes = ['A', 'C', 'D', 'F', 'H'];
+  if (JSON.stringify(level.objectiveFlow?.route ?? []) !== JSON.stringify(expectedRouteCodes)) {
+    warnings.push('objectiveFlow route must remain A -> C -> D -> F -> H');
+  }
+
+  if (level.objectiveFlow?.completionText !== 'Level 1 V2 route complete.') {
+    warnings.push('objectiveFlow completionText must remain Level 1 V2 route complete.');
+  }
+
+  if (level.objectiveFlow?.nextLevelMessage !== 'Level 2 access ready. Next level not implemented in this MVP.') {
+    warnings.push('objectiveFlow nextLevelMessage must explain Level 2 is not implemented');
+  }
+
+  if (level.objectiveFlow?.exitUnlockPending !== true || level.objectiveFlow?.nextLevelNotImplemented !== true) {
+    warnings.push('objectiveFlow must mark Level 2 exit as pending/not implemented');
+  }
+
+  expectedLevel1V2ObjectiveFlow.forEach((expected, index) => {
+    const objective = objectives[index];
+    if (objective?.id !== expected.id) {
+      warnings.push(`objective ${index + 1} must be ${expected.id}`);
+      return;
+    }
+
+    if (objective.roomId !== expected.roomId) {
+      warnings.push(`${objective.id} roomId must be ${expected.roomId}`);
+    }
+
+    if (objective.x !== expected.x || objective.y !== expected.y) {
+      warnings.push(`${objective.id} position changed from approved MVP objective flow`);
+    }
+
+    if (objective.taskText !== expected.taskText) {
+      warnings.push(`${objective.id} taskText must be "${expected.taskText}"`);
+    }
+
+    if (objective.promptText !== expected.promptText || objective.interactionPrompt !== expected.promptText) {
+      warnings.push(`${objective.id} prompt text must be "${expected.promptText}"`);
+    }
+
+    if (objective.completeText !== expected.completeText) {
+      warnings.push(`${objective.id} completeText must be "${expected.completeText}"`);
+    }
+
+    if (objective.order !== index + 1) {
+      warnings.push(`${objective.id} order must be ${index + 1}`);
+    }
+
+    if (objective.objectiveIndex !== index) {
+      warnings.push(`${objective.id} objectiveIndex must be ${index}`);
     }
   });
 
@@ -902,6 +1080,9 @@ function validateMvpObjectives(level, reachableCells, warnings) {
       'taskText',
       'roomId',
       'documentName',
+      'promptText',
+      'interactionPrompt',
+      'completeText',
       'status'
     ].forEach(field => {
       if (!hasTextValue(objective[field])) {
@@ -911,10 +1092,44 @@ function validateMvpObjectives(level, reachableCells, warnings) {
 
     if (objective.type !== 'task') warnings.push(`${objective.id} type must be task`);
     if (objective.status !== 'mvp-objective') warnings.push(`${objective.id} status must be mvp-objective`);
+    if (objective.activeGlow !== true) warnings.push(`${objective.id} activeGlow must be true`);
+    if (objective.inactiveGlow !== false) warnings.push(`${objective.id} inactiveGlow must be false`);
+    if (objective.visualType !== 'document') warnings.push(`${objective.id} visualType must be document`);
+    if (objective.routeHint !== 'active-objective-beacon') warnings.push(`${objective.id} routeHint must be active-objective-beacon`);
+    if (!Number.isFinite(objective.activeColor) || !Number.isFinite(objective.completedColor) || !Number.isFinite(objective.markerColor)) {
+      warnings.push(`${objective.id} must include active, completed, and future marker colors`);
+    }
+    if (!Number.isFinite(objective.order) || !Number.isFinite(objective.objectiveIndex)) {
+      warnings.push(`${objective.id} must include numeric order and objectiveIndex`);
+    }
+    if (!Number.isFinite(objective.interactionRadius) || objective.interactionRadius !== objective.radius) {
+      warnings.push(`${objective.id} interactionRadius must match radius`);
+    }
+    if (!Number.isFinite(objective.promptRadius) || objective.promptRadius <= objective.interactionRadius) {
+      warnings.push(`${objective.id} promptRadius must be larger than interactionRadius`);
+    }
     if (!Number.isFinite(objective.x) || !Number.isFinite(objective.y)) {
       warnings.push(`${objective.id} position must include finite x and y values`);
       return;
     }
+
+    [
+      objective.id,
+      objective.label,
+      objective.documentName,
+      objective.taskText,
+      objective.nextTaskText,
+      objective.completionText,
+      objective.promptText,
+      objective.interactionPrompt,
+      objective.completeText,
+      objective.finalFeedbackText,
+      objective.documentTitle
+    ].forEach(value => {
+      if (`${value ?? ''}`.toLowerCase().includes('undefined')) {
+        warnings.push(`${objective.id} text metadata must not contain undefined`);
+      }
+    });
 
     if (objective.x <= 0 || objective.y <= 0 || objective.x >= GRID_WIDTH - 1 || objective.y >= GRID_HEIGHT - 1) {
       warnings.push(`${objective.id} must stay inside playable grid`);
@@ -949,6 +1164,25 @@ function validateMvpObjectives(level, reachableCells, warnings) {
 
     if (objectHasAssetReference(objective)) {
       warnings.push(`${objective.id} must not reference GLB, online, or model assets`);
+    }
+  });
+
+  const activeMarkerExists = objectives.some(objective => objective.activeGlow === true && objective.routeHint === 'active-objective-beacon');
+  const completedMarkerStateExists = objectives.every(objective => Number.isFinite(objective.completedColor) && hasTextValue(objective.completeText));
+  if (!activeMarkerExists) warnings.push('active objective marker state must exist');
+  if (!completedMarkerStateExists) warnings.push('completed objective marker state must exist');
+
+  const forbiddenV1ObjectiveText = [
+    'Assigned Desk File',
+    'Archive Index Packet',
+    'Review Ledger',
+    'Transfer Notice',
+    'Final Access Door'
+  ];
+  const v2ObjectiveText = JSON.stringify(objectives);
+  forbiddenV1ObjectiveText.forEach(text => {
+    if (v2ObjectiveText.includes(text)) {
+      warnings.push(`V2 objective text must not include old V1 text: ${text}`);
     }
   });
 }
@@ -1133,7 +1367,17 @@ function validateLevel1V2FloorplanPreview(level) {
       architectureObjectCount: level.architecture.length,
       architectureObjectLimitOk: level.architecture.length <= 10,
       objectiveCount: level.objectives.length,
+      documentCountTarget: level.objectiveFlow?.documentCountTarget,
       objectiveRoute: level.objectives.map(objective => objective.roomId),
+      objectiveOrder: level.objectives.map(objective => objective.id),
+      taskTextProgression: [
+        ...level.objectives.map(objective => objective.taskText),
+        level.objectiveFlow?.completionText
+      ],
+      objectivePromptTexts: level.objectives.map(objective => objective.promptText),
+      objectiveCompleteTexts: level.objectives.map(objective => objective.completeText),
+      routeHint: level.objectives[0]?.routeHint,
+      nextLevelMessage: level.objectiveFlow?.nextLevelMessage,
       collisionVolumesEmpty: level.collisionVolumes.length === 0,
       interiorCellsArePath: !warnings.some(warning => warning.includes('interior cell')),
       noInternalWalls: !warnings.some(warning => warning.includes('interior cell')),
@@ -1152,6 +1396,15 @@ export const level1V2 = {
   floorplanPreview: true,
   mvpObjectiveMode: true,
   mapBuildMode: 'floorplan-zones-mvp',
+  objectiveFlow: {
+    route: ['A', 'C', 'D', 'F', 'H'],
+    documentCountTarget: 5,
+    taskTexts: level1V2MvpObjectives.map(objective => objective.taskText),
+    completionText: 'Level 1 V2 route complete.',
+    nextLevelMessage: 'Level 2 access ready. Next level not implemented in this MVP.',
+    exitUnlockPending: true,
+    nextLevelNotImplemented: true
+  },
   active: true,
   estimatedMinutes: 0,
   grid: level1V2CollisionGrid,
@@ -1184,12 +1437,14 @@ export const level1V2 = {
   lightingZones: [],
   wallDetailZones: [],
   ceilingDetailZones: [],
+  manualTestSteps: level1V2ManualTestSteps,
   notes: [
     'Level 1 V2 MVP objective preview. Floor zones remain the source of truth.',
     'A-H rooms and the central route are shown as floor colors only.',
     'Only the outer boundary wall exists; every interior cell remains CELL_PATH.',
     'Minimal MVP objects are procedural visual markers only; collision volumes remain disabled.',
-    'Simple objective route is A -> C -> D -> F -> H.'
+    'Simple objective route is A -> C -> D -> F -> H.',
+    'Manual test: start in A, collect A -> C -> D -> F -> H, confirm Documents reaches 5/5 and task text says Level 1 V2 route complete.'
   ]
 };
 
@@ -1198,6 +1453,7 @@ export const level1V2FloorplanPreviewValidation = validateLevel1V2FloorplanPrevi
 
 if (CONSTANTS.DEV_MODE) {
   printLevel1V2AsciiGrid(level1V2);
+  console.info('[MazeMind] Level 1 V2 MVP manual test steps:\n' + level1V2ManualTestSteps.map((step, index) => `${index + 1}. ${step}`).join('\n'));
 
   if (level1V2FloorplanPreviewValidation.valid) {
     console.info('[MazeMind] Level 1 V2 floorplan preview validation passed', level1V2FloorplanPreviewValidation);

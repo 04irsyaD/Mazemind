@@ -8,12 +8,27 @@ export class Checkpoint {
     this.type = 'checkpoint';
     this.id = config.id;
     this.label = config.label ?? config.id;
-    this.radius = config.radius ?? CONSTANTS.CELL_SIZE * 0.6;
+    this.radius = config.interactionRadius ?? config.radius ?? CONSTANTS.CELL_SIZE * 0.6;
+    this.promptRadius = config.promptRadius ?? this.radius + CONSTANTS.CELL_SIZE * 0.45;
     this.visualType = config.visualType ?? 'terminal';
     this.roomId = config.roomId;
     this.taskText = config.taskText;
     this.nextTaskText = config.nextTaskText;
     this.completionText = config.completionText;
+    this.order = config.order;
+    this.objectiveIndex = Number.isFinite(config.objectiveIndex) ? config.objectiveIndex : null;
+    this.sequenceAware = this.objectiveIndex !== null;
+    this.promptText = config.promptText;
+    this.interactionPrompt = config.interactionPrompt ?? config.promptText;
+    this.completeText = config.completeText;
+    this.finalFeedbackText = config.finalFeedbackText;
+    this.activeGlow = config.activeGlow ?? false;
+    this.inactiveGlow = config.inactiveGlow ?? false;
+    this.markerColor = config.markerColor ?? CONSTANTS.COLORS.CHECKPOINT_INACTIVE;
+    this.activeColor = config.activeColor ?? CONSTANTS.COLORS.CHECKPOINT_ACTIVE;
+    this.completedColor = config.completedColor ?? 0x3f4b4d;
+    this.routeHint = config.routeHint;
+    this.promptShown = false;
     this.activated = false;
     this.group = new THREE.Group();
     this.group.position.set(config.x * CONSTANTS.CELL_SIZE, config.height ?? 0, config.y * CONSTANTS.CELL_SIZE);
@@ -24,6 +39,9 @@ export class Checkpoint {
     } else {
       this.createTerminalVisual();
     }
+    if (this.sequenceAware && this.routeHint === 'active-objective-beacon') {
+      this.createActiveObjectiveBeacon();
+    }
 
     this.time = 0;
     this.scene.add(this.group);
@@ -31,6 +49,11 @@ export class Checkpoint {
 
   update(delta, context) {
     this.time += delta;
+    if (this.sequenceAware) {
+      this.updateSequencedObjective(delta, context);
+      return;
+    }
+
     if (this.screen?.material) {
       this.screen.material.emissiveIntensity = (this.activated ? 0.7 : 0.24) + Math.sin(this.time * 2.8) * 0.08;
     }
@@ -51,6 +74,99 @@ export class Checkpoint {
     }
   }
 
+  updateSequencedObjective(delta, context) {
+    const flowState = this.getSequencedObjectiveState(context);
+    this.applySequencedVisual(flowState);
+
+    if (context?.isFreeExplore) return;
+    if (flowState !== 'active') return;
+
+    const distance = Math.hypot(
+      context.player.position.x - this.group.position.x,
+      context.player.position.z - this.group.position.z
+    );
+
+    if (distance <= this.radius) {
+      this.activate();
+      return;
+    }
+
+    if (distance <= this.promptRadius && !this.promptShown) {
+      context.uiManager?.showWarning(this.interactionPrompt ?? `Approach to collect ${this.label}.`);
+      this.promptShown = true;
+    }
+
+    if (distance > this.promptRadius) {
+      this.promptShown = false;
+    }
+  }
+
+  getSequencedObjectiveState(context) {
+    const completedTaskIds = new Set(context?.progressionState?.completedTaskIds ?? []);
+    if (this.activated || completedTaskIds.has(this.id)) return 'completed';
+
+    const completedTasks = context?.progressionState?.completedTasks ?? 0;
+    return this.objectiveIndex === completedTasks ? 'active' : 'future';
+  }
+
+  applySequencedVisual(flowState) {
+    if (flowState === 'completed') {
+      this.applyVisualColors(this.completedColor, 0.02, 0.22, 0.04);
+      this.applyBeaconState(false);
+      return;
+    }
+
+    if (flowState === 'active') {
+      const pulse = Math.sin(this.time * 3.2) * 0.08;
+      const baseGlow = this.activeGlow ? 0.34 : 0.18;
+      this.applyVisualColors(this.activeColor, baseGlow + pulse, 0.64, baseGlow + pulse);
+      this.applyBeaconState(true, pulse);
+      return;
+    }
+
+    const futureGlow = this.inactiveGlow ? 0.11 : 0.035;
+    this.applyVisualColors(this.markerColor, futureGlow, 0.22, 0.055);
+    this.applyBeaconState(false);
+  }
+
+  applyVisualColors(color, emissiveIntensity, outlineOpacity, lightIntensity) {
+    if (this.visualType === 'document') {
+      this.material?.color?.setHex(this.paperColor ?? 0xf1eee3);
+    } else {
+      this.material?.color?.setHex(color);
+    }
+
+    this.material?.emissive?.setHex(color);
+    if (this.material) this.material.emissiveIntensity = emissiveIntensity;
+
+    if (this.outlineMaterial) {
+      this.outlineMaterial.color.setHex(color);
+      this.outlineMaterial.opacity = outlineOpacity;
+    }
+
+    if (this.light) {
+      this.light.color.setHex(color);
+      this.light.intensity = lightIntensity;
+    }
+  }
+
+  applyBeaconState(visible, pulse = 0) {
+    if (!this.beaconGroup) return;
+
+    this.beaconGroup.visible = visible;
+    if (!visible) return;
+
+    const scale = 1 + Math.max(0, pulse) * 0.9;
+    this.beaconGroup.scale.set(scale, 1, scale);
+    if (this.beaconMaterial) {
+      this.beaconMaterial.opacity = 0.16 + Math.max(0, pulse) * 0.5;
+      this.beaconMaterial.emissiveIntensity = 0.24 + Math.max(0, pulse) * 0.8;
+    }
+    if (this.beaconRingMaterial) {
+      this.beaconRingMaterial.opacity = 0.46 + Math.max(0, pulse) * 0.7;
+    }
+  }
+
   activate() {
     this.activated = true;
     this.material.color.setHex(CONSTANTS.COLORS.CHECKPOINT_ACTIVE);
@@ -63,10 +179,14 @@ export class Checkpoint {
     this.eventBus.emit(CONSTANTS.EVENTS.CHECKPOINT_ACTIVATED, {
       id: this.id,
       label: this.label,
+      order: this.order,
+      objectiveIndex: this.objectiveIndex,
       roomId: this.roomId,
       taskText: this.taskText,
       nextTaskText: this.nextTaskText,
       completionText: this.completionText,
+      completeText: this.completeText,
+      finalFeedbackText: this.finalFeedbackText,
       respawnPoint: new THREE.Vector3(this.group.position.x, this.group.position.y, this.group.position.z),
     });
   }
@@ -118,6 +238,7 @@ export class Checkpoint {
 
   createDocumentVisual(config) {
     const paperColor = config.paperColor ?? 0xf1eee3;
+    this.paperColor = paperColor;
     this.paperMaterial = new THREE.MeshStandardMaterial({
       color: paperColor,
       emissive: CONSTANTS.COLORS.CHECKPOINT_INACTIVE,
@@ -160,11 +281,52 @@ export class Checkpoint {
     outline.rotation.x = -Math.PI / 2;
     outline.rotation.z = Math.PI / 4;
     outline.position.y = surfaceHeight + 0.042;
+    this.outlineMaterial = outlineMat;
     this.group.add(outline);
 
     this.light = new THREE.PointLight(CONSTANTS.COLORS.CHECKPOINT_INACTIVE, 0.26, 4.2);
     this.light.position.y = surfaceHeight + 0.45;
     this.group.add(this.light);
+  }
+
+  createActiveObjectiveBeacon() {
+    this.beaconGroup = new THREE.Group();
+    this.beaconGroup.visible = false;
+
+    this.beaconMaterial = new THREE.MeshStandardMaterial({
+      color: this.activeColor,
+      emissive: this.activeColor,
+      emissiveIntensity: 0.24,
+      transparent: true,
+      opacity: 0.16,
+      roughness: 0.62,
+      depthWrite: false
+    });
+
+    const column = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.055, 0.055, 1.2, 12),
+      this.beaconMaterial
+    );
+    column.position.y = 0.72;
+    this.beaconGroup.add(column);
+
+    this.beaconRingMaterial = new THREE.MeshBasicMaterial({
+      color: this.activeColor,
+      transparent: true,
+      opacity: 0.46,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.34, 0.38, 28),
+      this.beaconRingMaterial
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 1.34;
+    this.beaconGroup.add(ring);
+
+    this.group.add(this.beaconGroup);
   }
 
   createDocumentTexture(text) {

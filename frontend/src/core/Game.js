@@ -37,7 +37,9 @@ const isFloorplanZonePreviewLevel = level => level?.status === 'floorplan-zone-p
 const isMapShellLevel = level => level?.status?.startsWith('map-shell') || isFloorplanZonePreviewLevel(level);
 const isRoomAShellLevel = level => level?.status === 'map-shell-room-a-test';
 const isEmptyFieldBaselineLevel = level => level?.status === 'empty-field-baseline';
+const isMvpObjectiveLevel = level => level?.status === 'mvp-objective-preview' || level?.mvpObjectiveMode === true;
 const getInitialLevelStatus = (level, freeExplore = false) => {
+  if (isMvpObjectiveLevel(level)) return getTaskObjectives(level)[0]?.taskText ?? 'Retrieve Shift Assignment Form.';
   if (isFloorplanZonePreviewLevel(level)) return 'Level 1 V2 floorplan zone preview. No walls or tasks yet.';
   if (isRoomAShellLevel(level)) return 'Level 1 V2 Room A shell test. No tasks in shell mode.';
   if (isEmptyFieldBaselineLevel(level)) return 'Level 1 V2 empty field baseline. No tasks in baseline mode.';
@@ -96,6 +98,7 @@ export class Game {
 
     this.eventUnsubscribers.push(this.eventBus.on(CONSTANTS.EVENTS.FINAL_ROUTE_UNLOCKED, () => {
       if (this.isFreeExplore()) return;
+      if (isMvpObjectiveLevel(this.levelRuntime?.level)) return;
       this.uiManager.updateStatus('Transfer chain verified. The public exit is no longer pretending.');
     }));
 
@@ -178,7 +181,9 @@ export class Game {
     if (selectedLevelVersion === 'v2' && selectedLevel?.id !== 'level-1-v2') {
       console.warn('[MazeMind] Expected Level 1 V2 but selected level does not look like V2.', selectedLevel);
     }
-    if (isFloorplanZonePreviewLevel(selectedLevel)) {
+    if (isMvpObjectiveLevel(selectedLevel)) {
+      console.info('[MazeMind] Level 1 V2 loaded in MVP objective preview mode.');
+    } else if (isFloorplanZonePreviewLevel(selectedLevel)) {
       console.info('[MazeMind] Level 1 V2 loaded in floorplan zone preview mode. Object placement disabled.');
     } else if (isRoomAShellLevel(selectedLevel)) {
       console.info('[MazeMind] Level 1 V2 loaded in Room A shell mode. Object placement disabled.');

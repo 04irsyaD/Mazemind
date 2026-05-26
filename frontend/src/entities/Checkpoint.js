@@ -10,6 +10,10 @@ export class Checkpoint {
     this.label = config.label ?? config.id;
     this.radius = config.radius ?? CONSTANTS.CELL_SIZE * 0.6;
     this.visualType = config.visualType ?? 'terminal';
+    this.roomId = config.roomId;
+    this.taskText = config.taskText;
+    this.nextTaskText = config.nextTaskText;
+    this.completionText = config.completionText;
     this.activated = false;
     this.group = new THREE.Group();
     this.group.position.set(config.x * CONSTANTS.CELL_SIZE, config.height ?? 0, config.y * CONSTANTS.CELL_SIZE);
@@ -59,6 +63,10 @@ export class Checkpoint {
     this.eventBus.emit(CONSTANTS.EVENTS.CHECKPOINT_ACTIVATED, {
       id: this.id,
       label: this.label,
+      roomId: this.roomId,
+      taskText: this.taskText,
+      nextTaskText: this.nextTaskText,
+      completionText: this.completionText,
       respawnPoint: new THREE.Vector3(this.group.position.x, this.group.position.y, this.group.position.z),
     });
   }

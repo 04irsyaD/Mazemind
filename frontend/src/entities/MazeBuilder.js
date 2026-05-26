@@ -423,7 +423,41 @@ export class MazeBuilder {
 
     });
 
+    this.addFloorplanMarkers(mapData);
     this.addArchitecture(mapData);
+  }
+
+  addFloorplanMarkers(mapData) {
+    mapData.floorplanMarkers
+      ?.filter(marker => marker.markerType === 'floorplan-label')
+      .forEach(marker => {
+        const x = marker.position?.x;
+        const y = marker.position?.y;
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+        const texture = this.createFloorplanMarkerTexture(marker);
+        const material = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          depthWrite: false
+        });
+        const sprite = new THREE.Sprite(material);
+        const textLength = `${marker.text ?? marker.label ?? marker.code ?? ''}`.length;
+        const width = marker.width ?? Math.max(2.7, Math.min(5.5, 1.45 + textLength * 0.13));
+        const height = marker.height ?? 0.78;
+        const floorHeight = this.getFloorHeight(mapData, x, y);
+
+        sprite.position.set(
+          x * CONSTANTS.CELL_SIZE,
+          floorHeight + (marker.heightOffset ?? 1.22),
+          y * CONSTANTS.CELL_SIZE
+        );
+        sprite.scale.set(width, height, 1);
+        sprite.renderOrder = marker.renderOrder ?? 4;
+        sprite.userData.floorplanMarker = marker.id;
+        this.scene.add(sprite);
+        this.guideMeshes.push(sprite);
+      });
   }
 
   addCeiling(mapData) {
@@ -1846,6 +1880,41 @@ export class MazeBuilder {
 
   getSignageHandles() {
     return this.signageHandles;
+  }
+
+  createFloorplanMarkerTexture(marker) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 256;
+    const context = canvas.getContext('2d');
+    const accent = marker.accent ?? marker.color ?? 0xcfe9e8;
+    const accentStyle = `#${accent.toString(16).padStart(6, '0')}`;
+    const text = `${marker.text ?? marker.label ?? marker.code ?? 'MARKER'}`;
+    const fontSize = text.length > 24 ? 54 : text.length > 18 ? 62 : 72;
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = 'rgba(4, 9, 10, 0.72)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.strokeStyle = accentStyle;
+    context.lineWidth = 8;
+    context.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+
+    context.fillStyle = accentStyle;
+    context.fillRect(28, 40, 152, 176);
+    context.fillStyle = '#071011';
+    context.font = '800 104px Arial, sans-serif';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(marker.code ?? '', 104, 128);
+
+    context.fillStyle = '#e8f3f0';
+    context.font = `700 ${fontSize}px Arial, sans-serif`;
+    context.textAlign = 'left';
+    context.fillText(text, 220, 128);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
   }
 
   addPropBox(gridX, centerY, gridY, widthCells, height, depthCells, material) {

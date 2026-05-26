@@ -30,7 +30,8 @@ export class GameManager {
     this.checkpointsCollected += 1;
     this.respawnPoint.copy(checkpoint.respawnPoint);
     this.uiManager.updateProgress(this.checkpointsCollected, this.totalCheckpoints);
-    this.uiManager.updateStatus(`${checkpoint.label} collected. Records pending.`);
+    const fallbackStatus = `${checkpoint.label} collected. Records pending.`;
+    this.uiManager.updateStatus(checkpoint.nextTaskText || fallbackStatus);
 
     this.eventBus.emit(CONSTANTS.EVENTS.CHECKPOINT_COLLECTED, {
       ...checkpoint,
@@ -40,7 +41,7 @@ export class GameManager {
 
     if (this.hasAllCheckpoints()) {
       this.exitUnlocked = true;
-      this.uiManager.updateStatus('All documents verified. Public exit route accepted.');
+      this.uiManager.updateStatus(checkpoint.completionText || 'All documents verified. Public exit route accepted.');
     }
 
     return true;

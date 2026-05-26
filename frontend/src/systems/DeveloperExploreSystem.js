@@ -375,7 +375,9 @@ export class DeveloperExploreSystem {
       outline.position.set(centerX, floorHeight + 0.1, centerZ);
       this.roomsGroup.add(outline);
 
-      const label = this.createLabelSprite(`${room.label} | ${room.purpose}`, room.color ?? 0xffffff);
+      const subtitle = room.statusLabel ?? room.function ?? room.zoneType ?? room.purpose ?? '';
+      const labelText = subtitle ? `${room.label} | ${subtitle}` : room.label;
+      const label = this.createLabelSprite(labelText, room.color ?? 0xffffff);
       label.position.set(centerX, floorHeight + 1.95, centerZ);
       this.roomsGroup.add(label);
     });

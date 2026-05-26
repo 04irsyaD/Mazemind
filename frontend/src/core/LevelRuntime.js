@@ -53,7 +53,16 @@ export class LevelRuntime {
         x: objective.x,
         y: objective.y,
         radius: objective.radius,
-        height: objective.height ?? this.getFloorHeight(objective.x, objective.y)
+        height: objective.height ?? this.getFloorHeight(objective.x, objective.y),
+        visualType: objective.visualType,
+        documentTitle: objective.documentTitle,
+        surfaceHeight: objective.surfaceHeight,
+        paperColor: objective.paperColor,
+        markFloor: objective.markFloor,
+        roomId: objective.roomId,
+        taskText: objective.taskText,
+        nextTaskText: objective.nextTaskText,
+        completionText: objective.completionText
       }));
     });
 

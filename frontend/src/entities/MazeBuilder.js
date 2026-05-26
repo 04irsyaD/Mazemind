@@ -439,6 +439,7 @@ export class MazeBuilder {
         const material = new THREE.SpriteMaterial({
           map: texture,
           transparent: true,
+          opacity: marker.opacity ?? 1,
           depthWrite: false
         });
         const sprite = new THREE.Sprite(material);

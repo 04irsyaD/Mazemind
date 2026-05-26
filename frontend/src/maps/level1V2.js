@@ -133,7 +133,7 @@ const floorZoneColors = {
   canteen: 0x9aad9a,
   toilet: 0xa7bdc2,
   'records-archive': 0x8b969c,
-  'central-route': 0x626e6e,
+  'central-route': 0x6c7776,
   'main-workstation-hall': 0xaeb7ba,
   'boardroom-review': 0xa3bcc2,
   'level2-access': 0x8db8af,
@@ -166,10 +166,10 @@ const level1V2FloorZones = [
     .slice(0, 4)
     .map(room => createFloorZoneFromBounds(room)),
   createFloorZoneFromBounds(level1V2CentralRoute, {
-    emissive: 0x0d1414,
-    emissiveIntensity: 0.045,
+    emissive: 0x10191a,
+    emissiveIntensity: 0.055,
     floorLineColor: 0x95a0a0,
-    floorLineOpacity: 0.2,
+    floorLineOpacity: 0.24,
     floorLineStep: 2
   }),
   ...level1V2FloorplanRooms
@@ -201,6 +201,18 @@ const playerStart = {
   pitch: -0.04
 };
 
+const standardLabelPolish = {
+  height: 0.66,
+  heightOffset: 1.1,
+  opacity: 0.92
+};
+
+const longLabelPolish = {
+  height: 0.62,
+  heightOffset: 1.08,
+  opacity: 0.84
+};
+
 const level1V2FloorplanMarkers = [
   {
     id: 'marker-front-admin-intake',
@@ -211,6 +223,8 @@ const level1V2FloorplanMarkers = [
     markerType: 'floorplan-label',
     text: 'A - Front Admin',
     accent: 0xd5eeee,
+    width: 3.3,
+    ...standardLabelPolish,
     status: 'preview-marker'
   },
   {
@@ -222,6 +236,8 @@ const level1V2FloorplanMarkers = [
     markerType: 'floorplan-label',
     text: 'B - Canteen',
     accent: 0xd7ead7,
+    width: 3,
+    ...standardLabelPolish,
     status: 'preview-marker'
   },
   {
@@ -233,6 +249,8 @@ const level1V2FloorplanMarkers = [
     markerType: 'floorplan-label',
     text: 'E - Toilet',
     accent: 0xd7eff4,
+    width: 2.7,
+    ...standardLabelPolish,
     status: 'preview-marker'
   },
   {
@@ -244,6 +262,8 @@ const level1V2FloorplanMarkers = [
     markerType: 'floorplan-label',
     text: 'F - Records Archive',
     accent: 0xd7e0e5,
+    width: 3.55,
+    ...longLabelPolish,
     status: 'preview-marker'
   },
   {
@@ -255,6 +275,8 @@ const level1V2FloorplanMarkers = [
     markerType: 'floorplan-label',
     text: 'R - Central Route',
     accent: 0xd5e0df,
+    width: 3.45,
+    ...longLabelPolish,
     status: 'preview-marker'
   },
   {
@@ -266,6 +288,8 @@ const level1V2FloorplanMarkers = [
     markerType: 'floorplan-label',
     text: 'C - Workstation Hall',
     accent: 0xe3ecef,
+    width: 3.75,
+    ...longLabelPolish,
     status: 'preview-marker'
   },
   {
@@ -277,6 +301,8 @@ const level1V2FloorplanMarkers = [
     markerType: 'floorplan-label',
     text: 'D - Boardroom',
     accent: 0xd8f0f5,
+    width: 3,
+    ...standardLabelPolish,
     status: 'preview-marker'
   },
   {
@@ -288,6 +314,8 @@ const level1V2FloorplanMarkers = [
     markerType: 'floorplan-label',
     text: 'H - Level 2 Access',
     accent: 0xd5f2eb,
+    width: 3.55,
+    ...longLabelPolish,
     status: 'preview-marker'
   },
   {
@@ -299,7 +327,117 @@ const level1V2FloorplanMarkers = [
     markerType: 'floorplan-label',
     text: 'G - Secondary Workstation',
     accent: 0xf0eedf,
+    width: 4.25,
+    height: 0.6,
+    heightOffset: 1.06,
+    opacity: 0.78,
     status: 'preview-marker'
+  }
+];
+
+const level1V2LightingZones = [
+  {
+    id: 'level1v2-objective-soft-lighting',
+    channelId: 'v2-objective-soft',
+    rooms: [
+      'front-admin-intake',
+      'main-workstation-hall',
+      'boardroom-review',
+      'records-archive',
+      'level2-access'
+    ]
+  },
+  {
+    id: 'level1v2-route-fill-lighting',
+    channelId: 'v2-route-fill',
+    rooms: ['central-route']
+  }
+];
+
+const level1V2CeilingLights = [
+  {
+    id: 'v2-light-a-admin',
+    channelId: 'v2-objective-soft',
+    x: 5.5,
+    y: 5.5,
+    width: 0.82,
+    depth: 0.18,
+    color: 0xb6d2d1,
+    fixtureColor: 0x8c9998,
+    intensity: 0.11,
+    distance: 6.4,
+    emissiveIntensity: 0.16,
+    flicker: false
+  },
+  {
+    id: 'v2-light-c-workstation',
+    channelId: 'v2-objective-soft',
+    x: 21.5,
+    y: 5.5,
+    width: 0.92,
+    depth: 0.18,
+    color: 0xb8d6d7,
+    fixtureColor: 0x909d9d,
+    intensity: 0.12,
+    distance: 6.8,
+    emissiveIntensity: 0.17,
+    flicker: false
+  },
+  {
+    id: 'v2-light-d-boardroom',
+    channelId: 'v2-objective-soft',
+    x: 21.5,
+    y: 12.5,
+    width: 0.92,
+    depth: 0.18,
+    color: 0xb1d1d7,
+    fixtureColor: 0x8d999c,
+    intensity: 0.11,
+    distance: 6.8,
+    emissiveIntensity: 0.16,
+    flicker: false
+  },
+  {
+    id: 'v2-light-f-archive',
+    channelId: 'v2-objective-soft',
+    x: 7,
+    y: 20,
+    width: 0.88,
+    depth: 0.18,
+    color: 0xaec8cf,
+    fixtureColor: 0x879296,
+    intensity: 0.11,
+    distance: 6.4,
+    emissiveIntensity: 0.15,
+    flicker: false
+  },
+  {
+    id: 'v2-light-h-access',
+    channelId: 'v2-objective-soft',
+    x: 15.5,
+    y: 20,
+    width: 0.78,
+    depth: 0.18,
+    color: 0xb3d9d1,
+    fixtureColor: 0x899996,
+    intensity: 0.1,
+    distance: 5.8,
+    emissiveIntensity: 0.15,
+    flicker: false
+  }
+];
+
+const level1V2AreaLights = [
+  {
+    id: 'v2-route-spine-fill',
+    channelId: 'v2-route-fill',
+    x: 11.5,
+    y: 12.5,
+    height: 2.05,
+    color: 0x8fb1b3,
+    intensity: 0.08,
+    distance: 13,
+    flicker: false
   }
 ];
 
@@ -682,6 +820,15 @@ const level1V2ManualTestSteps = [
   'Confirm route resets to 0/5 and first task.'
 ];
 
+const level1V2PresentationChecklist = [
+  'Start at A.',
+  'Collect Shift Assignment Form.',
+  'Follow tasks to C, D, F, H.',
+  'Confirm Documents 5/5.',
+  'Confirm Level 1 V2 route complete.',
+  'Reset and verify route returns to 0/5.'
+];
+
 const expectedLevel1V2ObjectiveFlow = [
   {
     id: 'shift-assignment-form',
@@ -898,6 +1045,18 @@ function validateFloorplanMarkers(markers, warnings) {
     if (!isCellInBounds(x, y, targetArea.bounds)) {
       warnings.push(`${marker.id} marker must stay inside ${targetArea.code} bounds`);
     }
+
+    if (Number.isFinite(marker.width) && (marker.width < 2.4 || marker.width > 4.4)) {
+      warnings.push(`${marker.id} marker width should stay compact and readable`);
+    }
+
+    if (Number.isFinite(marker.height) && (marker.height < 0.5 || marker.height > 0.78)) {
+      warnings.push(`${marker.id} marker height should stay presentation-safe`);
+    }
+
+    if (Number.isFinite(marker.opacity) && (marker.opacity < 0.72 || marker.opacity > 1)) {
+      warnings.push(`${marker.id} marker opacity should stay readable without dominating`);
+    }
   });
 
   expectedCodes.forEach(code => {
@@ -905,6 +1064,49 @@ function validateFloorplanMarkers(markers, warnings) {
   });
   markerCodes.forEach(code => {
     if (!expectedCodes.has(code)) warnings.push(`unexpected floorplan marker for ${code}`);
+  });
+}
+
+function validatePresentationLighting(level, warnings) {
+  const ceilingLights = level.ceilingLights ?? [];
+  const areaLights = level.areaLights ?? [];
+  const lightingZones = level.lightingZones ?? [];
+  const totalPresentationLights = ceilingLights.length + areaLights.length;
+  const allAuthoredAreas = [...level1V2FloorplanRooms, level1V2CentralRoute];
+
+  if (totalPresentationLights > 6) {
+    warnings.push(`presentation light count must stay <= 6, found ${totalPresentationLights}`);
+  }
+
+  lightingZones.forEach(zone => {
+    if (!hasTextValue(zone.id)) warnings.push('lighting zone id must not be empty or undefined');
+    if (!hasTextValue(zone.channelId)) warnings.push(`${zone.id ?? 'lighting zone'} channelId must not be empty`);
+    (zone.rooms ?? []).forEach(roomId => {
+      if (!allAuthoredAreas.some(area => area.id === roomId)) {
+        warnings.push(`${zone.id} references unknown lighting room ${roomId}`);
+      }
+    });
+  });
+
+  [...ceilingLights, ...areaLights].forEach(light => {
+    if (!hasTextValue(light.id)) warnings.push('presentation light id must not be empty or undefined');
+    if (!hasTextValue(light.channelId)) warnings.push(`${light.id ?? 'presentation light'} channelId must not be empty`);
+    if (!Number.isFinite(light.x) || !Number.isFinite(light.y)) {
+      warnings.push(`${light.id ?? 'presentation light'} must include finite x/y`);
+      return;
+    }
+    if (light.x <= 0 || light.y <= 0 || light.x >= GRID_WIDTH - 1 || light.y >= GRID_HEIGHT - 1) {
+      warnings.push(`${light.id} must stay inside the playable grid`);
+    }
+    if (light.flicker === true) {
+      warnings.push(`${light.id} must not flicker in presentation mode`);
+    }
+    if ((light.intensity ?? 0) > 0.16) {
+      warnings.push(`${light.id} intensity should stay subtle for MVP presentation`);
+    }
+    if ((light.distance ?? 0) > 13) {
+      warnings.push(`${light.id} distance should stay low-cost and localized`);
+    }
   });
 }
 
@@ -1261,15 +1463,12 @@ function validateLevel1V2FloorplanPreview(level) {
     'routes',
     'guideStrips',
     'navigationNodes',
-    'areaLights',
-    'ceilingLights',
     'wallSegments',
     'partitionBands',
     'doorways',
     'connectors',
     'storyBeats',
     'manipulationNodes',
-    'lightingZones',
     'wallDetailZones',
     'ceilingDetailZones'
   ].forEach(key => {
@@ -1393,6 +1592,7 @@ function validateLevel1V2FloorplanPreview(level) {
 
   validateFloorplanMarkers(level.floorplanMarkers ?? [], warnings);
   validateMvpObjects(level.architecture ?? [], warnings);
+  validatePresentationLighting(level, warnings);
 
   const playerStartCell = {
     x: Math.floor(level.playerStart.x),
@@ -1423,6 +1623,8 @@ function validateLevel1V2FloorplanPreview(level) {
       roomCount: level1V2FloorplanRooms.length,
       centralRouteBounds: level1V2CentralRoute.bounds,
       floorplanMarkerCount: level.floorplanMarkers?.length ?? 0,
+      presentationLightCount: (level.ceilingLights?.length ?? 0) + (level.areaLights?.length ?? 0),
+      presentationLightBudgetOk: ((level.ceilingLights?.length ?? 0) + (level.areaLights?.length ?? 0)) <= 6,
       playerStartCell,
       playerStartOpen,
       playerStartInsideA,
@@ -1491,8 +1693,8 @@ export const level1V2 = {
   routes: [],
   guideStrips: [],
   navigationNodes: [],
-  areaLights: [],
-  ceilingLights: [],
+  areaLights: level1V2AreaLights,
+  ceilingLights: level1V2CeilingLights,
   wallSegments: [],
   partitionBands: [],
   doorways: [],
@@ -1500,16 +1702,18 @@ export const level1V2 = {
   hazards: [],
   storyBeats: [],
   manipulationNodes: [],
-  lightingZones: [],
+  lightingZones: level1V2LightingZones,
   wallDetailZones: [],
   ceilingDetailZones: [],
   manualTestSteps: level1V2ManualTestSteps,
+  presentationChecklist: level1V2PresentationChecklist,
   notes: [
     'Level 1 V2 MVP objective preview. Floor zones remain the source of truth.',
     'A-H rooms and the central route are shown as floor colors only.',
     'Only the outer boundary wall exists; every interior cell remains CELL_PATH.',
     'Minimal MVP objects are procedural visual markers only; collision volumes remain disabled.',
     'Simple objective route is A -> C -> D -> F -> H.',
+    'Level 1 V2 MVP presentation checklist: start at A, collect Shift Assignment Form, follow tasks to C/D/F/H, confirm Documents 5/5, confirm route complete, reset to 0/5.',
     `Start hint: ${level1V2StartHint}`,
     'Manual test: start in A, confirm first task, collect A -> C -> D -> F -> H, confirm Documents reaches 5/5, route complete text, then reset to 0/5.'
   ]
@@ -1521,6 +1725,7 @@ export const level1V2FloorplanPreviewValidation = validateLevel1V2FloorplanPrevi
 if (CONSTANTS.DEV_MODE) {
   printLevel1V2AsciiGrid(level1V2);
   console.info('[MazeMind] Level 1 V2 MVP manual test steps:\n' + level1V2ManualTestSteps.map((step, index) => `${index + 1}. ${step}`).join('\n'));
+  console.info('[MazeMind] Level 1 V2 MVP presentation checklist:\n' + level1V2PresentationChecklist.map((step, index) => `${index + 1}. ${step}`).join('\n'));
 
   if (level1V2FloorplanPreviewValidation.valid) {
     console.info('[MazeMind] Level 1 V2 floorplan preview validation passed', level1V2FloorplanPreviewValidation);

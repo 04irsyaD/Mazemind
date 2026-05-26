@@ -33,10 +33,12 @@ const getSelectedLevelLabel = () => (
     ? 'Level 1 Legacy'
     : 'Level 1 V2 Preview'
 );
-const isMapShellLevel = level => level?.status?.startsWith('map-shell');
+const isFloorplanZonePreviewLevel = level => level?.status === 'floorplan-zone-preview' || level?.floorplanPreview === true;
+const isMapShellLevel = level => level?.status?.startsWith('map-shell') || isFloorplanZonePreviewLevel(level);
 const isRoomAShellLevel = level => level?.status === 'map-shell-room-a-test';
 const isEmptyFieldBaselineLevel = level => level?.status === 'empty-field-baseline';
 const getInitialLevelStatus = (level, freeExplore = false) => {
+  if (isFloorplanZonePreviewLevel(level)) return 'Level 1 V2 floorplan zone preview. No walls or tasks yet.';
   if (isRoomAShellLevel(level)) return 'Level 1 V2 Room A shell test. No tasks in shell mode.';
   if (isEmptyFieldBaselineLevel(level)) return 'Level 1 V2 empty field baseline. No tasks in baseline mode.';
   if (!isMapShellLevel(level)) return 'Retrieve Shift Assignment Form.';
@@ -176,7 +178,9 @@ export class Game {
     if (selectedLevelVersion === 'v2' && selectedLevel?.id !== 'level-1-v2') {
       console.warn('[MazeMind] Expected Level 1 V2 but selected level does not look like V2.', selectedLevel);
     }
-    if (isRoomAShellLevel(selectedLevel)) {
+    if (isFloorplanZonePreviewLevel(selectedLevel)) {
+      console.info('[MazeMind] Level 1 V2 loaded in floorplan zone preview mode. Object placement disabled.');
+    } else if (isRoomAShellLevel(selectedLevel)) {
       console.info('[MazeMind] Level 1 V2 loaded in Room A shell mode. Object placement disabled.');
     } else if (isEmptyFieldBaselineLevel(selectedLevel)) {
       console.info('[MazeMind] Level 1 V2 loaded in empty-field baseline mode. Object placement disabled.');

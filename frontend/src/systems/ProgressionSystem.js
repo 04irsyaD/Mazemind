@@ -117,6 +117,7 @@ export class ProgressionSystem {
       completedTasks: this.completedTaskIds.size,
       totalTasks: this.taskIds.size,
       completedTaskIds: [...this.completedTaskIds],
+      routeComplete: this.state === 'complete',
       fakeExitAttempted: this.fakeExitAttempted,
       crusherArmed: this.crusherArmed,
       finalRouteUnlocked: this.finalRouteUnlocked,

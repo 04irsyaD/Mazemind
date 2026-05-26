@@ -128,9 +128,9 @@ export class UIManager {
     }
 
     if (this.debugStateLine) {
-      const objectiveSummary = state.activeObjectiveId
-        ? `Objective ${state.currentObjectiveIndex ?? 1}/${state.totalCheckpoints ?? 0} ${state.activeObjectiveId} @ ${state.activeObjectiveRoom ?? '-'}`
-        : `Objective ${state.totalCheckpoints ?? 0}/${state.totalCheckpoints ?? 0} complete`;
+      const objectiveSummary = state.flowComplete
+        ? 'Objective Complete | Active complete / none'
+        : `Objective ${state.currentObjectiveIndex ?? 1}/${state.totalCheckpoints ?? 0} active ${state.activeObjectiveId || 'none'} @ ${state.activeObjectiveRoom || '-'}`;
       this.debugStateLine.innerText = [
         state.levelLabel ?? 'Level 1',
         `Documents ${state.checkpointsCollected ?? 0}/${state.totalCheckpoints ?? 0}`,

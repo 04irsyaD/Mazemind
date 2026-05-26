@@ -27,6 +27,9 @@ export class Checkpoint {
     this.markerColor = config.markerColor ?? CONSTANTS.COLORS.CHECKPOINT_INACTIVE;
     this.activeColor = config.activeColor ?? CONSTANTS.COLORS.CHECKPOINT_ACTIVE;
     this.completedColor = config.completedColor ?? 0x3f4b4d;
+    this.finalObjective = config.finalObjective ?? false;
+    this.finalCompletedColor = config.finalCompletedColor ?? this.activeColor;
+    this.finalCompleteGlow = config.finalCompleteGlow ?? false;
     this.routeHint = config.routeHint;
     this.promptShown = false;
     this.activated = false;
@@ -76,7 +79,7 @@ export class Checkpoint {
 
   updateSequencedObjective(delta, context) {
     const flowState = this.getSequencedObjectiveState(context);
-    this.applySequencedVisual(flowState);
+    this.applySequencedVisual(flowState, context);
 
     if (context?.isFreeExplore) return;
     if (flowState !== 'active') return;
@@ -109,17 +112,22 @@ export class Checkpoint {
     return this.objectiveIndex === completedTasks ? 'active' : 'future';
   }
 
-  applySequencedVisual(flowState) {
+  applySequencedVisual(flowState, context = {}) {
     if (flowState === 'completed') {
+      if (this.finalObjective && this.isFlowComplete(context)) {
+        this.applyVisualColors(this.finalCompletedColor, 0.035, 0.24, 0.055);
+        this.applyBeaconState(false);
+        return;
+      }
       this.applyVisualColors(this.completedColor, 0.02, 0.22, 0.04);
       this.applyBeaconState(false);
       return;
     }
 
     if (flowState === 'active') {
-      const pulse = Math.sin(this.time * 3.2) * 0.08;
-      const baseGlow = this.activeGlow ? 0.34 : 0.18;
-      this.applyVisualColors(this.activeColor, baseGlow + pulse, 0.64, baseGlow + pulse);
+      const pulse = Math.sin(this.time * 3.2) * 0.045;
+      const baseGlow = this.activeGlow ? 0.24 : 0.14;
+      this.applyVisualColors(this.activeColor, baseGlow + pulse, 0.5, baseGlow + pulse);
       this.applyBeaconState(true, pulse);
       return;
     }
@@ -127,6 +135,15 @@ export class Checkpoint {
     const futureGlow = this.inactiveGlow ? 0.11 : 0.035;
     this.applyVisualColors(this.markerColor, futureGlow, 0.22, 0.055);
     this.applyBeaconState(false);
+  }
+
+  isFlowComplete(context) {
+    const state = context?.progressionState;
+    return state?.state === 'complete' ||
+      (Number.isFinite(state?.completedTasks) &&
+        Number.isFinite(state?.totalTasks) &&
+        state.totalTasks > 0 &&
+        state.completedTasks >= state.totalTasks);
   }
 
   applyVisualColors(color, emissiveIntensity, outlineOpacity, lightIntensity) {
@@ -159,11 +176,11 @@ export class Checkpoint {
     const scale = 1 + Math.max(0, pulse) * 0.9;
     this.beaconGroup.scale.set(scale, 1, scale);
     if (this.beaconMaterial) {
-      this.beaconMaterial.opacity = 0.16 + Math.max(0, pulse) * 0.5;
-      this.beaconMaterial.emissiveIntensity = 0.24 + Math.max(0, pulse) * 0.8;
+      this.beaconMaterial.opacity = 0.12 + Math.max(0, pulse) * 0.45;
+      this.beaconMaterial.emissiveIntensity = 0.18 + Math.max(0, pulse) * 0.65;
     }
     if (this.beaconRingMaterial) {
-      this.beaconRingMaterial.opacity = 0.46 + Math.max(0, pulse) * 0.7;
+      this.beaconRingMaterial.opacity = 0.36 + Math.max(0, pulse) * 0.6;
     }
   }
 
@@ -187,6 +204,7 @@ export class Checkpoint {
       completionText: this.completionText,
       completeText: this.completeText,
       finalFeedbackText: this.finalFeedbackText,
+      finalObjective: this.finalObjective,
       respawnPoint: new THREE.Vector3(this.group.position.x, this.group.position.y, this.group.position.z),
     });
   }
@@ -304,10 +322,10 @@ export class Checkpoint {
     });
 
     const column = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.055, 0.055, 1.2, 12),
+      new THREE.CylinderGeometry(0.05, 0.05, 1.0, 12),
       this.beaconMaterial
     );
-    column.position.y = 0.72;
+    column.position.y = 0.62;
     this.beaconGroup.add(column);
 
     this.beaconRingMaterial = new THREE.MeshBasicMaterial({
@@ -323,7 +341,7 @@ export class Checkpoint {
       this.beaconRingMaterial
     );
     ring.rotation.x = -Math.PI / 2;
-    ring.position.y = 1.34;
+    ring.position.y = 1.16;
     this.beaconGroup.add(ring);
 
     this.group.add(this.beaconGroup);

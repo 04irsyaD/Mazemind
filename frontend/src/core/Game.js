@@ -38,6 +38,7 @@ const isMapShellLevel = level => level?.status?.startsWith('map-shell') || isFlo
 const isRoomAShellLevel = level => level?.status === 'map-shell-room-a-test';
 const isEmptyFieldBaselineLevel = level => level?.status === 'empty-field-baseline';
 const isMvpObjectiveLevel = level => level?.status === 'mvp-objective-preview' || level?.mvpObjectiveMode === true;
+const LEVEL1_V2_INITIAL_TASK_TEXT = 'Retrieve Shift Assignment Form.';
 const getActiveTaskObjective = (level, progression) => {
   const tasks = getTaskObjectives(level ?? {});
   return tasks[progression?.completedTasks ?? 0] ?? null;
@@ -51,6 +52,49 @@ const getInitialLevelStatus = (level, freeExplore = false) => {
   return freeExplore
     ? 'Free Explore: Level 1 V2 map shell / placement review.'
     : 'Level 1 V2 map shell preview. No tasks in map shell mode.';
+};
+const validateLevel1V2RuntimeReset = ({ level, gameManager, progressionState, player }) => {
+  if (!CONSTANTS.DEV_MODE || level?.id !== 'level-1-v2' || !isMvpObjectiveLevel(level)) return;
+
+  const warnings = [];
+  const objectives = getTaskObjectives(level);
+  const activeObjective = getActiveTaskObjective(level, progressionState);
+  const firstObjective = objectives[0];
+  const expectedRoute = ['A', 'C', 'D', 'F', 'H'];
+  const playerStartCell = {
+    x: Math.floor(level.playerStart?.x ?? -1),
+    y: Math.floor(level.playerStart?.y ?? -1)
+  };
+  const playerStartWorld = {
+    x: (level.playerStart?.x ?? 0) * CONSTANTS.CELL_SIZE,
+    z: (level.playerStart?.y ?? 0) * CONSTANTS.CELL_SIZE
+  };
+
+  if (gameManager.checkpointsCollected !== 0) warnings.push('Documents must reset to 0/5.');
+  if (gameManager.totalCheckpoints !== 5) warnings.push(`Document target must reset to 5, found ${gameManager.totalCheckpoints}.`);
+  if (progressionState.completedTasks !== 0) warnings.push(`Progression completedTasks must reset to 0, found ${progressionState.completedTasks}.`);
+  if (progressionState.totalTasks !== 5) warnings.push(`Progression totalTasks must be 5, found ${progressionState.totalTasks}.`);
+  if ((progressionState.completedTaskIds ?? []).length !== 0) warnings.push('Completed objective markers must reset to none collected.');
+  if (progressionState.routeComplete !== false) warnings.push('routeComplete must reset to false.');
+  if (activeObjective?.id !== firstObjective?.id) warnings.push(`Active objective must reset to ${firstObjective?.id ?? 'the first objective'}.`);
+  if (firstObjective?.taskText !== LEVEL1_V2_INITIAL_TASK_TEXT) warnings.push(`Initial task text must be "${LEVEL1_V2_INITIAL_TASK_TEXT}"`);
+  if (JSON.stringify(level.objectiveFlow?.route ?? []) !== JSON.stringify(expectedRoute)) warnings.push('Objective route changed from A -> C -> D -> F -> H.');
+  if (level.grid?.[playerStartCell.y]?.[playerStartCell.x] !== CONSTANTS.CELL_PATH) warnings.push('Player start must reset onto CELL_PATH.');
+  if (Math.abs(player.position.x - playerStartWorld.x) > 0.001 || Math.abs(player.position.z - playerStartWorld.z) > 0.001) {
+    warnings.push('Player position must reset to the Level 1 V2 playerStart.');
+  }
+
+  if (warnings.length) {
+    console.warn('[MazeMind] Level 1 V2 runtime reset validation warnings', warnings);
+    return;
+  }
+
+  console.info('[MazeMind] Level 1 V2 runtime reset validation passed', {
+    documents: '0/5',
+    activeObjective: firstObjective?.id ?? 'none',
+    routeComplete: false,
+    playerStart: playerStartCell
+  });
 };
 
 export class Game {
@@ -224,11 +268,18 @@ export class Game {
     this.player.setPosition(level.playerStart.x, level.playerStart.y, startHeight);
     this.cameraSystem.reset(level.playerStart.yaw ?? 0, level.playerStart.pitch ?? 0);
     this.cameraSystem.snap(this.player.mesh.position);
+    validateLevel1V2RuntimeReset({
+      level,
+      gameManager: this.gameManager,
+      progressionState: this.progressionSystem.getState(),
+      player: this.player
+    });
 
     this.stateSystem.setState(freeExplore ? CONSTANTS.STATE_DEV_EXPLORE : CONSTANTS.STATE_PLAYING);
     if (isRoomAShellLevel(level) || isEmptyFieldBaselineLevel(level) || isMapShellLevel(level)) {
       this.uiManager.updateStatus(getInitialLevelStatus(level, freeExplore));
     }
+    this.showStartHint(level, freeExplore);
     this.syncDeveloperVisuals();
     if (freeExplore) {
       this.uiManager.updateProgress(0, getTaskObjectives(level).length);
@@ -248,6 +299,18 @@ export class Game {
     this.running = true;
     this.clock.start();
     this.update();
+  }
+
+  showStartHint(level, freeExplore) {
+    if (freeExplore || !isMvpObjectiveLevel(level)) return;
+    const hint = level.objectiveFlow?.startHint;
+    if (!hint) return;
+
+    window.setTimeout(() => {
+      if (!this.stateSystem.isState(CONSTANTS.STATE_PLAYING)) return;
+      if (this.levelRuntime.level?.id !== level.id) return;
+      this.uiManager.showWarning(hint);
+    }, 250);
   }
 
   update() {
@@ -372,7 +435,7 @@ export class Game {
     const activeObjective = getActiveTaskObjective(this.levelRuntime.level, progression);
     const department = this.departmentControlSystem.getState();
     const runtime = this.levelRuntime.getState();
-    const flowComplete = progression.state === 'complete' || progression.completedTasks >= progression.totalTasks;
+    const flowComplete = progression.routeComplete || progression.state === 'complete' || progression.completedTasks >= progression.totalTasks;
     return {
       ...this.developerExploreSystem.getState(),
       checkpointsCollected: progression.completedTasks,

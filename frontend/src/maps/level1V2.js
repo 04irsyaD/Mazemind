@@ -505,6 +505,8 @@ const level1V2MvpObjects = [
 const objectiveActiveColor = 0xb7f7ff;
 const objectiveInactiveColor = 0x55727a;
 const objectiveCompletedColor = 0x3f4b4d;
+const objectiveFinalCompletedColor = 0x8df0d2;
+const level1V2StartHint = 'Follow the active glowing document marker.';
 
 const level1V2MvpObjectives = [
   {
@@ -632,10 +634,13 @@ const level1V2MvpObjectives = [
     documentName: 'Level 2 Access Note',
     taskText: 'Proceed to Level 2 access.',
     completionText: 'Level 1 V2 route complete.',
-    finalFeedbackText: 'Level 2 access ready. Next level not implemented in this MVP.',
+    finalFeedbackText: 'Level 2 access ready. MVP route complete.',
     promptText: 'Press E to proceed to Level 2 access',
     interactionPrompt: 'Press E to proceed to Level 2 access',
     completeText: 'Level 2 access confirmed.',
+    finalObjective: true,
+    finalCompletedColor: objectiveFinalCompletedColor,
+    finalCompleteGlow: false,
     activeGlow: true,
     inactiveGlow: false,
     markerColor: objectiveInactiveColor,
@@ -657,18 +662,24 @@ const level1V2MvpObjectives = [
 
 const level1V2ManualTestSteps = [
   'Start in A.',
-  'Collect Shift Assignment Form.',
+  'Confirm task says Retrieve Shift Assignment Form.',
+  'Collect A document.',
   'Confirm Documents 1/5.',
-  'Confirm active objective changes to C.',
-  'Go to C and collect Workstation Log.',
+  'Go to C.',
+  'Collect Workstation Log.',
   'Confirm Documents 2/5.',
-  'Go to D and collect Pending Ledger.',
+  'Go to D.',
+  'Review Pending Ledger.',
   'Confirm Documents 3/5.',
-  'Go to F and collect Archive Record.',
+  'Go to F.',
+  'Collect Archive Record.',
   'Confirm Documents 4/5.',
-  'Go to H and complete Level 2 Access Note.',
+  'Go to H.',
+  'Confirm Level 2 access.',
   'Confirm Documents 5/5.',
-  'Confirm task text says Level 1 V2 route complete.'
+  'Confirm task says Level 1 V2 route complete.',
+  'Press reset.',
+  'Confirm route resets to 0/5 and first task.'
 ];
 
 const expectedLevel1V2ObjectiveFlow = [
@@ -845,6 +856,10 @@ function validateFloorplanMarkers(markers, warnings) {
   const expectedCodes = new Set(['A', 'B', 'E', 'F', 'R', 'C', 'D', 'H', 'G']);
   const markerCodes = new Set();
 
+  if (markers.length !== expectedCodes.size) {
+    warnings.push(`room marker count must remain ${expectedCodes.size}, found ${markers.length}`);
+  }
+
   markers.forEach(marker => {
     markerCodes.add(marker.code);
 
@@ -887,6 +902,9 @@ function validateFloorplanMarkers(markers, warnings) {
 
   expectedCodes.forEach(code => {
     if (!markerCodes.has(code)) warnings.push(`missing floorplan marker for ${code}`);
+  });
+  markerCodes.forEach(code => {
+    if (!expectedCodes.has(code)) warnings.push(`unexpected floorplan marker for ${code}`);
   });
 }
 
@@ -1020,6 +1038,10 @@ function validateMvpObjectives(level, reachableCells, warnings) {
     warnings.push('documentCountTarget must be 5 for Level 1 V2 MVP flow');
   }
 
+  if (level.objectiveFlow?.startHint !== level1V2StartHint) {
+    warnings.push(`objectiveFlow startHint must be "${level1V2StartHint}"`);
+  }
+
   const expectedRouteCodes = ['A', 'C', 'D', 'F', 'H'];
   if (JSON.stringify(level.objectiveFlow?.route ?? []) !== JSON.stringify(expectedRouteCodes)) {
     warnings.push('objectiveFlow route must remain A -> C -> D -> F -> H');
@@ -1029,12 +1051,16 @@ function validateMvpObjectives(level, reachableCells, warnings) {
     warnings.push('objectiveFlow completionText must remain Level 1 V2 route complete.');
   }
 
-  if (level.objectiveFlow?.nextLevelMessage !== 'Level 2 access ready. Next level not implemented in this MVP.') {
-    warnings.push('objectiveFlow nextLevelMessage must explain Level 2 is not implemented');
+  if (level.objectiveFlow?.nextLevelMessage !== 'Level 2 access ready. MVP route complete.') {
+    warnings.push('objectiveFlow nextLevelMessage must remain the presentation-ready completion message');
   }
 
   if (level.objectiveFlow?.exitUnlockPending !== true || level.objectiveFlow?.nextLevelNotImplemented !== true) {
     warnings.push('objectiveFlow must mark Level 2 exit as pending/not implemented');
+  }
+
+  if (objectives.some(objective => objective.type === 'finalExit')) {
+    warnings.push('Level 1 V2 MVP completion must not add a finalExit transition yet');
   }
 
   expectedLevel1V2ObjectiveFlow.forEach((expected, index) => {
@@ -1169,8 +1195,17 @@ function validateMvpObjectives(level, reachableCells, warnings) {
 
   const activeMarkerExists = objectives.some(objective => objective.activeGlow === true && objective.routeHint === 'active-objective-beacon');
   const completedMarkerStateExists = objectives.every(objective => Number.isFinite(objective.completedColor) && hasTextValue(objective.completeText));
+  const finalObjective = objectives[objectives.length - 1];
+  const finalMarkerStateExists = finalObjective?.finalObjective === true &&
+    finalObjective?.finalCompleteGlow === false &&
+    Number.isFinite(finalObjective?.finalCompletedColor) &&
+    finalObjective?.finalFeedbackText === 'Level 2 access ready. MVP route complete.';
   if (!activeMarkerExists) warnings.push('active objective marker state must exist');
   if (!completedMarkerStateExists) warnings.push('completed objective marker state must exist');
+  if (!finalMarkerStateExists) warnings.push('H final completion marker state must exist and remain dim after completion');
+  if (!hasTextValue(finalObjective?.completionText) || finalObjective.completionText !== level.objectiveFlow?.completionText) {
+    warnings.push('final objective completionText must match objectiveFlow completionText');
+  }
 
   const forbiddenV1ObjectiveText = [
     'Assigned Desk File',
@@ -1216,11 +1251,27 @@ function validateLevel1V2FloorplanPreview(level) {
   }
 
   [
+    'goals',
     'checkpoints',
     'triggers',
     'crushers',
     'sentientObjects',
-    'collisionVolumes'
+    'hazards',
+    'collisionVolumes',
+    'routes',
+    'guideStrips',
+    'navigationNodes',
+    'areaLights',
+    'ceilingLights',
+    'wallSegments',
+    'partitionBands',
+    'doorways',
+    'connectors',
+    'storyBeats',
+    'manipulationNodes',
+    'lightingZones',
+    'wallDetailZones',
+    'ceilingDetailZones'
   ].forEach(key => {
     if ((level[key] ?? []).length !== 0) {
       warnings.push(`${key} must be empty in floorplan preview mode`);
@@ -1314,6 +1365,19 @@ function validateLevel1V2FloorplanPreview(level) {
     warnings.push(`floor zone order must be ${expectedFloorZoneOrder.join(' -> ')}`);
   }
 
+  level.floorZones
+    .filter(zone => zone.id !== 'empty-field')
+    .forEach(zone => {
+      const approvedEntry = [...level1V2FloorplanRooms, level1V2CentralRoute].find(area => area.id === zone.id);
+      if (!approvedEntry) {
+        warnings.push(`${zone.id} floor zone must map to an approved room or route`);
+        return;
+      }
+      if (!boundsMatch(zone, approvedEntry.bounds)) {
+        warnings.push(`${zone.id} floor zone bounds changed from approved floorplan`);
+      }
+    });
+
   if (emptyFieldIndex === -1) {
     warnings.push('empty-field floor zone is missing');
   } else {
@@ -1368,6 +1432,7 @@ function validateLevel1V2FloorplanPreview(level) {
       architectureObjectLimitOk: level.architecture.length <= 10,
       objectiveCount: level.objectives.length,
       documentCountTarget: level.objectiveFlow?.documentCountTarget,
+      startHint: level.objectiveFlow?.startHint,
       objectiveRoute: level.objectives.map(objective => objective.roomId),
       objectiveOrder: level.objectives.map(objective => objective.id),
       taskTextProgression: [
@@ -1399,9 +1464,10 @@ export const level1V2 = {
   objectiveFlow: {
     route: ['A', 'C', 'D', 'F', 'H'],
     documentCountTarget: 5,
+    startHint: level1V2StartHint,
     taskTexts: level1V2MvpObjectives.map(objective => objective.taskText),
     completionText: 'Level 1 V2 route complete.',
-    nextLevelMessage: 'Level 2 access ready. Next level not implemented in this MVP.',
+    nextLevelMessage: 'Level 2 access ready. MVP route complete.',
     exitUnlockPending: true,
     nextLevelNotImplemented: true
   },
@@ -1444,7 +1510,8 @@ export const level1V2 = {
     'Only the outer boundary wall exists; every interior cell remains CELL_PATH.',
     'Minimal MVP objects are procedural visual markers only; collision volumes remain disabled.',
     'Simple objective route is A -> C -> D -> F -> H.',
-    'Manual test: start in A, collect A -> C -> D -> F -> H, confirm Documents reaches 5/5 and task text says Level 1 V2 route complete.'
+    `Start hint: ${level1V2StartHint}`,
+    'Manual test: start in A, confirm first task, collect A -> C -> D -> F -> H, confirm Documents reaches 5/5, route complete text, then reset to 0/5.'
   ]
 };
 

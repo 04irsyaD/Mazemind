@@ -1,73 +1,54 @@
 # Level 1 V2 Maze Lite Requirements
 
-## Current MVP Status
+## Definition
+Level 1 V2 should feel like an office maze, but not through unstable internal grid walls.
 
-- Office Maze Lite divider objects are disabled until formal room/asset requirements are approved.
-- The stable MVP should remain floor zones, room labels, MVP procedural markers, and objectives only.
-- No divider clutter should be added during the MVP freeze state.
-- `collisionVolumes` must remain empty while Maze Lite dividers are disabled.
+Maze feeling should come from:
+- cubicle partitions
+- archive rack lanes
+- low office dividers
+- route baffles
+- workstation divider placement
 
-## Maze Lite Purpose
+## Current Status
+Office Maze Lite divider implementation is paused until requirements are approved.
 
-Office Maze Lite is a future route-shaping layer for Level 1 V2.
+## Allowed Maze Lite Elements
+- cubiclePartition
+- archiveRackDivider
+- filingCabinetDivider
+- workstationDivider
+- lowOfficeDivider
+- routeBaffle
 
-Its purpose is to make the floorplan feel more maze-like without returning to unstable internal grid walls.
+## Quantity Limits
+- Total divider target: 6-10
+- Absolute maximum: 12
+- A start area: 0 dividers
+- B: max 1 low divider
+- C: max 3 dividers
+- D: max 1 divider
+- E: 0 dividers
+- F: max 3 archive dividers
+- G: max 1 divider
+- H: max 1 access divider
+- R central route: max 2 route baffles, must not block route
 
-## Allowed Future Divider Categories
+## Collision Strategy
+Phase 1:
+- visual-only dividers
 
-Future approved divider categories may include:
+Phase 2:
+- collision-enabled dividers only after route validation
 
-- cubicle partition
-- low office divider
-- route baffle
-- workstation divider
-- archive rack divider
-- filing cabinet divider
+Rules:
+- no divider may block an objective
+- no divider may cover labels
+- no divider may block central route
+- no divider may sit on playerStart
+- no divider may be larger than a wall block
+- no divider may require moving objective positions
 
-## Current Forbidden Changes
-
-- Do not add Maze Lite dividers during the MVP freeze.
-- Do not add collision-enabled dividers without approved placement requirements.
-- Do not add divider collision volumes while dividers are disabled.
-- Do not add full internal grid walls.
-- Do not add room shell walls.
-- Do not add doors.
-- Do not add online or GLB models.
-- Do not move objectives to fit dividers.
-- Do not block room labels, objective markers, or the central route.
-
-## Future Placement Requirements
-
-Before any Maze Lite divider is implemented, it must have:
-
-- approved room ID
-- approved position
-- approved size
-- approved rotation
-- clear maze role
-- collision decision
-- route reachability validation
-- note explaining why it improves navigation
-
-## Future Validation Rules
-
-Any future Maze Lite pass must validate:
-
-- floor zone bounds unchanged
-- room labels readable
-- objective order unchanged
-- objective positions unchanged
-- route `A -> C -> D -> F -> H` playable
-- Documents can reach `5/5`
-- reset restores `0/5` and the first objective
-- no objective sits inside a collision volume
-- player start does not sit inside a collision volume
-- central route remains passable
-- no GLB or online model references
-- build passes
-
-## Do Not Proceed Rule
-
-If room, asset, or divider placement requirements are missing, do not implement Maze Lite objects.
-
-Create or update requirements first.
+## Approval Rule
+If divider placement requirements are unclear, do not implement dividers.
+Update requirements first.

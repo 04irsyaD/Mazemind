@@ -15,11 +15,11 @@
 
 ## Allowed Wall Types
 Current MVP:
-- Outer boundary wall only.
+- outer boundary wall only
 
 Future approved wall types:
 - single test separator
-- partial room divider
+- partial divider wall
 - low office divider
 - cubicle partition
 - archive rack divider

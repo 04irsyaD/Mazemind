@@ -1,22 +1,19 @@
 # Level 1 V2 MVP Freeze Checklist
 
-## MVP Stable Features
-
+## Stable Features
 - Floor zone layout approved.
 - A-H room placement approved.
 - Room markers readable.
 - MVP procedural objects visible.
-- Office Maze Lite visual separators acceptable.
 - Objective route works.
 - Documents counter works 0/5 to 5/5.
 - Completion text works.
 - Reset should restore route.
-- No internal walls.
+- No internal grid walls.
 - No wall bugs.
 - No crashes observed.
 
 ## Manual Demo Checklist
-
 1. Start in A.
 2. Confirm task text: Retrieve Shift Assignment Form.
 3. Collect objective 1.
@@ -39,7 +36,6 @@
 20. Confirm first task restored.
 
 ## Known Limitations
-
 - This is not final full-wall maze.
 - Internal walls are intentionally disabled.
 - Assets are placeholder/procedural.

@@ -1,27 +1,30 @@
 # Level 1 V2 Asset Requirements
 
-## MVP Asset Mode
-
-- MVP uses procedural/lightweight assets only.
-- No online models unless explicitly approved.
-- No GLB assets during MVP stabilization.
-- Max total MVP object count should stay reasonable.
-- Recommended max is 8-14 Office Maze Lite obstacles.
-- Object placement must preserve the approved route and readable room identities.
+## MVP Asset Policy
+- Use procedural/lightweight assets only.
+- Do not use online models.
+- Do not download assets.
+- Do not use GLB assets during MVP stabilization.
+- Do not add heavy geometry.
+- Do not add high-poly assets.
 
 ## Placement Rules
+Every asset must:
+- stay inside its intended room bounds
+- not cover room labels
+- not cover objective markers
+- not block player start
+- not block central route
+- not block objective route
+- not overlap outer boundary walls
 
-- Each object must stay inside its assigned room zone.
-- Objects must not cover labels.
-- Objects must not block objectives.
-- Objects must not block the central route.
-- Objects must not create accidental walls or sealed spaces.
-- Objects must not visually imply a different room function than the approved room definition.
-- `collisionVolumes` should remain empty unless specifically approved.
-- Visual-first separators are preferred over blocking walls.
+## Collision Rules
+- Decorative assets should be non-blocking if possible.
+- Divider assets may use collision only after requirements approval.
+- collisionVolumes should remain empty unless specifically approved.
+- Never add collision that blocks A -> C -> D -> F -> H.
 
-## Allowed Categories
-
+## Allowed Asset Categories
 - intake counter
 - document marker
 - canteen table
@@ -34,10 +37,9 @@
 - low office divider
 - route baffle
 
-## Forbidden Categories
-
-- online models
-- downloaded assets
+## Forbidden Asset Categories
+- online model
+- downloaded model
 - heavy GLB
 - enemies
 - traps
@@ -45,11 +47,11 @@
 - full internal wall meshes
 - room shell walls
 - doors
-- anything that breaks objective route
+- anything blocking the MVP route
 
-## Stability Requirements
-
-- Any future asset pass must keep the route `A -> C -> D -> F -> H` playable.
-- Any future asset pass must keep all objectives visible and reachable.
-- Any future asset pass must keep room labels readable.
-- Any future asset pass must avoid changing gameplay code unless separately approved.
+## Target Sizes
+- document marker: small, non-blocking
+- desk/counter: medium, should not block label/objective
+- archive rack: narrow, may shape route only if approved
+- cubicle divider: narrow, not giant wall
+- route baffle: small and must leave route passable

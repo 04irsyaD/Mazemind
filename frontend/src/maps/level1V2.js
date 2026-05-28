@@ -494,19 +494,10 @@ function createMvpPlatform({
   });
 }
 
-function createMazeLiteObstacle(roomCode, object) {
-  return {
-    roomCode,
-    status: 'office-maze-lite-obstacle',
-    visualOnly: true,
-    ...object,
-    metadata: {
-      ...object.metadata,
-      visualOnly: true,
-      officeMazeLite: true
-    }
-  };
-}
+const level1V2OfficeMazeLiteStatus = {
+  enabled: false,
+  note: 'Office Maze Lite dividers are disabled until formal room/asset requirements are approved.'
+};
 
 const level1V2MvpObjects = [
   createMvpObject('A', officeProps.intakeDesk({
@@ -654,132 +645,11 @@ const level1V2MvpObjects = [
   }))
 ];
 
-const level1V2MazeLiteObstacles = [
-  createMazeLiteObstacle('R', officeProps.routeBaffle({
-    id: 'maze-lite-route-baffle-north',
-    label: 'Route Baffle North',
-    roomId: 'central-route',
-    x: 10.65,
-    y: 8.8,
-    width: 0.42,
-    depth: 1.45,
-    height: 0.96,
-    purpose: 'office-maze-lite-central-route-baffle',
-    visualOnly: true
-  })),
-  createMazeLiteObstacle('R', officeProps.routeBaffle({
-    id: 'maze-lite-route-baffle-south',
-    label: 'Route Baffle South',
-    roomId: 'central-route',
-    x: 12.35,
-    y: 16,
-    width: 0.42,
-    depth: 1.45,
-    height: 0.96,
-    purpose: 'office-maze-lite-central-route-baffle',
-    visualOnly: true
-  })),
-  createMazeLiteObstacle('C', officeProps.cubiclePartition({
-    id: 'maze-lite-cubicle-c-north',
-    label: 'Workstation Partition North',
-    roomId: 'main-workstation-hall',
-    x: 17.4,
-    y: 4.35,
-    width: 3.2,
-    depth: 0.22,
-    height: 1.18,
-    purpose: 'office-maze-lite-workstation-shape',
-    visualOnly: true
-  })),
-  createMazeLiteObstacle('C', officeProps.cubiclePartition({
-    id: 'maze-lite-cubicle-c-east',
-    label: 'Workstation Partition East',
-    roomId: 'main-workstation-hall',
-    x: 25.4,
-    y: 4.9,
-    width: 0.26,
-    depth: 2.1,
-    height: 1.18,
-    purpose: 'office-maze-lite-workstation-shape',
-    visualOnly: true
-  })),
-  createMazeLiteObstacle('C', officeProps.cubiclePartition({
-    id: 'maze-lite-cubicle-c-south',
-    label: 'Workstation Partition South',
-    roomId: 'main-workstation-hall',
-    x: 20,
-    y: 7.35,
-    width: 2.3,
-    depth: 0.22,
-    height: 1.12,
-    purpose: 'office-maze-lite-workstation-shape',
-    visualOnly: true
-  })),
-  createMazeLiteObstacle('D', officeProps.lowOfficeDivider({
-    id: 'maze-lite-boardroom-formal-divider',
-    label: 'Boardroom Formal Divider',
-    roomId: 'boardroom-review',
-    x: 25.2,
-    y: 13.65,
-    width: 2.5,
-    depth: 0.24,
-    height: 0.86,
-    purpose: 'office-maze-lite-boardroom-boundary-marker',
-    visualOnly: true
-  })),
-  createMazeLiteObstacle('F', officeProps.archiveRackDivider({
-    id: 'maze-lite-archive-rack-west',
-    label: 'Archive Rack Divider West',
-    roomId: 'records-archive',
-    x: 3.8,
-    y: 20.75,
-    width: 0.34,
-    depth: 2,
-    height: 1.48,
-    purpose: 'office-maze-lite-archive-lane',
-    visualOnly: true
-  })),
-  createMazeLiteObstacle('F', officeProps.archiveRackDivider({
-    id: 'maze-lite-archive-rack-east',
-    label: 'Archive Rack Divider East',
-    roomId: 'records-archive',
-    x: 9.7,
-    y: 18.55,
-    width: 0.34,
-    depth: 2.1,
-    height: 1.48,
-    purpose: 'office-maze-lite-archive-lane',
-    visualOnly: true
-  })),
-  createMazeLiteObstacle('G', officeProps.workstationDivider({
-    id: 'maze-lite-secondary-workstation-divider',
-    label: 'Secondary Workstation Divider',
-    roomId: 'secondary-workstation',
-    x: 22.1,
-    y: 18.55,
-    width: 2.2,
-    depth: 0.22,
-    height: 1.05,
-    purpose: 'office-maze-lite-secondary-workstation-shape',
-    visualOnly: true
-  })),
-  createMazeLiteObstacle('H', officeProps.lowOfficeDivider({
-    id: 'maze-lite-level2-access-lane-divider',
-    label: 'Level 2 Access Lane Divider',
-    roomId: 'level2-access',
-    x: 16.65,
-    y: 18.45,
-    width: 0.24,
-    depth: 1.65,
-    height: 0.86,
-    purpose: 'office-maze-lite-final-approach-marker',
-    visualOnly: true
-  }))
-];
+const level1V2MazeLiteDividers = [];
+const level1V2MazeLiteObstacles = level1V2MazeLiteDividers;
 
 const level1V2Architecture = [
-  ...level1V2MvpObjects,
-  ...level1V2MazeLiteObstacles
+  ...level1V2MvpObjects
 ];
 
 const objectiveActiveColor = 0xb7f7ff;
@@ -946,7 +816,7 @@ const level1V2ManualTestSteps = [
   'Collect A document.',
   'Confirm Documents 1/5.',
   'Go to C.',
-  'Confirm Office Maze Lite obstacles shape the workstation area without blocking the objective.',
+  'Confirm room labels and MVP markers remain readable.',
   'Collect Workstation Log.',
   'Confirm Documents 2/5.',
   'Go to D.',
@@ -1127,15 +997,6 @@ const approvedFloorplanBounds = {
   H: { x1: 14, y1: 17, x2: 17, y2: 22 },
   G: { x1: 19, y1: 17, x2: 29, y2: 22 }
 };
-
-const mazeLiteObstacleTypes = new Set([
-  'cubiclePartition',
-  'filingCabinetDivider',
-  'archiveRackDivider',
-  'lowOfficeDivider',
-  'routeBaffle',
-  'workstationDivider'
-]);
 
 function boundsMatch(first, second) {
   return (
@@ -1348,115 +1209,25 @@ function validateMvpObjects(objects, warnings) {
   });
 }
 
-function pointOverlapsFootprint(point, footprint) {
-  return (
-    point.x >= footprint.x1 &&
-    point.x <= footprint.x2 &&
-    point.y >= footprint.y1 &&
-    point.y <= footprint.y2
-  );
-}
-
-function getMazeLiteObstacleArea(obstacle) {
-  if (obstacle.type === 'routeBaffle') {
-    return obstacle.roomId === level1V2CentralRoute.id ? level1V2CentralRoute : null;
-  }
-
-  return level1V2FloorplanRooms.find(room => room.id === obstacle.roomId) ?? null;
-}
-
 function validateArchitectureComposition(level, warnings) {
-  const expectedIds = [
-    ...(level.mvpObjects ?? []),
-    ...(level.mazeLiteObstacles ?? [])
-  ].map(object => object.id);
+  const expectedIds = (level.mvpObjects ?? []).map(object => object.id);
   const actualIds = (level.architecture ?? []).map(object => object.id);
 
   if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
-    warnings.push('architecture must contain MVP objects followed by Office Maze Lite obstacles');
+    warnings.push('architecture must contain MVP objects only while Office Maze Lite dividers are disabled');
   }
 }
 
-function validateMazeLiteObstacles(level, warnings) {
-  const obstacles = level.mazeLiteObstacles ?? [];
-  const obstacleIds = new Set();
-
-  if (obstacles.length < 8 || obstacles.length > 14) {
-    warnings.push(`Office Maze Lite obstacle count must stay between 8 and 14, found ${obstacles.length}`);
+function validateMazeLiteDividers(level, warnings) {
+  if ((level.mazeLiteDividers ?? []).length !== 0 || (level.mazeLiteObstacles ?? []).length !== 0) {
+    warnings.push('Office Maze Lite dividers must remain disabled until formal room/asset requirements are approved');
   }
+}
 
-  obstacles.forEach(obstacle => {
-    if (!hasTextValue(obstacle.id)) warnings.push('Office Maze Lite obstacle id must not be empty or undefined');
-    if (!hasTextValue(obstacle.type)) warnings.push(`${obstacle.id ?? 'Office Maze Lite obstacle'} type must not be empty or undefined`);
-    if (!hasTextValue(obstacle.roomId)) warnings.push(`${obstacle.id ?? 'Office Maze Lite obstacle'} roomId must not be empty or undefined`);
-    if (!hasTextValue(obstacle.label)) warnings.push(`${obstacle.id ?? 'Office Maze Lite obstacle'} label must not be empty or undefined`);
-    if (obstacle.status !== 'office-maze-lite-obstacle') warnings.push(`${obstacle.id} status must be office-maze-lite-obstacle`);
-    if (obstacle.visualOnly !== true || obstacle.metadata?.visualOnly !== true) {
-      warnings.push(`${obstacle.id} must be visual-only`);
-    }
-    if (obstacle.collision === true || obstacle.collides === true || (obstacle.collisionVolumes ?? []).length > 0) {
-      warnings.push(`${obstacle.id} must not enable collision`);
-    }
-    if (objectHasAssetReference(obstacle)) {
-      warnings.push(`${obstacle.id} must not reference GLB, online, or model assets`);
-    }
-    if (!mazeLiteObstacleTypes.has(obstacle.type)) {
-      warnings.push(`${obstacle.id} type must be an approved Office Maze Lite obstacle type`);
-    }
-    if (obstacleIds.has(obstacle.id)) {
-      warnings.push(`${obstacle.id} must be unique`);
-    }
-    obstacleIds.add(obstacle.id);
-
-    const footprint = getObjectFootprint(obstacle);
-    if (!footprint) {
-      warnings.push(`${obstacle.id} must have a finite x/y position`);
-      return;
-    }
-
-    if (!boundsContainBounds({ x1: 1, y1: 1, x2: GRID_WIDTH - 2, y2: GRID_HEIGHT - 2 }, footprint)) {
-      warnings.push(`${obstacle.id} must stay inside playable grid and away from outer walls`);
-    }
-
-    const area = getMazeLiteObstacleArea(obstacle);
-    if (!area) {
-      warnings.push(`${obstacle.id} roomId must match an approved room, or central-route for routeBaffle`);
-    } else if (!boundsContainBounds(area.bounds, footprint)) {
-      warnings.push(`${obstacle.id} must stay inside ${area.code} bounds`);
-    }
-
-    const overlapsCentralRoute = doBoundsOverlap(footprint, level1V2CentralRoute.bounds);
-    if (obstacle.type !== 'routeBaffle' && overlapsCentralRoute) {
-      warnings.push(`${obstacle.id} must not overlap the central route unless it is a routeBaffle`);
-    }
-    if (obstacle.type === 'routeBaffle' && obstacle.roomId !== level1V2CentralRoute.id) {
-      warnings.push(`${obstacle.id} routeBaffle must live in the central route`);
-    }
-
-    if ((obstacle.height ?? obstacle.size?.height ?? 0) >= CONSTANTS.WALL_HEIGHT * 0.55) {
-      warnings.push(`${obstacle.id} must stay clearly below structural wall height`);
-    }
-    if (Math.max(obstacle.width ?? obstacle.size?.width ?? 0, obstacle.depth ?? obstacle.size?.depth ?? 0) > 3.4) {
-      warnings.push(`${obstacle.id} must not become a giant block`);
-    }
-
-    if (pointOverlapsFootprint(level.playerStart, footprint)) {
-      warnings.push(`${obstacle.id} must not overlap playerStart`);
-    }
-
-    (level.objectives ?? []).forEach(objective => {
-      if (pointOverlapsFootprint(objective, footprint)) {
-        warnings.push(`${obstacle.id} must not overlap objective ${objective.id}`);
-      }
-    });
-
-    (level.floorplanMarkers ?? []).forEach(marker => {
-      const markerPoint = marker.position;
-      if (markerPoint && pointOverlapsFootprint(markerPoint, footprint)) {
-        warnings.push(`${obstacle.id} must not overlap room label ${marker.id}`);
-      }
-    });
-  });
+function validateMazeLiteCollisionVolumes(level, warnings) {
+  if ((level.collisionVolumes ?? []).length !== 0) {
+    warnings.push('collisionVolumes must remain empty while Office Maze Lite dividers are disabled');
+  }
 }
 
 function cellKey(x, y) {
@@ -1722,7 +1493,6 @@ function validateLevel1V2FloorplanPreview(level) {
     'crushers',
     'sentientObjects',
     'hazards',
-    'collisionVolumes',
     'routes',
     'guideStrips',
     'navigationNodes',
@@ -1855,7 +1625,8 @@ function validateLevel1V2FloorplanPreview(level) {
 
   validateFloorplanMarkers(level.floorplanMarkers ?? [], warnings);
   validateMvpObjects(level.mvpObjects ?? [], warnings);
-  validateMazeLiteObstacles(level, warnings);
+  validateMazeLiteDividers(level, warnings);
+  validateMazeLiteCollisionVolumes(level, warnings);
   validateArchitectureComposition(level, warnings);
   validatePresentationLighting(level, warnings);
 
@@ -1878,6 +1649,8 @@ function validateLevel1V2FloorplanPreview(level) {
   }
 
   validateMvpObjectives(level, reachableCells, warnings);
+  const mazeLiteDividers = level.mazeLiteDividers ?? [];
+  const mazeLiteObstacles = level.mazeLiteObstacles ?? [];
 
   return {
     valid: warnings.length === 0,
@@ -1897,13 +1670,11 @@ function validateLevel1V2FloorplanPreview(level) {
       floorZoneOrder: level.floorZones.map(zone => zone.id),
       architectureObjectCount: level.architecture.length,
       mvpObjectCount: level.mvpObjects?.length ?? 0,
-      mazeLiteObstacleCount: level.mazeLiteObstacles?.length ?? 0,
-      mazeLiteObstacleLimitOk: (level.mazeLiteObstacles?.length ?? 0) <= 14,
-      mazeLiteObstacleTypes: (level.mazeLiteObstacles ?? []).map(obstacle => obstacle.type),
-      mazeLiteObstacleRooms: (level.mazeLiteObstacles ?? []).reduce((rooms, obstacle) => {
-        rooms[obstacle.roomId] = [...(rooms[obstacle.roomId] ?? []), obstacle.id];
-        return rooms;
-      }, {}),
+      officeMazeLiteStatus: level.officeMazeLite,
+      mazeLiteDividerCount: mazeLiteDividers.length,
+      mazeLiteObstacleCount: mazeLiteObstacles.length,
+      mazeLiteDividersDisabled: mazeLiteDividers.length === 0 && mazeLiteObstacles.length === 0,
+      collisionVolumesEmpty: level.collisionVolumes.length === 0,
       objectiveCount: level.objectives.length,
       documentCountTarget: level.objectiveFlow?.documentCountTarget,
       startHint: level.objectiveFlow?.startHint,
@@ -1917,7 +1688,6 @@ function validateLevel1V2FloorplanPreview(level) {
       objectiveCompleteTexts: level.objectives.map(objective => objective.completeText),
       routeHint: level.objectives[0]?.routeHint,
       nextLevelMessage: level.objectiveFlow?.nextLevelMessage,
-      collisionVolumesEmpty: level.collisionVolumes.length === 0,
       interiorCellsArePath: !warnings.some(warning => warning.includes('interior cell')),
       noInternalWalls: !warnings.some(warning => warning.includes('interior cell')),
       reachableCells: reachableCells.size
@@ -1935,6 +1705,7 @@ export const level1V2 = {
   floorplanPreview: true,
   mvpObjectiveMode: true,
   mapBuildMode: 'floorplan-zones-mvp',
+  officeMazeLite: level1V2OfficeMazeLiteStatus,
   objectiveFlow: {
     route: ['A', 'C', 'D', 'F', 'H'],
     documentCountTarget: 5,
@@ -1955,6 +1726,7 @@ export const level1V2 = {
   floorZones: level1V2FloorZones,
   floorplanMarkers: level1V2FloorplanMarkers,
   mvpObjects: level1V2MvpObjects,
+  mazeLiteDividers: level1V2MazeLiteDividers,
   mazeLiteObstacles: level1V2MazeLiteObstacles,
   architecture: level1V2Architecture,
   objectives: level1V2MvpObjectives,
@@ -1985,8 +1757,8 @@ export const level1V2 = {
     'Level 1 V2 MVP objective preview. Floor zones remain the source of truth.',
     'A-H rooms and the central route are shown as floor colors only.',
     'Only the outer boundary wall exists; every interior cell remains CELL_PATH.',
-    'Minimal MVP objects are procedural visual markers only; collision volumes remain disabled.',
-    'Office Maze Lite separators are visual-only procedural objects; they do not modify the grid or collision volumes.',
+    'Minimal MVP objects are procedural visual markers only; collisionVolumes remain empty.',
+    'Office Maze Lite dividers are disabled until formal room/asset requirements are approved.',
     'Simple objective route is A -> C -> D -> F -> H.',
     'Level 1 V2 MVP presentation checklist: start at A, collect Shift Assignment Form, follow tasks to C/D/F/H, confirm Documents 5/5, confirm route complete, reset to 0/5.',
     `Start hint: ${level1V2StartHint}`,

@@ -239,6 +239,26 @@ const workstationDefaults = {
   size: { width: 7.0, height: 1.42, depth: 5.5 }
 };
 
+const officeMazeDividerDefaults = {
+  width: 1.8,
+  depth: 0.2,
+  height: 1.08,
+  color: 0xb8c1c0,
+  panelColor: 0xc9d2d1,
+  trimColor: 0x707d80,
+  accentColor: 0xc8e0df,
+  roughness: 0.74,
+  metalness: 0.04,
+  visualOnly: true,
+  purpose: 'office-maze-lite-divider'
+};
+
+const officeMazeDivider = (prefab, defaults, config = {}) => createPrefabObject(prefab, {
+  ...officeMazeDividerDefaults,
+  type: prefab,
+  ...defaults
+}, config);
+
 export function validatePrefabObject(object) {
   const errors = [];
   const warnings = [];
@@ -523,6 +543,74 @@ export const officeProps = {
       monitorIntensity: 0.052,
       chairColor: 0x232b31,
       chairAccentColor: 0x344e57
+    }, config);
+  },
+
+  cubiclePartition(config = {}) {
+    return officeMazeDivider('cubiclePartition', {
+      height: 1.18,
+      color: 0xb6c0c1,
+      panelColor: 0xd1d8d8,
+      trimColor: 0x6b777b,
+      accentColor: 0xcce6e5,
+      purpose: 'office-maze-lite-cubicle-partition'
+    }, config);
+  },
+
+  filingCabinetDivider(config = {}) {
+    return officeMazeDivider('filingCabinetDivider', {
+      height: 1.22,
+      color: 0x879196,
+      panelColor: 0x9da8ac,
+      trimColor: 0x4f5b61,
+      accentColor: 0xc2cdcf,
+      shelfLines: true,
+      purpose: 'office-maze-lite-filing-cabinet-divider'
+    }, config);
+  },
+
+  archiveRackDivider(config = {}) {
+    return officeMazeDivider('archiveRackDivider', {
+      height: 1.48,
+      color: 0x59666c,
+      panelColor: 0x6e7b81,
+      trimColor: 0x354047,
+      accentColor: 0x93c5c9,
+      shelfLines: true,
+      purpose: 'office-maze-lite-archive-rack-divider'
+    }, config);
+  },
+
+  lowOfficeDivider(config = {}) {
+    return officeMazeDivider('lowOfficeDivider', {
+      height: 0.86,
+      color: 0xaeb8b3,
+      panelColor: 0xc5ccc8,
+      trimColor: 0x6e7876,
+      accentColor: 0xd6dfd8,
+      purpose: 'office-maze-lite-low-divider'
+    }, config);
+  },
+
+  routeBaffle(config = {}) {
+    return officeMazeDivider('routeBaffle', {
+      height: 0.96,
+      color: 0x899797,
+      panelColor: 0xa9b5b4,
+      trimColor: 0x566365,
+      accentColor: 0xb7d9d7,
+      purpose: 'office-maze-lite-route-baffle'
+    }, config);
+  },
+
+  workstationDivider(config = {}) {
+    return officeMazeDivider('workstationDivider', {
+      height: 1.05,
+      color: 0xb5bbb3,
+      panelColor: 0xd4d8cf,
+      trimColor: 0x6f7978,
+      accentColor: 0xdce5dd,
+      purpose: 'office-maze-lite-workstation-divider'
     }, config);
   },
 

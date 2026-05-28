@@ -23,6 +23,14 @@ const modelFailureCache = new Map();
 const modelInfoCache = new Set();
 const modelWarningCache = new Set();
 const MODEL_FAILURE_RETRY_MS = 30_000;
+const OFFICE_MAZE_DIVIDER_TYPES = new Set([
+  'cubiclePartition',
+  'filingCabinetDivider',
+  'archiveRackDivider',
+  'lowOfficeDivider',
+  'routeBaffle',
+  'workstationDivider'
+]);
 
 function devLogModelOnce(key, ...args) {
   if (modelInfoCache.has(key)) return;
@@ -874,6 +882,10 @@ export class MazeBuilder {
         this.addMonolith(config);
         return;
       }
+      if (OFFICE_MAZE_DIVIDER_TYPES.has(config.type)) {
+        this.addOfficeMazeDivider(config);
+        return;
+      }
       if (config.type === 'receptionDesk') this.addReceptionDesk(config);
       if (config.type === 'taskTerminal') this.addTaskTerminal(config);
       if (config.type === 'waitingChairs') this.addWaitingChairs(config);
@@ -909,6 +921,68 @@ export class MazeBuilder {
     mesh.receiveShadow = true;
     this.scene.add(mesh);
     this.guideMeshes.push(mesh);
+  }
+
+  addOfficeMazeDivider(config) {
+    const width = (config.width ?? config.size?.width ?? 1.8) * CONSTANTS.CELL_SIZE;
+    const depth = (config.depth ?? config.size?.depth ?? 0.2) * CONSTANTS.CELL_SIZE;
+    const height = config.height ?? config.size?.height ?? 1.08;
+    const baseHeight = Math.min(config.baseHeight ?? 0.16, height * 0.2);
+    const capHeight = Math.min(config.capHeight ?? 0.075, height * 0.12);
+    const panelHeight = Math.max(0.34, height - baseHeight - capHeight);
+    const group = new THREE.Group();
+    const panelMaterial = this.createArchitectureMaterial({
+      color: config.panelColor ?? config.color,
+      emissive: config.emissive,
+      emissiveIntensity: config.emissiveIntensity,
+      roughness: config.roughness ?? 0.76,
+      metalness: config.metalness ?? 0.04
+    }, 0xc3cccb);
+    const trimMaterial = this.createArchitectureMaterial({
+      color: config.trimColor ?? 0x667174,
+      roughness: 0.68,
+      metalness: 0.12
+    }, 0x667174);
+    const accentMaterial = new THREE.MeshStandardMaterial({
+      color: config.accentColor ?? 0xc9e0df,
+      emissive: config.accentColor ?? 0xc9e0df,
+      emissiveIntensity: config.accentIntensity ?? 0.035,
+      transparent: true,
+      opacity: config.accentOpacity ?? 0.26,
+      roughness: 0.36,
+      metalness: 0.02,
+      depthWrite: false
+    });
+    const panelDepth = Math.max(depth * 0.62, 0.12);
+    const trimDepth = Math.max(depth, 0.18);
+    const postWidth = Math.min(Math.max(width * 0.045, 0.08), 0.16);
+
+    this.addBoxToGroup(group, [0, baseHeight / 2, 0], [width, baseHeight, trimDepth], trimMaterial);
+    this.addBoxToGroup(group, [0, baseHeight + panelHeight / 2, 0], [width * 0.96, panelHeight, panelDepth], panelMaterial);
+    this.addBoxToGroup(group, [0, height - capHeight / 2, 0], [width, capHeight, trimDepth], trimMaterial);
+
+    if (width > 0.7) {
+      const postY = baseHeight + panelHeight / 2;
+      this.addBoxToGroup(group, [-width / 2 + postWidth / 2, postY, 0], [postWidth, panelHeight, trimDepth], trimMaterial);
+      this.addBoxToGroup(group, [width / 2 - postWidth / 2, postY, 0], [postWidth, panelHeight, trimDepth], trimMaterial);
+    }
+
+    if (config.shelfLines) {
+      const lineCount = config.lineCount ?? 3;
+      for (let index = 1; index <= lineCount; index++) {
+        const y = baseHeight + (panelHeight * index) / (lineCount + 1);
+        this.addBoxToGroup(group, [0, y, -panelDepth / 2 - 0.018], [width * 0.86, 0.035, 0.04], trimMaterial);
+      }
+    } else if (config.accentBand !== false) {
+      const accentHeight = Math.min(0.18, panelHeight * 0.26);
+      const accentY = baseHeight + panelHeight * 0.66;
+      this.addBoxToGroup(group, [0, accentY, -panelDepth / 2 - 0.012], [width * 0.78, accentHeight, 0.035], accentMaterial);
+    }
+
+    group.position.set(config.x * CONSTANTS.CELL_SIZE, 0, config.y * CONSTANTS.CELL_SIZE);
+    group.rotation.y = config.rotation ?? 0;
+    this.scene.add(group);
+    this.guideMeshes.push(group);
   }
 
   addColumn(config) {

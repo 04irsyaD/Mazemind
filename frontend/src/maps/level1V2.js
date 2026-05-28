@@ -4,8 +4,129 @@ import { officeProps } from './prefabs/officeProps.js';
 const GRID_WIDTH = 32;
 const GRID_HEIGHT = 24;
 
+const level1V2Phase1WallSegments = [
+  {
+    id: 'c-workstation-lane-wall-01',
+    type: 'minimalMazeWall',
+    roomId: 'main-workstation-hall',
+    x1: 17,
+    y1: 4,
+    x2: 22,
+    y2: 4,
+    purpose: 'Create upper workstation lane.',
+    phase: 1,
+    blocking: true,
+    visualOnly: false,
+    status: 'approved-minimal-wall-phase-1'
+  },
+  {
+    id: 'c-workstation-lane-wall-02',
+    type: 'minimalMazeWall',
+    roomId: 'main-workstation-hall',
+    x1: 24,
+    y1: 7,
+    x2: 28,
+    y2: 7,
+    purpose: 'Create lower workstation lane.',
+    phase: 1,
+    blocking: true,
+    visualOnly: false,
+    status: 'approved-minimal-wall-phase-1'
+  },
+  {
+    id: 'f-archive-aisle-wall-01',
+    type: 'minimalMazeWall',
+    roomId: 'records-archive',
+    x1: 4,
+    y1: 18,
+    x2: 9,
+    y2: 18,
+    purpose: 'Create top archive aisle.',
+    phase: 1,
+    blocking: true,
+    visualOnly: false,
+    status: 'approved-minimal-wall-phase-1'
+  },
+  {
+    id: 'f-archive-aisle-wall-02',
+    type: 'minimalMazeWall',
+    roomId: 'records-archive',
+    x1: 5,
+    y1: 21,
+    x2: 10,
+    y2: 21,
+    purpose: 'Create bottom archive aisle.',
+    phase: 1,
+    blocking: true,
+    visualOnly: false,
+    status: 'approved-minimal-wall-phase-1'
+  },
+  {
+    id: 'h-final-approach-wall-01',
+    type: 'minimalMazeWall',
+    roomId: 'level2-access',
+    x1: 17,
+    y1: 18,
+    x2: 17,
+    y2: 21,
+    purpose: 'Create final access lane.',
+    phase: 1,
+    blocking: true,
+    visualOnly: false,
+    status: 'approved-minimal-wall-phase-1'
+  }
+];
+
+const approvedLevel1V2Phase1WallSegmentIds = [
+  'c-workstation-lane-wall-01',
+  'c-workstation-lane-wall-02',
+  'f-archive-aisle-wall-01',
+  'f-archive-aisle-wall-02',
+  'h-final-approach-wall-01'
+];
+
+function phase1WallCellKey(x, y) {
+  return `${x},${y}`;
+}
+
+function getPhase1WallSegmentCells(segment) {
+  const cells = [];
+
+  if (segment.y1 === segment.y2) {
+    for (let x = Math.min(segment.x1, segment.x2); x <= Math.max(segment.x1, segment.x2); x++) {
+      cells.push({ x, y: segment.y1 });
+    }
+  } else if (segment.x1 === segment.x2) {
+    for (let y = Math.min(segment.y1, segment.y2); y <= Math.max(segment.y1, segment.y2); y++) {
+      cells.push({ x: segment.x1, y });
+    }
+  }
+
+  return cells;
+}
+
+const level1V2Phase1WallCellKeys = new Set(
+  level1V2Phase1WallSegments.flatMap(segment =>
+    getPhase1WallSegmentCells(segment).map(cell => phase1WallCellKey(cell.x, cell.y))
+  )
+);
+
+function isLevel1V2Phase1WallCell(x, y) {
+  return level1V2Phase1WallCellKeys.has(phase1WallCellKey(x, y));
+}
+
+function applyLevel1V2Phase1WallSegments(grid) {
+  level1V2Phase1WallSegments.forEach(segment => {
+    getPhase1WallSegmentCells(segment).forEach(({ x, y }) => {
+      if (grid[y]?.[x] !== undefined) {
+        grid[y][x] = CONSTANTS.CELL_WALL;
+      }
+    });
+  });
+}
+
 function buildFloorZonePreviewGrid() {
-  return Array.from({ length: GRID_HEIGHT }, (_, y) =>
+  const grid = Array.from({ length: GRID_HEIGHT }, (_, y) =>
     Array.from({ length: GRID_WIDTH }, (_, x) => {
       const isBorder =
         x === 0 ||
@@ -16,6 +137,9 @@ function buildFloorZonePreviewGrid() {
       return isBorder ? CONSTANTS.CELL_WALL : CONSTANTS.CELL_PATH;
     })
   );
+
+  applyLevel1V2Phase1WallSegments(grid);
+  return grid;
 }
 
 function withTopLevelBounds(area) {
@@ -496,7 +620,8 @@ function createMvpPlatform({
 
 const level1V2OfficeMazeLiteStatus = {
   enabled: false,
-  note: 'Office Maze Lite dividers are disabled until formal room/asset requirements are approved.'
+  wallPhase1Enabled: true,
+  note: 'Office Maze Lite dividers remain disabled; Minimal Maze Wall Phase 1 uses only approved grid wall segments.'
 };
 
 const level1V2MvpObjects = [
@@ -812,25 +937,18 @@ const level1V2MvpObjectives = [
 
 const level1V2ManualTestSteps = [
   'Start in A.',
-  'Confirm task says Retrieve Shift Assignment Form.',
-  'Collect A document.',
-  'Confirm Documents 1/5.',
-  'Go to C.',
-  'Confirm room labels and MVP markers remain readable.',
+  'Collect Shift Assignment Form.',
+  'Navigate to C around workstation wall segments.',
   'Collect Workstation Log.',
-  'Confirm Documents 2/5.',
-  'Go to D.',
+  'Navigate to D.',
   'Review Pending Ledger.',
-  'Confirm Documents 3/5.',
-  'Go to F.',
+  'Navigate to F around archive aisle wall segments.',
   'Collect Archive Record.',
-  'Confirm Documents 4/5.',
-  'Go to H.',
+  'Navigate to H around final approach wall.',
   'Confirm Level 2 access.',
   'Confirm Documents 5/5.',
-  'Confirm task says Level 1 V2 route complete.',
-  'Press reset.',
-  'Confirm route resets to 0/5 and first task.'
+  'Confirm Level 1 V2 route complete.',
+  'Reset and confirm route returns to 0/5.'
 ];
 
 const level1V2PresentationChecklist = [
@@ -907,21 +1025,38 @@ function createLevel1V2AsciiPreview(level) {
     x: Math.floor(level.playerStart.x),
     y: Math.floor(level.playerStart.y)
   };
+  const objectiveCells = new Map((level.objectives ?? []).map((objective, index) => [
+    cellKey(Math.floor(objective.x), Math.floor(objective.y)),
+    `${index + 1}`
+  ]));
 
   const rows = level.grid.map((row, y) => row.map((cell, x) => {
-    if (cell === CONSTANTS.CELL_WALL) return '#';
+    const isBorder =
+      x === 0 ||
+      y === 0 ||
+      x === GRID_WIDTH - 1 ||
+      y === GRID_HEIGHT - 1;
+
+    if (isBorder && cell === CONSTANTS.CELL_WALL) return '#';
+    if (isLevel1V2Phase1WallCell(x, y)) return 'W';
     if (x === playerStartCell.x && y === playerStartCell.y) return 'P';
+
+    const objectiveGlyph = objectiveCells.get(cellKey(x, y));
+    if (objectiveGlyph) return objectiveGlyph;
 
     const room = findRoomAt(x, y);
     if (room) return room.code;
     if (isCellInBounds(x, y, level1V2CentralRoute.bounds)) return level1V2CentralRoute.code;
     if (cell === CONSTANTS.CELL_PATH) return '.';
+    if (cell === CONSTANTS.CELL_WALL) return '#';
     return '?';
   }).join(''));
 
   return [
     `grid: ${level.grid[0]?.length ?? 0} x ${level.grid.length}`,
     `playerStart: x=${level.playerStart.x}, y=${level.playerStart.y}, yaw=${level.playerStart.yaw}, pitch=${level.playerStart.pitch}`,
+    `legend: # outer boundary, W Phase 1 wall, . path, A/B/C/D/E/F/G/H room, R central route, P player, 1-5 objectives`,
+    `phase1 wallSegments: ${level.wallSegments?.map(segment => segment.id).join(', ') ?? 'none'}`,
     'rooms:',
     ...level1V2FloorplanRooms.map(room => `${room.code} ${room.id}: ${formatBounds(room.bounds)}`),
     `central route ${level1V2CentralRoute.code} ${level1V2CentralRoute.id}: ${formatBounds(level1V2CentralRoute.bounds)}`,
@@ -1258,6 +1393,174 @@ function collectReachableCells(grid, start) {
   return reachable;
 }
 
+function getPhase1WallSegmentLength(segment) {
+  return Math.abs(segment.x2 - segment.x1) + Math.abs(segment.y2 - segment.y1) + 1;
+}
+
+function arePhase1WallSegmentsEqual(actual, expected) {
+  return [
+    'id',
+    'type',
+    'roomId',
+    'x1',
+    'y1',
+    'x2',
+    'y2',
+    'purpose',
+    'phase',
+    'blocking',
+    'visualOnly',
+    'status'
+  ].every(key => actual?.[key] === expected?.[key]);
+}
+
+function getInteriorWallCellKeys(grid) {
+  const wallKeys = new Set();
+
+  for (let y = 1; y < grid.length - 1; y++) {
+    for (let x = 1; x < (grid[y]?.length ?? 1) - 1; x++) {
+      if (grid[y][x] === CONSTANTS.CELL_WALL) {
+        wallKeys.add(cellKey(x, y));
+      }
+    }
+  }
+
+  return wallKeys;
+}
+
+function validatePhase1WallSegments(level, warnings) {
+  const wallSegments = level.wallSegments ?? [];
+  const wallIds = wallSegments.map(segment => segment.id);
+  const expectedIds = approvedLevel1V2Phase1WallSegmentIds;
+  const approvedWallKeys = new Set(level1V2Phase1WallCellKeys);
+  const gridWallKeys = getInteriorWallCellKeys(level.grid);
+  const objectiveCells = new Map((level.objectives ?? []).map(objective => [
+    cellKey(Math.floor(objective.x), Math.floor(objective.y)),
+    objective.id
+  ]));
+  const playerStartCell = {
+    x: Math.floor(level.playerStart.x),
+    y: Math.floor(level.playerStart.y)
+  };
+  const playerStartKey = cellKey(playerStartCell.x, playerStartCell.y);
+
+  if (wallSegments.length !== 5) {
+    warnings.push(`Phase 1 wallSegments count must be exactly 5, found ${wallSegments.length}`);
+  }
+
+  if (JSON.stringify(wallIds) !== JSON.stringify(expectedIds)) {
+    warnings.push(`Phase 1 wall segment IDs must be exactly ${expectedIds.join(', ')}`);
+  }
+
+  wallSegments.forEach((segment, index) => {
+    const expectedSegment = level1V2Phase1WallSegments[index];
+    if (!arePhase1WallSegmentsEqual(segment, expectedSegment)) {
+      warnings.push(`${segment.id ?? `wall segment ${index + 1}`} must match the Phase 1 approval document exactly`);
+    }
+
+    const isHorizontal = segment.y1 === segment.y2;
+    const isVertical = segment.x1 === segment.x2;
+    if (!isHorizontal && !isVertical) {
+      warnings.push(`${segment.id} must be horizontal or vertical only`);
+      return;
+    }
+
+    if (getPhase1WallSegmentLength(segment) > 6) {
+      warnings.push(`${segment.id} exceeds the approved 6-cell maximum`);
+    }
+
+    getPhase1WallSegmentCells(segment).forEach(({ x, y }) => {
+      if (x <= 0 || y <= 0 || x >= GRID_WIDTH - 1 || y >= GRID_HEIGHT - 1) {
+        warnings.push(`${segment.id} wall cell ${x},${y} must stay inside playable interior`);
+      }
+
+      if (level.grid[y]?.[x] !== CONSTANTS.CELL_WALL) {
+        warnings.push(`${segment.id} wall cell ${x},${y} must be CELL_WALL`);
+      }
+
+      const key = cellKey(x, y);
+      const objectiveId = objectiveCells.get(key);
+      if (objectiveId) {
+        warnings.push(`${segment.id} must not overlap objective ${objectiveId}`);
+      }
+
+      if (key === playerStartKey) {
+        warnings.push(`${segment.id} must not overlap playerStart`);
+      }
+    });
+  });
+
+  approvedWallKeys.forEach(key => {
+    if (!gridWallKeys.has(key)) {
+      warnings.push(`approved Phase 1 wall cell ${key} is missing from grid`);
+    }
+  });
+
+  gridWallKeys.forEach(key => {
+    if (!approvedWallKeys.has(key)) {
+      warnings.push(`extra interior wall cell ${key} is not approved for Phase 1`);
+    }
+  });
+
+  return {
+    ids: wallIds,
+    count: wallSegments.length,
+    approvedCellCount: approvedWallKeys.size,
+    gridInteriorWallCellCount: gridWallKeys.size,
+    exactIds: JSON.stringify(wallIds) === JSON.stringify(expectedIds),
+    exactGridCells: gridWallKeys.size === approvedWallKeys.size &&
+      [...gridWallKeys].every(key => approvedWallKeys.has(key))
+  };
+}
+
+function validateObjectiveRouteReachability(level, warnings) {
+  const routePoints = [
+    {
+      id: 'playerStart',
+      x: Math.floor(level.playerStart.x),
+      y: Math.floor(level.playerStart.y)
+    },
+    ...(level.objectives ?? []).map(objective => ({
+      id: objective.id,
+      x: Math.floor(objective.x),
+      y: Math.floor(objective.y)
+    }))
+  ];
+
+  const segments = [];
+
+  for (let index = 0; index < routePoints.length - 1; index++) {
+    const from = routePoints[index];
+    const to = routePoints[index + 1];
+    const reachableCells = collectReachableCells(level.grid, from);
+    const targetReachable = reachableCells.has(cellKey(to.x, to.y));
+    segments.push({
+      from: from.id,
+      to: to.id,
+      targetReachable
+    });
+
+    if (!targetReachable) {
+      warnings.push(`route segment ${from.id} -> ${to.id} is blocked by Phase 1 walls`);
+    }
+  }
+
+  const centralRouteStart = { x: 11, y: level1V2CentralRoute.bounds.y1 };
+  const centralRouteEnd = { x: 11, y: level1V2CentralRoute.bounds.y2 };
+  const centralRouteReachable = collectReachableCells(level.grid, centralRouteStart)
+    .has(cellKey(centralRouteEnd.x, centralRouteEnd.y));
+
+  if (!centralRouteReachable) {
+    warnings.push('central route must remain passable top-to-bottom');
+  }
+
+  return {
+    mode: 'approximate-grid-cell-bfs',
+    centralRouteReachable,
+    segments
+  };
+}
+
 function getObjectiveTargetArea(objective) {
   return level1V2FloorplanRooms.find(room => room.id === objective.roomId) ??
     (level1V2CentralRoute.id === objective.roomId ? level1V2CentralRoute : null);
@@ -1480,8 +1783,12 @@ function validateLevel1V2FloorplanPreview(level) {
         warnings.push(`outer boundary cell ${x},${y} must be CELL_WALL`);
       }
 
-      if (!isBorder && grid[y][x] !== CONSTANTS.CELL_PATH) {
-        warnings.push(`interior cell ${x},${y} must be CELL_PATH`);
+      if (!isBorder && isLevel1V2Phase1WallCell(x, y) && grid[y][x] !== CONSTANTS.CELL_WALL) {
+        warnings.push(`approved Phase 1 wall cell ${x},${y} must be CELL_WALL`);
+      }
+
+      if (!isBorder && !isLevel1V2Phase1WallCell(x, y) && grid[y][x] !== CONSTANTS.CELL_PATH) {
+        warnings.push(`interior non-Phase 1 cell ${x},${y} must be CELL_PATH`);
       }
     }
   }
@@ -1496,7 +1803,6 @@ function validateLevel1V2FloorplanPreview(level) {
     'routes',
     'guideStrips',
     'navigationNodes',
-    'wallSegments',
     'partitionBands',
     'doorways',
     'connectors',
@@ -1520,6 +1826,18 @@ function validateLevel1V2FloorplanPreview(level) {
 
   if (level.mvpObjectiveMode !== true) {
     warnings.push('mvpObjectiveMode must be true');
+  }
+
+  if (level.wallMode !== 'minimal-maze-wall-phase-1') {
+    warnings.push('wallMode must be minimal-maze-wall-phase-1');
+  }
+
+  if (level.wallImplementation !== 'controlled-approved-segments') {
+    warnings.push('wallImplementation must be controlled-approved-segments');
+  }
+
+  if (level.internalWallPolicy !== 'phase-1-approved-only') {
+    warnings.push('internalWallPolicy must be phase-1-approved-only');
   }
 
   level1V2FloorplanRooms.forEach(room => {
@@ -1629,6 +1947,7 @@ function validateLevel1V2FloorplanPreview(level) {
   validateMazeLiteCollisionVolumes(level, warnings);
   validateArchitectureComposition(level, warnings);
   validatePresentationLighting(level, warnings);
+  const phase1WallValidation = validatePhase1WallSegments(level, warnings);
 
   const playerStartCell = {
     x: Math.floor(level.playerStart.x),
@@ -1649,6 +1968,7 @@ function validateLevel1V2FloorplanPreview(level) {
   }
 
   validateMvpObjectives(level, reachableCells, warnings);
+  const objectiveRouteReachability = validateObjectiveRouteReachability(level, warnings);
   const mazeLiteDividers = level.mazeLiteDividers ?? [];
   const mazeLiteObstacles = level.mazeLiteObstacles ?? [];
 
@@ -1675,6 +1995,8 @@ function validateLevel1V2FloorplanPreview(level) {
       mazeLiteObstacleCount: mazeLiteObstacles.length,
       mazeLiteDividersDisabled: mazeLiteDividers.length === 0 && mazeLiteObstacles.length === 0,
       collisionVolumesEmpty: level.collisionVolumes.length === 0,
+      phase1WallValidation,
+      objectiveRouteReachability,
       objectiveCount: level.objectives.length,
       documentCountTarget: level.objectiveFlow?.documentCountTarget,
       startHint: level.objectiveFlow?.startHint,
@@ -1688,8 +2010,8 @@ function validateLevel1V2FloorplanPreview(level) {
       objectiveCompleteTexts: level.objectives.map(objective => objective.completeText),
       routeHint: level.objectives[0]?.routeHint,
       nextLevelMessage: level.objectiveFlow?.nextLevelMessage,
-      interiorCellsArePath: !warnings.some(warning => warning.includes('interior cell')),
-      noInternalWalls: !warnings.some(warning => warning.includes('interior cell')),
+      interiorNonPhase1CellsArePath: !warnings.some(warning => warning.includes('interior non-Phase 1 cell')),
+      noUnapprovedInternalWalls: phase1WallValidation.exactGridCells,
       reachableCells: reachableCells.size
     }
   };
@@ -1705,6 +2027,9 @@ export const level1V2 = {
   floorplanPreview: true,
   mvpObjectiveMode: true,
   mapBuildMode: 'floorplan-zones-mvp',
+  wallMode: 'minimal-maze-wall-phase-1',
+  wallImplementation: 'controlled-approved-segments',
+  internalWallPolicy: 'phase-1-approved-only',
   officeMazeLite: level1V2OfficeMazeLiteStatus,
   objectiveFlow: {
     route: ['A', 'C', 'D', 'F', 'H'],
@@ -1741,7 +2066,7 @@ export const level1V2 = {
   navigationNodes: [],
   areaLights: level1V2AreaLights,
   ceilingLights: level1V2CeilingLights,
-  wallSegments: [],
+  wallSegments: level1V2Phase1WallSegments,
   partitionBands: [],
   doorways: [],
   connectors: [],
@@ -1756,9 +2081,10 @@ export const level1V2 = {
   notes: [
     'Level 1 V2 MVP objective preview. Floor zones remain the source of truth.',
     'A-H rooms and the central route are shown as floor colors only.',
-    'Only the outer boundary wall exists; every interior cell remains CELL_PATH.',
+    'Outer boundary walls plus exactly five approved Minimal Maze Wall Phase 1 segments exist.',
+    'Every non-border, non-Phase 1 wall interior cell remains CELL_PATH.',
     'Minimal MVP objects are procedural visual markers only; collisionVolumes remain empty.',
-    'Office Maze Lite dividers are disabled until formal room/asset requirements are approved.',
+    'Office Maze Lite dividers remain disabled; Phase 1 walls are controlled approved grid segments.',
     'Simple objective route is A -> C -> D -> F -> H.',
     'Level 1 V2 MVP presentation checklist: start at A, collect Shift Assignment Form, follow tasks to C/D/F/H, confirm Documents 5/5, confirm route complete, reset to 0/5.',
     `Start hint: ${level1V2StartHint}`,

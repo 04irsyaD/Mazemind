@@ -1,5 +1,7 @@
 # Level 1 V2 Wall Requirements
 
+Detailed per-room wall planning is defined in level1V2-room-wall-requirements.md.
+
 ## Current MVP Wall Status
 - Only outer boundary walls are allowed in the current MVP.
 - All interior grid cells must remain CELL_PATH.

@@ -14,6 +14,8 @@ If validation fails, do not proceed.
 
 Current runtime state:
 - maze-lite Phase 1 visual divider rendering paused
+- placement preview mode enabled with floor markers only
+- placement slot mode enabled from approved floor zones
 - grid wall segments disabled
 - collisionVolumes empty
 - only outer boundary walls allowed
@@ -22,6 +24,25 @@ Conflict note:
 - `f-archive-divider-02` at `{ x: 10, y: 20.5 }` is omitted because it overlaps the approved central route bounds.
 - `c-workstation-divider-01`, `c-workstation-divider-02`, and `f-archive-divider-01` are disabled proposal records only.
 - Future divider positions require screenshot/top-down visual approval; bounds validation alone is not enough.
+
+Preview candidate markers:
+- W1 `main-workstation-hall` at `{ x: 20.5, y: 4.5 }`
+- W2 `main-workstation-hall` at `{ x: 24.5, y: 5.8 }`
+- W3 `records-archive` at `{ x: 5.5, y: 19 }`
+- W4 `records-archive` at `{ x: 8.5, y: 20.5 }`
+
+Placement slot markers:
+- A1 `front-admin-intake` at `{ x: 5.5, y: 6.2 }`
+- B1 `canteen` at `{ x: 5.5, y: 10.5 }`
+- C1 `main-workstation-hall` at `{ x: 19.5, y: 5.0 }`
+- C2 `main-workstation-hall` at `{ x: 25.5, y: 5.8 }`
+- C-D1 `main-workstation-hall` at `{ x: 22.0, y: 7.0 }`
+- D1 `boardroom-review` at `{ x: 21.5, y: 12.5 }`
+- F1 `records-archive` at `{ x: 5.0, y: 19.0 }`
+- F2 `records-archive` at `{ x: 8.0, y: 20.5 }`
+- F-D1 `records-archive` at `{ x: 7.5, y: 18.2 }`
+- G1 `secondary-workstation` at `{ x: 24.0, y: 20.0 }`
+- H1 `level2-access` at `{ x: 15.5, y: 20.0 }`
 
 ## 1. Purpose
 

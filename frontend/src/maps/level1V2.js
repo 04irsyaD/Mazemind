@@ -7,7 +7,12 @@ const GRID_HEIGHT = 24;
 const level1V2WallSegments = [];
 const mazeLitePhase1Source = 'maze-lite-phase-1-visual-only';
 const mazeLitePhase1Enabled = false;
+const mazeLitePlacementPreview = true;
 const mazeLitePlacementStatus = 'paused-pending-user-approved-placement';
+const wallPlacementMode = 'preview-markers-only';
+const placementSlotMode = true;
+const placementSlotSource = 'approved-floor-zones';
+const placementSlotStatus = 'preview-only';
 const metersToGridCells = meters => Number((meters / CONSTANTS.CELL_SIZE).toFixed(3));
 
 function buildFloorZonePreviewGrid() {
@@ -505,7 +510,12 @@ const level1V2OfficeMazeLiteStatus = {
   phase: 1,
   visualOnly: true,
   mazeLitePhase1Enabled,
+  mazeLitePlacementPreview,
   mazeLitePlacementStatus,
+  wallPlacementMode,
+  placementSlotMode,
+  placementSlotSource,
+  placementSlotStatus,
   gridWallSegmentsEnabled: false,
   dividerCollisionEnabled: false,
   note: 'Office Maze Lite Phase 1 divider rendering is paused until user-approved screenshot/top-down placement.'
@@ -763,9 +773,316 @@ const level1V2MazeLiteVisualDividerProps = level1V2MazeLiteVisualDividers.map(cr
 const level1V2MazeLiteDividers = level1V2MazeLiteVisualDividers;
 const level1V2MazeLiteObstacles = [];
 
+const level1V2PlacementCandidates = [
+  {
+    id: 'candidate-c-divider-01',
+    candidateType: 'cubicle-divider',
+    targetRoomId: 'main-workstation-hall',
+    label: 'W1',
+    position: { x: 20.5, y: 4.5 },
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-marker',
+    collision: false,
+    blocking: false,
+    approved: false
+  },
+  {
+    id: 'candidate-c-divider-02',
+    candidateType: 'cubicle-divider',
+    targetRoomId: 'main-workstation-hall',
+    label: 'W2',
+    position: { x: 24.5, y: 5.8 },
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-marker',
+    collision: false,
+    blocking: false,
+    approved: false
+  },
+  {
+    id: 'candidate-f-archive-01',
+    candidateType: 'archive-rack-divider',
+    targetRoomId: 'records-archive',
+    label: 'W3',
+    position: { x: 5.5, y: 19 },
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-marker',
+    collision: false,
+    blocking: false,
+    approved: false
+  },
+  {
+    id: 'candidate-f-archive-02',
+    candidateType: 'archive-rack-divider',
+    targetRoomId: 'records-archive',
+    label: 'W4',
+    position: { x: 8.5, y: 20.5 },
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-marker',
+    collision: false,
+    blocking: false,
+    approved: false
+  }
+];
+
+function createPlacementCandidateMarker(candidate, index) {
+  const isArchiveCandidate = candidate.targetRoomId === 'records-archive';
+  const accentColors = [0xf2d36b, 0x8ed8ff, 0xf2d36b, 0x8ed8ff];
+
+  return {
+    id: `${candidate.id}-marker`,
+    type: 'platform',
+    label: `${candidate.label} placement preview`,
+    roomId: candidate.targetRoomId,
+    x: candidate.position.x,
+    y: candidate.position.y,
+    width: isArchiveCandidate ? 0.34 : 0.38,
+    depth: isArchiveCandidate ? 0.24 : 0.22,
+    height: 0.035,
+    color: accentColors[index] ?? 0xf2d36b,
+    emissive: accentColors[index] ?? 0xf2d36b,
+    emissiveIntensity: 0.08,
+    roughness: 0.64,
+    visualOnly: true,
+    collision: false,
+    blocking: false,
+    approved: false,
+    status: 'placement-preview-marker',
+    renderAs: 'floor-marker',
+    candidateId: candidate.id,
+    candidateType: candidate.candidateType,
+    size: {
+      width: isArchiveCandidate ? 0.34 : 0.38,
+      height: 0.035,
+      depth: isArchiveCandidate ? 0.24 : 0.22
+    },
+    metadata: {
+      prefab: 'placementCandidateFloorMarker',
+      roomId: candidate.targetRoomId,
+      candidateId: candidate.id,
+      candidateLabel: candidate.label,
+      candidateType: candidate.candidateType,
+      status: candidate.status,
+      renderAs: candidate.renderAs,
+      wallPlacementMode,
+      visualOnly: true
+    }
+  };
+}
+
+const level1V2PlacementCandidateMarkers = level1V2PlacementCandidates.map(createPlacementCandidateMarker);
+
+const level1V2PlacementSlots = [
+  {
+    id: 'A_OBJECT_SLOT_01',
+    roomId: 'front-admin-intake',
+    code: 'A',
+    slotType: 'object',
+    label: 'A1',
+    position: { x: 5.5, y: 6.2 },
+    allowedAssetTypes: ['intake-counter', 'document-marker', 'small-terminal'],
+    maxSize: { width: 2.0, depth: 1.0, height: 1.2 },
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  },
+  {
+    id: 'B_OBJECT_SLOT_01',
+    roomId: 'canteen',
+    code: 'B',
+    slotType: 'object',
+    label: 'B1',
+    position: { x: 5.5, y: 10.5 },
+    allowedAssetTypes: ['canteen-table', 'break-table'],
+    maxSize: { width: 2.0, depth: 1.2, height: 1.0 },
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  },
+  {
+    id: 'C_WORKSTATION_SLOT_01',
+    roomId: 'main-workstation-hall',
+    code: 'C',
+    slotType: 'object',
+    label: 'C1',
+    position: { x: 19.5, y: 5.0 },
+    allowedAssetTypes: ['workstation-cluster', 'monitor-block'],
+    maxSize: { width: 2.5, depth: 1.5, height: 1.4 },
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  },
+  {
+    id: 'C_WORKSTATION_SLOT_02',
+    roomId: 'main-workstation-hall',
+    code: 'C',
+    slotType: 'object',
+    label: 'C2',
+    position: { x: 25.5, y: 5.8 },
+    allowedAssetTypes: ['workstation-cluster', 'monitor-block'],
+    maxSize: { width: 2.5, depth: 1.5, height: 1.4 },
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  },
+  {
+    id: 'C_DIVIDER_SLOT_01',
+    roomId: 'main-workstation-hall',
+    code: 'C',
+    slotType: 'divider',
+    label: 'C-D1',
+    position: { x: 22.0, y: 7.0 },
+    allowedAssetTypes: ['cubicle-partition', 'low-office-divider'],
+    maxSize: { width: 2.4, depth: 0.25, height: 1.5 },
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  },
+  {
+    id: 'D_OBJECT_SLOT_01',
+    roomId: 'boardroom-review',
+    code: 'D',
+    slotType: 'object',
+    label: 'D1',
+    position: { x: 21.5, y: 12.5 },
+    allowedAssetTypes: ['meeting-table', 'review-marker'],
+    maxSize: { width: 3.0, depth: 1.4, height: 1.0 },
+    intendedObjectiveId: 'pending-ledger',
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  },
+  {
+    id: 'F_ARCHIVE_SLOT_01',
+    roomId: 'records-archive',
+    code: 'F',
+    slotType: 'object',
+    label: 'F1',
+    position: { x: 5.0, y: 19.0 },
+    allowedAssetTypes: ['archive-rack', 'filing-cabinet'],
+    maxSize: { width: 1.8, depth: 0.6, height: 2.0 },
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  },
+  {
+    id: 'F_ARCHIVE_SLOT_02',
+    roomId: 'records-archive',
+    code: 'F',
+    slotType: 'object',
+    label: 'F2',
+    position: { x: 8.0, y: 20.5 },
+    allowedAssetTypes: ['archive-rack', 'filing-cabinet'],
+    maxSize: { width: 1.8, depth: 0.6, height: 2.0 },
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  },
+  {
+    id: 'F_DIVIDER_SLOT_01',
+    roomId: 'records-archive',
+    code: 'F',
+    slotType: 'divider',
+    label: 'F-D1',
+    position: { x: 7.5, y: 18.2 },
+    allowedAssetTypes: ['archive-rack-divider', 'filing-cabinet-divider'],
+    maxSize: { width: 2.0, depth: 0.5, height: 2.0 },
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  },
+  {
+    id: 'G_OBJECT_SLOT_01',
+    roomId: 'secondary-workstation',
+    code: 'G',
+    slotType: 'object',
+    label: 'G1',
+    position: { x: 24.0, y: 20.0 },
+    allowedAssetTypes: ['small-workstation-cluster', 'account-desk'],
+    maxSize: { width: 2.5, depth: 1.5, height: 1.4 },
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  },
+  {
+    id: 'H_OBJECT_SLOT_01',
+    roomId: 'level2-access',
+    code: 'H',
+    slotType: 'object',
+    label: 'H1',
+    position: { x: 15.5, y: 20.0 },
+    allowedAssetTypes: ['level-access-pad', 'lift-marker', 'stairs-marker'],
+    maxSize: { width: 2.0, depth: 2.0, height: 1.5 },
+    intendedObjectiveId: 'level2-access-note',
+    collisionAllowed: false,
+    approved: false,
+    status: 'pending-user-visual-approval',
+    renderAs: 'floor-slot-marker'
+  }
+];
+
+function createPlacementSlotMarker(slot, index) {
+  const markerColors = {
+    object: 0x7fd9ff,
+    divider: 0xf1cc66
+  };
+  const width = slot.slotType === 'divider' ? 0.42 : 0.36;
+  const depth = slot.slotType === 'divider' ? 0.18 : 0.28;
+
+  return {
+    id: `${slot.id}-marker`,
+    type: 'platform',
+    label: `${slot.label} placement slot`,
+    roomId: slot.roomId,
+    x: slot.position.x,
+    y: slot.position.y,
+    width,
+    depth,
+    height: 0.032,
+    color: markerColors[slot.slotType] ?? 0x7fd9ff,
+    emissive: markerColors[slot.slotType] ?? 0x7fd9ff,
+    emissiveIntensity: 0.07,
+    roughness: 0.68,
+    visualOnly: true,
+    collision: false,
+    blocking: false,
+    approved: false,
+    status: 'placement-slot-preview-marker',
+    renderAs: 'floor-slot-marker',
+    slotId: slot.id,
+    slotType: slot.slotType,
+    slotIndex: index,
+    size: { width, height: 0.032, depth },
+    metadata: {
+      prefab: 'placementSlotFloorMarker',
+      roomId: slot.roomId,
+      slotId: slot.id,
+      slotLabel: slot.label,
+      slotType: slot.slotType,
+      allowedAssetTypes: slot.allowedAssetTypes,
+      placementSlotSource,
+      placementSlotStatus,
+      visualOnly: true
+    }
+  };
+}
+
+const level1V2PlacementSlotMarkers = level1V2PlacementSlots.map(createPlacementSlotMarker);
+
 const level1V2Architecture = [
   ...level1V2MvpObjects,
-  ...level1V2MazeLiteVisualDividerProps
+  ...level1V2MazeLiteVisualDividerProps,
+  ...level1V2PlacementCandidateMarkers,
+  ...level1V2PlacementSlotMarkers
 ];
 
 const objectiveActiveColor = 0xb7f7ff;
@@ -1348,16 +1665,179 @@ function getMazeLiteDividerFootprint(divider) {
   };
 }
 
+function getPlacementCandidateFootprint(candidate) {
+  const width = candidate.candidateType === 'archive-rack-divider' ? 0.34 : 0.38;
+  const depth = candidate.candidateType === 'archive-rack-divider' ? 0.24 : 0.22;
+  const x = candidate.position?.x;
+  const y = candidate.position?.y;
+
+  return {
+    x1: x - width / 2,
+    y1: y - depth / 2,
+    x2: x + width / 2,
+    y2: y + depth / 2
+  };
+}
+
+function getPlacementSlotFootprint(slot) {
+  const width = slot.slotType === 'divider' ? 0.42 : 0.36;
+  const depth = slot.slotType === 'divider' ? 0.18 : 0.28;
+  const x = slot.position?.x;
+  const y = slot.position?.y;
+
+  return {
+    x1: x - width / 2,
+    y1: y - depth / 2,
+    x2: x + width / 2,
+    y2: y + depth / 2
+  };
+}
+
 function validateArchitectureComposition(level, warnings) {
   const expectedIds = [
     ...(level.mvpObjects ?? []).map(object => object.id),
-    ...level1V2MazeLiteVisualDividerProps.map(object => object.id)
+    ...level1V2MazeLiteVisualDividerProps.map(object => object.id),
+    ...level1V2PlacementCandidateMarkers.map(object => object.id),
+    ...level1V2PlacementSlotMarkers.map(object => object.id)
   ];
   const actualIds = (level.architecture ?? []).map(object => object.id);
 
   if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
-    warnings.push('architecture must contain MVP objects followed only by approved Phase 1 visual dividers');
+    warnings.push('architecture must contain MVP objects, active visual dividers, and preview placement markers only');
   }
+}
+
+function validatePlacementSlots(level, warnings) {
+  const slots = level.placementSlots ?? [];
+  const expectedIds = [
+    'A_OBJECT_SLOT_01',
+    'B_OBJECT_SLOT_01',
+    'C_WORKSTATION_SLOT_01',
+    'C_WORKSTATION_SLOT_02',
+    'C_DIVIDER_SLOT_01',
+    'D_OBJECT_SLOT_01',
+    'F_ARCHIVE_SLOT_01',
+    'F_ARCHIVE_SLOT_02',
+    'F_DIVIDER_SLOT_01',
+    'G_OBJECT_SLOT_01',
+    'H_OBJECT_SLOT_01'
+  ];
+  const actualIds = slots.map(slot => slot.id);
+  const objectiveFootprints = new Map((level.objectives ?? []).map(objective => [
+    objective.id,
+    {
+      x1: objective.x - 0.32,
+      y1: objective.y - 0.32,
+      x2: objective.x + 0.32,
+      y2: objective.y + 0.32
+    }
+  ]));
+
+  if (level.placementSlotMode !== true) warnings.push('placementSlotMode must be true');
+  if (level.placementSlotSource !== placementSlotSource) warnings.push(`placementSlotSource must be ${placementSlotSource}`);
+  if (level.placementSlotStatus !== placementSlotStatus) warnings.push(`placementSlotStatus must be ${placementSlotStatus}`);
+
+  if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
+    warnings.push(`placement slot IDs must be exactly ${expectedIds.join(', ')}`);
+  }
+
+  if (level1V2PlacementSlotMarkers.length !== slots.length) {
+    warnings.push('placement slot markers must be generated only from placementSlots');
+  }
+
+  slots.forEach(slot => {
+    const targetRoom = level1V2FloorplanRooms.find(room => room.id === slot.roomId);
+    const footprint = getPlacementSlotFootprint(slot);
+
+    if (!hasTextValue(slot.roomId)) warnings.push(`${slot.id} roomId must not be empty`);
+    if (!['object', 'divider'].includes(slot.slotType)) warnings.push(`${slot.id} slotType must be object or divider`);
+    if (!hasTextValue(slot.label)) warnings.push(`${slot.id} label must not be empty`);
+    if (!Array.isArray(slot.allowedAssetTypes) || slot.allowedAssetTypes.length === 0) {
+      warnings.push(`${slot.id} must list allowedAssetTypes`);
+    }
+    if (slot.collisionAllowed !== false) warnings.push(`${slot.id} collisionAllowed must be false`);
+    if (slot.approved !== false) warnings.push(`${slot.id} approved must be false`);
+    if (slot.status !== 'pending-user-visual-approval') warnings.push(`${slot.id} status must be pending-user-visual-approval`);
+    if (slot.renderAs !== 'floor-slot-marker') warnings.push(`${slot.id} renderAs must be floor-slot-marker`);
+
+    ['width', 'depth', 'height'].forEach(key => {
+      if (!Number.isFinite(slot.maxSize?.[key]) || slot.maxSize[key] <= 0) {
+        warnings.push(`${slot.id} maxSize.${key} must be positive`);
+      }
+    });
+
+    if (!targetRoom) {
+      warnings.push(`${slot.id} roomId must match an approved room`);
+      return;
+    }
+
+    if (slot.code !== targetRoom.code) {
+      warnings.push(`${slot.id} code must be ${targetRoom.code}`);
+    }
+
+    if (!boundsContainBounds(targetRoom.bounds, footprint)) {
+      warnings.push(`${slot.id} floor slot marker must stay inside ${targetRoom.code} bounds`);
+    }
+
+    if (slot.roomId !== level1V2CentralRoute.id && doBoundsOverlap(footprint, level1V2CentralRoute.bounds)) {
+      warnings.push(`${slot.id} floor slot marker must not overlap central route`);
+    }
+
+    objectiveFootprints.forEach((objectiveFootprint, objectiveId) => {
+      if (!doBoundsOverlap(footprint, objectiveFootprint)) return;
+      if (slot.intendedObjectiveId !== objectiveId) {
+        warnings.push(`${slot.id} must not overlap objective ${objectiveId} unless intendedObjectiveId matches`);
+      }
+    });
+  });
+}
+
+function validatePlacementCandidates(level, warnings) {
+  const candidates = level.placementCandidates ?? [];
+  const expectedIds = ['candidate-c-divider-01', 'candidate-c-divider-02', 'candidate-f-archive-01', 'candidate-f-archive-02'];
+  const actualIds = candidates.map(candidate => candidate.id);
+
+  if (level.mazeLitePlacementPreview !== true) {
+    warnings.push('mazeLitePlacementPreview must be true for placement marker review mode');
+  }
+
+  if (level.wallPlacementMode !== 'preview-markers-only') {
+    warnings.push('wallPlacementMode must be preview-markers-only');
+  }
+
+  if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
+    warnings.push(`placement candidate IDs must be exactly ${expectedIds.join(', ')}`);
+  }
+
+  if (level1V2PlacementCandidateMarkers.length !== candidates.length) {
+    warnings.push('placement candidate markers must be generated only from placementCandidates');
+  }
+
+  candidates.forEach(candidate => {
+    const targetRoom = level1V2FloorplanRooms.find(room => room.id === candidate.targetRoomId);
+    const footprint = getPlacementCandidateFootprint(candidate);
+
+    if (candidate.status !== 'pending-user-visual-approval') {
+      warnings.push(`${candidate.id} status must be pending-user-visual-approval`);
+    }
+    if (candidate.renderAs !== 'floor-marker') warnings.push(`${candidate.id} renderAs must be floor-marker`);
+    if (candidate.collision !== false) warnings.push(`${candidate.id} collision must be false`);
+    if (candidate.blocking !== false) warnings.push(`${candidate.id} blocking must be false`);
+    if (candidate.approved !== false) warnings.push(`${candidate.id} approved must be false`);
+
+    if (!targetRoom) {
+      warnings.push(`${candidate.id} targetRoomId must match an approved room`);
+      return;
+    }
+
+    if (!boundsContainBounds(targetRoom.bounds, footprint)) {
+      warnings.push(`${candidate.id} floor marker must stay inside ${targetRoom.code} bounds`);
+    }
+
+    if (doBoundsOverlap(footprint, level1V2CentralRoute.bounds)) {
+      warnings.push(`${candidate.id} floor marker must not overlap central route`);
+    }
+  });
 }
 
 function validateMazeLiteDividers(level, warnings) {
@@ -1952,6 +2432,8 @@ function validateLevel1V2FloorplanPreview(level) {
   validateFloorplanMarkers(level.floorplanMarkers ?? [], warnings);
   validateMvpObjects(level.mvpObjects ?? [], warnings);
   validateMazeLiteDividers(level, warnings);
+  validatePlacementCandidates(level, warnings);
+  validatePlacementSlots(level, warnings);
   validateMazeLiteCollisionVolumes(level, warnings);
   validateArchitectureComposition(level, warnings);
   validatePresentationLighting(level, warnings);
@@ -2002,7 +2484,16 @@ function validateLevel1V2FloorplanPreview(level) {
       mazeLiteDividerCount: mazeLiteDividers.length,
       mazeLiteObstacleCount: mazeLiteObstacles.length,
       mazeLitePhase1Enabled,
+      mazeLitePlacementPreview: level.mazeLitePlacementPreview,
       mazeLitePlacementStatus,
+      wallPlacementMode: level.wallPlacementMode,
+      placementCandidateCount: level.placementCandidates?.length ?? 0,
+      placementCandidateRoute: level.placementCandidates?.map(candidate => `${candidate.label}:${candidate.targetRoomId}@${candidate.position.x},${candidate.position.y}`) ?? [],
+      placementSlotMode: level.placementSlotMode,
+      placementSlotSource: level.placementSlotSource,
+      placementSlotStatus: level.placementSlotStatus,
+      placementSlotCount: level.placementSlots?.length ?? 0,
+      placementSlotRoute: level.placementSlots?.map(slot => `${slot.label}:${slot.roomId}@${slot.position.x},${slot.position.y}`) ?? [],
       mazeLitePhase1VisualOnly: mazeLiteDividers.length > 0 &&
         mazeLiteDividers.length <= 4 &&
         mazeLiteDividers.every(divider => divider.collision === false && divider.blocking === false),
@@ -2043,7 +2534,12 @@ export const level1V2 = {
   wallImplementation: 'boundary-grid-only',
   internalWallPolicy: 'disabled',
   mazeLitePhase1Enabled,
+  mazeLitePlacementPreview,
   mazeLitePlacementStatus,
+  wallPlacementMode,
+  placementSlotMode,
+  placementSlotSource,
+  placementSlotStatus,
   officeMazeLite: level1V2OfficeMazeLiteStatus,
   objectiveFlow: {
     route: ['A', 'C', 'D', 'F', 'H'],
@@ -2064,6 +2560,8 @@ export const level1V2 = {
   corridors: [level1V2CentralRoute],
   floorZones: level1V2FloorZones,
   floorplanMarkers: level1V2FloorplanMarkers,
+  placementCandidates: level1V2PlacementCandidates,
+  placementSlots: level1V2PlacementSlots,
   mvpObjects: level1V2MvpObjects,
   mazeLiteDividers: level1V2MazeLiteDividers,
   mazeLiteObstacles: level1V2MazeLiteObstacles,
@@ -2098,6 +2596,8 @@ export const level1V2 = {
     'Only outer boundary walls exist.',
     'Every non-border interior cell remains CELL_PATH.',
     'Minimal MVP objects are procedural visual markers only; collisionVolumes remain empty.',
+    'Placement preview mode shows only low floor markers W1-W4 for screenshot/top-down review.',
+    'Placement slot mode uses approved floor zones as source of truth; slot markers are preview-only.',
     'Office Maze Lite Phase 1 divider rendering is paused pending user-approved screenshot/top-down placement.',
     'Maze Lite dividers are non-colliding and non-blocking; grid wall segments remain disabled.',
     'Simple objective route is A -> C -> D -> F -> H.',
@@ -2114,6 +2614,12 @@ if (CONSTANTS.DEV_MODE) {
   printLevel1V2AsciiGrid(level1V2);
   console.info('[MazeMind] Level 1 V2 MVP manual test steps:\n' + level1V2ManualTestSteps.map((step, index) => `${index + 1}. ${step}`).join('\n'));
   console.info('[MazeMind] Level 1 V2 MVP presentation checklist:\n' + level1V2PresentationChecklist.map((step, index) => `${index + 1}. ${step}`).join('\n'));
+  console.info('[MazeMind] Level 1 V2 Placement Candidates:\n' + level1V2PlacementCandidates
+    .map(candidate => `${candidate.label} ${candidate.targetRoomId} @ ${candidate.position.x},${candidate.position.y}`)
+    .join('\n'));
+  console.info('[MazeMind] Level 1 V2 Placement Slots:\n' + level1V2PlacementSlots
+    .map(slot => `${slot.label} ${slot.roomId} @ ${slot.position.x},${slot.position.y}`)
+    .join('\n'));
 
   if (level1V2FloorplanPreviewValidation.valid) {
     console.info('[MazeMind] Level 1 V2 floorplan preview validation passed', level1V2FloorplanPreviewValidation);

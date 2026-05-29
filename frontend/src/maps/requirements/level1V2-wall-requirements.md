@@ -8,6 +8,9 @@ Detailed per-room wall planning is defined in level1V2-room-wall-requirements.md
 - Internal room walls are intentionally disabled for stability.
 - Room shells are not allowed in MVP.
 - Doors are not allowed in MVP.
+- Wall/divider placement preview mode may show low floor markers only.
+- Preview markers are not wallSegments, collisionVolumes, walls, or dividers.
+- Placement slot mode may show floor slot markers sourced from approved floor zones only.
 
 ## Why Internal Walls Are Restricted
 - Previous internal wall attempts caused blocky/incorrect office layout.
@@ -40,7 +43,13 @@ Phase 0:
 Outer boundary only.
 
 Phase 1:
-Floor zone preview only.
+Floor zone preview and optional floor-level placement markers only.
+
+Placement slot preview:
+- `placementSlotMode: true`
+- `placementSlotSource: approved-floor-zones`
+- `placementSlotStatus: preview-only`
+- Slot markers must not become wallSegments or collisionVolumes.
 
 Phase 2:
 Office Maze Lite dividers, requirements-approved only.

@@ -39,6 +39,12 @@ function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function numberPattern(value) {
+  const number = Number(value);
+  if (Number.isInteger(number)) return `${number}(?:\\.0)?`;
+  return escapeRegExp(value);
+}
+
 function hasPattern(text, pattern) {
   return pattern.test(text);
 }
@@ -116,6 +122,30 @@ function dividerFootprint(divider) {
   };
 }
 
+function previewCandidateFootprint(candidate) {
+  const width = candidate.candidateType === 'archive-rack-divider' ? 0.34 : 0.38;
+  const depth = candidate.candidateType === 'archive-rack-divider' ? 0.24 : 0.22;
+
+  return {
+    x1: candidate.position.x - width / 2,
+    y1: candidate.position.y - depth / 2,
+    x2: candidate.position.x + width / 2,
+    y2: candidate.position.y + depth / 2
+  };
+}
+
+function placementSlotFootprint(slot) {
+  const width = slot.slotType === 'divider' ? 0.42 : 0.36;
+  const depth = slot.slotType === 'divider' ? 0.18 : 0.28;
+
+  return {
+    x1: slot.position.x - width / 2,
+    y1: slot.position.y - depth / 2,
+    x2: slot.position.x + width / 2,
+    y2: slot.position.y + depth / 2
+  };
+}
+
 function validateRequirementsShape(requirements) {
   if (requirements.levelId !== 'level-1-v2') {
     addFailure('requirements.levelId must be level-1-v2');
@@ -151,6 +181,149 @@ function validateRequirementsShape(requirements) {
 
   if (!requirements.rooms?.['central-route']) {
     addFailure('requirements.rooms must include central-route');
+  }
+
+  const placementSlots = requirements.placementSlots;
+  if (!placementSlots) {
+    addFailure('requirements.placementSlots must exist for floor-zone slot mode');
+  } else {
+    if (placementSlots.enabled !== true) addFailure('placementSlots.enabled must be true');
+    if (placementSlots.mode !== true) addFailure('placementSlots.mode must be true');
+    if (placementSlots.source !== 'approved-floor-zones') addFailure('placementSlots.source must be approved-floor-zones');
+    if (placementSlots.status !== 'preview-only') addFailure('placementSlots.status must be preview-only');
+    if (placementSlots.requireSlotForNewObjects !== true) addFailure('placementSlots.requireSlotForNewObjects must be true');
+    if (placementSlots.requireSlotForNewDividers !== true) addFailure('placementSlots.requireSlotForNewDividers must be true');
+
+    const expectedSlotIds = [
+      'A_OBJECT_SLOT_01',
+      'B_OBJECT_SLOT_01',
+      'C_WORKSTATION_SLOT_01',
+      'C_WORKSTATION_SLOT_02',
+      'C_DIVIDER_SLOT_01',
+      'D_OBJECT_SLOT_01',
+      'F_ARCHIVE_SLOT_01',
+      'F_ARCHIVE_SLOT_02',
+      'F_DIVIDER_SLOT_01',
+      'G_OBJECT_SLOT_01',
+      'H_OBJECT_SLOT_01'
+    ];
+    const slots = placementSlots.slots ?? [];
+    const actualSlotIds = slots.map(slot => slot.id);
+
+    if (!Array.isArray(slots) || slots.length !== expectedSlotIds.length) {
+      addFailure(`placementSlots.slots must contain exactly ${expectedSlotIds.length} slots`);
+    } else if (JSON.stringify(actualSlotIds) !== JSON.stringify(expectedSlotIds)) {
+      addFailure(`placementSlots slot IDs must be exactly ${expectedSlotIds.join(', ')}`);
+    }
+
+    slots.forEach(slot => {
+      const room = requirements.rooms?.[slot.roomId];
+      if (!room) {
+        addFailure(`${slot.id} roomId ${slot.roomId} is not defined in requirements.rooms`);
+        return;
+      }
+
+      if (slot.code !== room.code) addFailure(`${slot.id} code must be ${room.code}`);
+      if (!['object', 'divider'].includes(slot.slotType)) addFailure(`${slot.id} slotType must be object or divider`);
+      if (!slot.label) addFailure(`${slot.id} label must not be empty`);
+      if (!Array.isArray(slot.allowedAssetTypes) || slot.allowedAssetTypes.length === 0) addFailure(`${slot.id} must list allowedAssetTypes`);
+      if (slot.collisionAllowed !== false) addFailure(`${slot.id} collisionAllowed must be false`);
+      if (slot.approved !== false) addFailure(`${slot.id} approved must be false`);
+      if (slot.status !== 'pending-user-visual-approval') addFailure(`${slot.id} status must be pending-user-visual-approval`);
+      if (slot.renderAs !== 'floor-slot-marker') addFailure(`${slot.id} renderAs must be floor-slot-marker`);
+
+      ['width', 'depth', 'height'].forEach(key => {
+        if (!Number.isFinite(slot.maxSize?.[key]) || slot.maxSize[key] <= 0) {
+          addFailure(`${slot.id} maxSize.${key} must be positive`);
+        }
+      });
+
+      const footprint = placementSlotFootprint(slot);
+      if (!boundsContainBounds(room.bounds, footprint)) {
+        addFailure(`${slot.id} floor slot marker must stay inside ${slot.roomId} bounds`);
+      }
+
+      if (slot.roomId !== 'central-route' && doBoundsOverlap(footprint, requirements.rooms['central-route'].bounds)) {
+        addFailure(`${slot.id} floor slot marker must not overlap central-route`);
+      }
+
+      requirements.objectives.route.forEach(objective => {
+        const objectiveFootprint = {
+          x1: objective.position.x - 0.32,
+          y1: objective.position.y - 0.32,
+          x2: objective.position.x + 0.32,
+          y2: objective.position.y + 0.32
+        };
+        if (!doBoundsOverlap(footprint, objectiveFootprint)) return;
+        if (slot.intendedObjectiveId !== objective.id) {
+          addFailure(`${slot.id} must not overlap objective ${objective.id} unless intendedObjectiveId matches`);
+        }
+      });
+    });
+  }
+
+  const placementPreview = requirements.placementPreview;
+  if (!placementPreview) {
+    addFailure('requirements.placementPreview must exist for preview marker mode');
+  } else {
+    if (placementPreview.mazeLitePlacementPreview !== true) {
+      addFailure('placementPreview.mazeLitePlacementPreview must be true');
+    }
+    if (placementPreview.mazeLitePhase1Enabled !== false) {
+      addFailure('placementPreview.mazeLitePhase1Enabled must be false');
+    }
+    if (placementPreview.wallPlacementMode !== 'preview-markers-only') {
+      addFailure('placementPreview.wallPlacementMode must be preview-markers-only');
+    }
+
+    const markerRules = placementPreview.markerRules ?? {};
+    if (markerRules.renderAs !== 'floor-marker') addFailure('placementPreview marker renderAs must be floor-marker');
+    if (markerRules.status !== 'pending-user-visual-approval') addFailure('placementPreview marker status must be pending-user-visual-approval');
+    if (markerRules.collision !== false) addFailure('placementPreview markers must be collision false');
+    if (markerRules.blocking !== false) addFailure('placementPreview markers must be blocking false');
+    if (markerRules.approved !== false) addFailure('placementPreview markers must be approved false');
+    if (markerRules.maxHeight !== 0.05) addFailure('placementPreview marker maxHeight must be 0.05');
+
+    const expectedLabels = ['W1', 'W2', 'W3', 'W4'];
+    if (!Array.isArray(placementPreview.candidates) || placementPreview.candidates.length !== 4) {
+      addFailure('placementPreview.candidates must contain exactly 4 preview markers');
+    } else {
+      placementPreview.candidates.forEach((candidate, index) => {
+        const room = requirements.rooms?.[candidate.targetRoomId];
+        if (!room) {
+          addFailure(`${candidate.id} targetRoomId ${candidate.targetRoomId} is not defined in requirements.rooms`);
+          return;
+        }
+
+        if (candidate.label !== expectedLabels[index]) addFailure(`${candidate.id} label must be ${expectedLabels[index]}`);
+        if (candidate.status !== 'pending-user-visual-approval') addFailure(`${candidate.id} status must be pending-user-visual-approval`);
+        if (candidate.renderAs !== 'floor-marker') addFailure(`${candidate.id} renderAs must be floor-marker`);
+        if (candidate.collision !== false) addFailure(`${candidate.id} collision must be false`);
+        if (candidate.blocking !== false) addFailure(`${candidate.id} blocking must be false`);
+        if (candidate.approved !== false) addFailure(`${candidate.id} approved must be false`);
+
+        const footprint = previewCandidateFootprint(candidate);
+        if (!boundsContainBounds(room.bounds, footprint)) {
+          addFailure(`${candidate.id} preview marker must stay inside ${candidate.targetRoomId} bounds`);
+        }
+
+        if (doBoundsOverlap(footprint, requirements.rooms['central-route'].bounds)) {
+          addFailure(`${candidate.id} preview marker must not overlap central-route`);
+        }
+
+        requirements.objectives.route.forEach(objective => {
+          const objectiveFootprint = {
+            x1: objective.position.x - 0.32,
+            y1: objective.position.y - 0.32,
+            x2: objective.position.x + 0.32,
+            y2: objective.position.y + 0.32
+          };
+          if (doBoundsOverlap(footprint, objectiveFootprint)) {
+            addFailure(`${candidate.id} preview marker must not overlap objective ${objective.id}`);
+          }
+        });
+      });
+    }
   }
 
   const phase1 = requirements.mazeLitePhase1;
@@ -327,6 +500,113 @@ function validateStaticMazeLitePhase1(levelText, requirements) {
   });
 }
 
+function validateStaticPlacementPreview(levelText, requirements) {
+  const placementPreview = requirements.placementPreview;
+  const expectedCandidates = placementPreview?.candidates ?? [];
+
+  ensurePattern(levelText, /const\s+mazeLitePlacementPreview\s*=\s*true\s*;/, 'mazeLitePlacementPreview must be true');
+  ensurePattern(levelText, /const\s+wallPlacementMode\s*=\s*['"]preview-markers-only['"]\s*;/, 'wallPlacementMode must be preview-markers-only');
+  ensurePattern(levelText, /mazeLitePlacementPreview\s*,/, 'level export must include mazeLitePlacementPreview metadata');
+  ensurePattern(levelText, /wallPlacementMode\s*,/, 'level export must include wallPlacementMode metadata');
+  ensurePattern(levelText, /placementCandidates\s*:\s*level1V2PlacementCandidates\b/, 'level export must expose placementCandidates');
+  ensurePattern(levelText, /const\s+level1V2PlacementCandidates\s*=\s*\[/, 'level1V2PlacementCandidates must be declared');
+  ensurePattern(levelText, /const\s+level1V2PlacementCandidateMarkers\s*=\s*level1V2PlacementCandidates\.map/, 'preview marker props must derive only from placementCandidates');
+  ensurePattern(levelText, /\.\.\.level1V2PlacementCandidateMarkers/, 'architecture must include only generated placement candidate markers for preview rendering');
+  ensurePattern(levelText, /console\.info\('\[MazeMind\] Level 1 V2 Placement Candidates:/, 'DEV log must report placement candidates');
+
+  const candidatesBody = findConstArrayBody(levelText, 'level1V2PlacementCandidates');
+  if (candidatesBody === null) {
+    addFailure('level1V2PlacementCandidates array was not found');
+    return;
+  }
+
+  const candidateIdsInArray = [...candidatesBody.matchAll(/id\s*:\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
+  const expectedIds = expectedCandidates.map(candidate => candidate.id);
+  if (candidateIdsInArray.length !== expectedCandidates.length) {
+    addFailure(`Placement preview candidate count must be ${expectedCandidates.length}, found ${candidateIdsInArray.length}`);
+  }
+
+  if (JSON.stringify(candidateIdsInArray) !== JSON.stringify(expectedIds)) {
+    addFailure(`Placement preview candidate IDs must be exactly ${expectedIds.join(', ')}`);
+  }
+
+  expectedCandidates.forEach(candidate => {
+    const snippet = findObjectSnippetById(levelText, candidate.id, 900);
+    if (!snippet) {
+      addFailure(`Placement preview candidate ${candidate.id} is missing`);
+      return;
+    }
+
+    ensurePattern(snippet, new RegExp(`candidateType\\s*:\\s*['"]${escapeRegExp(candidate.candidateType)}['"]`), `${candidate.id} candidateType must be ${candidate.candidateType}`);
+    ensurePattern(snippet, new RegExp(`targetRoomId\\s*:\\s*['"]${escapeRegExp(candidate.targetRoomId)}['"]`), `${candidate.id} targetRoomId must be ${candidate.targetRoomId}`);
+    ensurePattern(snippet, new RegExp(`label\\s*:\\s*['"]${escapeRegExp(candidate.label)}['"]`), `${candidate.id} label must be ${candidate.label}`);
+    ensurePattern(snippet, new RegExp(`position\\s*:\\s*\\{\\s*x\\s*:\\s*${escapeRegExp(candidate.position.x)}\\s*,\\s*y\\s*:\\s*${escapeRegExp(candidate.position.y)}\\s*\\}`), `${candidate.id} position must remain ${JSON.stringify(candidate.position)}`);
+    ensurePattern(snippet, /status\s*:\s*['"]pending-user-visual-approval['"]/, `${candidate.id} status must be pending-user-visual-approval`);
+    ensurePattern(snippet, /renderAs\s*:\s*['"]floor-marker['"]/, `${candidate.id} renderAs must be floor-marker`);
+    ensurePattern(snippet, /collision\s*:\s*false\b/, `${candidate.id} collision must be false`);
+    ensurePattern(snippet, /blocking\s*:\s*false\b/, `${candidate.id} blocking must be false`);
+    ensurePattern(snippet, /approved\s*:\s*false\b/, `${candidate.id} approved must be false`);
+  });
+}
+
+function validateStaticPlacementSlots(levelText, requirements) {
+  const placementSlots = requirements.placementSlots;
+  const expectedSlots = placementSlots?.slots ?? [];
+
+  ensurePattern(levelText, /const\s+placementSlotMode\s*=\s*true\s*;/, 'placementSlotMode must be true');
+  ensurePattern(levelText, /const\s+placementSlotSource\s*=\s*['"]approved-floor-zones['"]\s*;/, 'placementSlotSource must be approved-floor-zones');
+  ensurePattern(levelText, /const\s+placementSlotStatus\s*=\s*['"]preview-only['"]\s*;/, 'placementSlotStatus must be preview-only');
+  ensurePattern(levelText, /placementSlotMode\s*,/, 'level export must include placementSlotMode metadata');
+  ensurePattern(levelText, /placementSlotSource\s*,/, 'level export must include placementSlotSource metadata');
+  ensurePattern(levelText, /placementSlotStatus\s*,/, 'level export must include placementSlotStatus metadata');
+  ensurePattern(levelText, /placementSlots\s*:\s*level1V2PlacementSlots\b/, 'level export must expose placementSlots');
+  ensurePattern(levelText, /const\s+level1V2PlacementSlots\s*=\s*\[/, 'level1V2PlacementSlots must be declared');
+  ensurePattern(levelText, /const\s+level1V2PlacementSlotMarkers\s*=\s*level1V2PlacementSlots\.map/, 'slot marker props must derive only from placementSlots');
+  ensurePattern(levelText, /\.\.\.level1V2PlacementSlotMarkers/, 'architecture must include generated placement slot markers');
+  ensurePattern(levelText, /console\.info\('\[MazeMind\] Level 1 V2 Placement Slots:/, 'DEV log must report placement slots');
+
+  const slotsBody = findConstArrayBody(levelText, 'level1V2PlacementSlots');
+  if (slotsBody === null) {
+    addFailure('level1V2PlacementSlots array was not found');
+    return;
+  }
+
+  const slotIdsInArray = [...slotsBody.matchAll(/id\s*:\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
+  const expectedIds = expectedSlots.map(slot => slot.id);
+  if (slotIdsInArray.length !== expectedSlots.length) {
+    addFailure(`Placement slot count must be ${expectedSlots.length}, found ${slotIdsInArray.length}`);
+  }
+
+  if (JSON.stringify(slotIdsInArray) !== JSON.stringify(expectedIds)) {
+    addFailure(`Placement slot IDs must be exactly ${expectedIds.join(', ')}`);
+  }
+
+  expectedSlots.forEach(slot => {
+    const snippet = findObjectSnippetById(levelText, slot.id, 1300);
+    if (!snippet) {
+      addFailure(`Placement slot ${slot.id} is missing`);
+      return;
+    }
+
+    ensurePattern(snippet, new RegExp(`roomId\\s*:\\s*['"]${escapeRegExp(slot.roomId)}['"]`), `${slot.id} roomId must be ${slot.roomId}`);
+    ensurePattern(snippet, new RegExp(`code\\s*:\\s*['"]${escapeRegExp(slot.code)}['"]`), `${slot.id} code must be ${slot.code}`);
+    ensurePattern(snippet, new RegExp(`slotType\\s*:\\s*['"]${escapeRegExp(slot.slotType)}['"]`), `${slot.id} slotType must be ${slot.slotType}`);
+    ensurePattern(snippet, new RegExp(`label\\s*:\\s*['"]${escapeRegExp(slot.label)}['"]`), `${slot.id} label must be ${slot.label}`);
+    ensurePattern(snippet, new RegExp(`position\\s*:\\s*\\{\\s*x\\s*:\\s*${numberPattern(slot.position.x)}\\s*,\\s*y\\s*:\\s*${numberPattern(slot.position.y)}\\s*\\}`), `${slot.id} position must remain ${JSON.stringify(slot.position)}`);
+    ensurePattern(snippet, new RegExp(`maxSize\\s*:\\s*\\{\\s*width\\s*:\\s*${numberPattern(slot.maxSize.width)}\\s*,\\s*depth\\s*:\\s*${numberPattern(slot.maxSize.depth)}\\s*,\\s*height\\s*:\\s*${numberPattern(slot.maxSize.height)}\\s*\\}`), `${slot.id} maxSize must remain approved`);
+    ensurePattern(snippet, /collisionAllowed\s*:\s*false\b/, `${slot.id} collisionAllowed must be false`);
+    ensurePattern(snippet, /approved\s*:\s*false\b/, `${slot.id} approved must be false`);
+    ensurePattern(snippet, /status\s*:\s*['"]pending-user-visual-approval['"]/, `${slot.id} status must be pending-user-visual-approval`);
+    ensurePattern(snippet, /renderAs\s*:\s*['"]floor-slot-marker['"]/, `${slot.id} renderAs must be floor-slot-marker`);
+    slot.allowedAssetTypes.forEach(assetType => {
+      ensurePattern(snippet, new RegExp(`['"]${escapeRegExp(assetType)}['"]`), `${slot.id} must include allowed asset type ${assetType}`);
+    });
+    if (slot.intendedObjectiveId) {
+      ensurePattern(snippet, new RegExp(`intendedObjectiveId\\s*:\\s*['"]${escapeRegExp(slot.intendedObjectiveId)}['"]`), `${slot.id} intendedObjectiveId must be ${slot.intendedObjectiveId}`);
+    }
+  });
+}
+
 function validateStaticMapText(levelText, requirements) {
   ensurePattern(levelText, /const\s+GRID_WIDTH\s*=\s*32\b/, 'GRID_WIDTH must remain 32');
   ensurePattern(levelText, /const\s+GRID_HEIGHT\s*=\s*24\b/, 'GRID_HEIGHT must remain 24');
@@ -349,6 +629,8 @@ function validateStaticMapText(levelText, requirements) {
   ensureNotPattern(levelText, /collisionVolumes\s*:\s*\[(?!\s*\])/, 'Level 1 V2 must not contain active collisionVolumes');
 
   validateStaticMazeLitePhase1(levelText, requirements);
+  validateStaticPlacementPreview(levelText, requirements);
+  validateStaticPlacementSlots(levelText, requirements);
 
   const expectedObjectiveIds = requirements.objectives.route.map(objective => objective.id);
   ensureOrderedNeedles(

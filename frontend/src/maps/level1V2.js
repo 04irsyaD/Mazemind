@@ -6,6 +6,8 @@ const GRID_HEIGHT = 24;
 
 const level1V2WallSegments = [];
 const mazeLitePhase1Source = 'maze-lite-phase-1-visual-only';
+const mazeLitePhase1Enabled = false;
+const mazeLitePlacementStatus = 'paused-pending-user-approved-placement';
 const metersToGridCells = meters => Number((meters / CONSTANTS.CELL_SIZE).toFixed(3));
 
 function buildFloorZonePreviewGrid() {
@@ -499,12 +501,14 @@ function createMvpPlatform({
 }
 
 const level1V2OfficeMazeLiteStatus = {
-  enabled: true,
+  enabled: mazeLitePhase1Enabled,
   phase: 1,
   visualOnly: true,
+  mazeLitePhase1Enabled,
+  mazeLitePlacementStatus,
   gridWallSegmentsEnabled: false,
   dividerCollisionEnabled: false,
-  note: 'Office Maze Lite Phase 1 uses exactly four visual-only dividers; grid wall segments and collision volumes remain disabled.'
+  note: 'Office Maze Lite Phase 1 divider rendering is paused until user-approved screenshot/top-down placement.'
 };
 
 const level1V2MvpObjects = [
@@ -653,9 +657,10 @@ const level1V2MvpObjects = [
   }))
 ];
 
-const level1V2MazeLiteVisualDividers = [
+const level1V2MazeLiteDisabledDividerProposals = [
   {
     id: 'c-workstation-divider-01',
+    enabled: false,
     roomId: 'main-workstation-hall',
     type: 'cubicle-partition',
     position: { x: 18, y: 4.5 },
@@ -669,6 +674,7 @@ const level1V2MazeLiteVisualDividers = [
   },
   {
     id: 'c-workstation-divider-02',
+    enabled: false,
     roomId: 'main-workstation-hall',
     type: 'cubicle-partition',
     position: { x: 25, y: 6.5 },
@@ -682,6 +688,7 @@ const level1V2MazeLiteVisualDividers = [
   },
   {
     id: 'f-archive-divider-01',
+    enabled: false,
     roomId: 'records-archive',
     type: 'archive-rack-divider',
     position: { x: 5, y: 18.5 },
@@ -694,6 +701,10 @@ const level1V2MazeLiteVisualDividers = [
     dimensionsMeters: { width: 1.6, depth: 0.36, height: 1.7 }
   }
 ];
+
+const level1V2MazeLiteVisualDividers = mazeLitePhase1Enabled
+  ? level1V2MazeLiteDisabledDividerProposals.filter(divider => divider.enabled === true)
+  : [];
 
 const mazeLiteDividerPrefabByType = {
   'cubicle-partition': 'cubiclePartition',
@@ -1377,7 +1388,11 @@ function validateMazeLiteDividers(level, warnings) {
     }
   }));
 
-  if (dividers.length < 1 || dividers.length > 4) {
+  if (mazeLitePhase1Enabled === false && dividers.length !== 0) {
+    warnings.push(`Maze Lite Phase 1 is paused; active divider count must be 0, found ${dividers.length}`);
+  }
+
+  if (mazeLitePhase1Enabled === true && (dividers.length < 1 || dividers.length > 4)) {
     warnings.push(`Maze Lite Phase 1 divider count must be between 1 and 4, found ${dividers.length}`);
   }
 
@@ -1986,6 +2001,8 @@ function validateLevel1V2FloorplanPreview(level) {
       officeMazeLiteStatus: level.officeMazeLite,
       mazeLiteDividerCount: mazeLiteDividers.length,
       mazeLiteObstacleCount: mazeLiteObstacles.length,
+      mazeLitePhase1Enabled,
+      mazeLitePlacementStatus,
       mazeLitePhase1VisualOnly: mazeLiteDividers.length > 0 &&
         mazeLiteDividers.length <= 4 &&
         mazeLiteDividers.every(divider => divider.collision === false && divider.blocking === false),
@@ -2025,6 +2042,8 @@ export const level1V2 = {
   wallMode: 'outer-boundary-only',
   wallImplementation: 'boundary-grid-only',
   internalWallPolicy: 'disabled',
+  mazeLitePhase1Enabled,
+  mazeLitePlacementStatus,
   officeMazeLite: level1V2OfficeMazeLiteStatus,
   objectiveFlow: {
     route: ['A', 'C', 'D', 'F', 'H'],
@@ -2079,7 +2098,7 @@ export const level1V2 = {
     'Only outer boundary walls exist.',
     'Every non-border interior cell remains CELL_PATH.',
     'Minimal MVP objects are procedural visual markers only; collisionVolumes remain empty.',
-    'Office Maze Lite Phase 1 adds approved visual-only dividers in C and F.',
+    'Office Maze Lite Phase 1 divider rendering is paused pending user-approved screenshot/top-down placement.',
     'Maze Lite dividers are non-colliding and non-blocking; grid wall segments remain disabled.',
     'Simple objective route is A -> C -> D -> F -> H.',
     'Level 1 V2 MVP presentation checklist: start at A, collect Shift Assignment Form, follow tasks to C/D/F/H, confirm Documents 5/5, confirm route complete, reset to 0/5.',

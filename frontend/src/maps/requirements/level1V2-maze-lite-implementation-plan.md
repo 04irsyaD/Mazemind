@@ -13,13 +13,15 @@ Do not implement wall, divider, or object changes from this plan unless:
 If validation fails, do not proceed.
 
 Current runtime state:
-- maze-lite Phase 1 visual dividers enabled only for approved JSON placements
+- maze-lite Phase 1 visual divider rendering paused
 - grid wall segments disabled
 - collisionVolumes empty
 - only outer boundary walls allowed
 
 Conflict note:
 - `f-archive-divider-02` at `{ x: 10, y: 20.5 }` is omitted because it overlaps the approved central route bounds.
+- `c-workstation-divider-01`, `c-workstation-divider-02`, and `f-archive-divider-01` are disabled proposal records only.
+- Future divider positions require screenshot/top-down visual approval; bounds validation alone is not enough.
 
 ## 1. Purpose
 

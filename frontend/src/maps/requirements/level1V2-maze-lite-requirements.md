@@ -11,9 +11,18 @@ Maze feeling should come from:
 - workstation divider placement
 
 ## Current Status
-Office Maze Lite Phase 1 is approved only for the visual-only dividers listed in `level1V2-requirements.json`.
+Office Maze Lite Phase 1 is paused until user-approved screenshot/top-down placement exists.
+
+Current Phase 1 divider rendering must remain disabled.
 
 The requested `f-archive-divider-02` placement is omitted because `{ x: 10, y: 20.5 }` overlaps the approved central route bounds.
+
+The previous active placements are now disabled proposal records only:
+- `c-workstation-divider-01`
+- `c-workstation-divider-02`
+- `f-archive-divider-01`
+
+Future divider positions must be approved from visual screenshot/top-down review. Bounds validation alone is not enough.
 
 ## Allowed Maze Lite Elements
 - cubiclePartition
@@ -54,3 +63,10 @@ Rules:
 ## Approval Rule
 If divider placement requirements are unclear, do not implement dividers.
 Update requirements first.
+
+## Placement Exclusion Rules
+- Do not place dividers in previously problematic visual bug area.
+- Do not place dividers near the front-left camera review area unless explicitly approved.
+- Do not place dividers where they dominate the first-person view.
+- Do not place dividers just because they are inside room bounds; visual approval is required.
+- Phase 1 dividers are paused until user-approved screenshot/top-down positions are recorded in `level1V2-requirements.json`.

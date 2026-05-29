@@ -159,8 +159,12 @@ function validateRequirementsShape(requirements) {
     return;
   }
 
-  if (phase1.status !== 'approved-visual-only') {
-    addFailure('requirements.mazeLitePhase1.status must be approved-visual-only');
+  if (phase1.status !== 'paused-until-user-approved-positions') {
+    addFailure('requirements.mazeLitePhase1.status must be paused-until-user-approved-positions');
+  }
+
+  if (phase1.enabled !== false) {
+    addFailure('requirements.mazeLitePhase1.enabled must be false while placement is paused');
   }
 
   if (phase1.source !== 'maze-lite-phase-1-visual-only') {
@@ -179,13 +183,28 @@ function validateRequirementsShape(requirements) {
     addFailure('Maze Lite Phase 1 must disallow central route baffles');
   }
 
-  if (!Array.isArray(phase1.dividers) || phase1.dividers.length < 1 || phase1.dividers.length > phase1.maxDividers) {
-    addFailure(`requirements.mazeLitePhase1.dividers must contain 1 to ${phase1.maxDividers} dividers`);
-    return;
+  if (!Array.isArray(phase1.dividers) || phase1.dividers.length !== 0) {
+    addFailure('requirements.mazeLitePhase1.dividers must be empty while placement is paused');
+  }
+
+  const placementRules = requirements.mazeLitePlacementRules;
+  if (!placementRules) {
+    addFailure('requirements.mazeLitePlacementRules must exist while Phase 1 placement is paused');
+  } else {
+    if (placementRules.phase1Status !== 'paused-until-user-approved-positions') {
+      addFailure('mazeLitePlacementRules.phase1Status must be paused-until-user-approved-positions');
+    }
+    if (placementRules.requireUserApprovedScreenshotPlacement !== true) {
+      addFailure('mazeLitePlacementRules.requireUserApprovedScreenshotPlacement must be true');
+    }
+    if (!Array.isArray(placementRules.forbiddenPlacementNotes) || placementRules.forbiddenPlacementNotes.length < 4) {
+      addFailure('mazeLitePlacementRules.forbiddenPlacementNotes must include placement exclusion notes');
+    }
   }
 
   const roomDividerCounts = new Map();
-  phase1.dividers.forEach(divider => {
+  const disabledProposalDividers = phase1.disabledProposalDividers ?? [];
+  disabledProposalDividers.forEach(divider => {
     const room = requirements.rooms?.[divider.roomId];
     if (!room) {
       addFailure(`${divider.id} roomId ${divider.roomId} is not defined in requirements.rooms`);
@@ -196,6 +215,10 @@ function validateRequirementsShape(requirements) {
 
     if (['front-admin-intake', 'toilet', 'central-route'].includes(divider.roomId)) {
       addFailure(`${divider.id} must not be placed in ${divider.roomId}`);
+    }
+
+    if (divider.enabled !== false) {
+      addFailure(`${divider.id} must remain enabled: false while Phase 1 is paused`);
     }
 
     if (divider.collision !== false || divider.blocking !== false) {
@@ -251,38 +274,46 @@ function validateRequirementsShape(requirements) {
 
 function validateStaticMazeLitePhase1(levelText, requirements) {
   const phase1 = requirements.mazeLitePhase1;
-  const expectedDividers = phase1?.dividers ?? [];
+  const expectedDisabledProposals = phase1?.disabledProposalDividers ?? [];
 
-  ensurePattern(levelText, /const\s+level1V2MazeLiteVisualDividers\s*=\s*\[/, 'level1V2MazeLiteVisualDividers must be declared');
+  ensurePattern(levelText, /const\s+mazeLitePhase1Enabled\s*=\s*false\s*;/, 'mazeLitePhase1Enabled must be false while placement is paused');
+  ensurePattern(levelText, /const\s+mazeLitePlacementStatus\s*=\s*['"]paused-pending-user-approved-placement['"]\s*;/, 'mazeLitePlacementStatus must be paused-pending-user-approved-placement');
+  ensurePattern(levelText, /mazeLitePhase1Enabled\s*,/, 'level export must include mazeLitePhase1Enabled metadata');
+  ensurePattern(levelText, /mazeLitePlacementStatus\s*,/, 'level export must include mazeLitePlacementStatus metadata');
+  ensurePattern(levelText, /const\s+level1V2MazeLiteDisabledDividerProposals\s*=\s*\[/, 'disabled divider proposals must be retained separately');
+  ensurePattern(levelText, /const\s+level1V2MazeLiteVisualDividers\s*=\s*mazeLitePhase1Enabled\s*\?[\s\S]*?:\s*\[\]\s*;/, 'active visual dividers must be gated by mazeLitePhase1Enabled and resolve to [] when paused');
   ensurePattern(levelText, /const\s+level1V2MazeLiteDividers\s*=\s*level1V2MazeLiteVisualDividers\s*;/, 'mazeLiteDividers must use the approved visual divider array');
   ensurePattern(levelText, /const\s+level1V2MazeLiteObstacles\s*=\s*\[\s*\]\s*;/, 'mazeLiteObstacles must remain empty');
-  ensurePattern(levelText, /\.\.\.level1V2MazeLiteVisualDividerProps/, 'architecture must include approved visual divider props');
+  ensurePattern(levelText, /const\s+level1V2MazeLiteVisualDividerProps\s*=\s*level1V2MazeLiteVisualDividers\.map/, 'render props must be derived only from active visual dividers');
   ensurePattern(levelText, /dividerCollisionEnabled\s*:\s*false/, 'officeMazeLite.dividerCollisionEnabled must be false');
   ensurePattern(levelText, /gridWallSegmentsEnabled\s*:\s*false/, 'officeMazeLite.gridWallSegmentsEnabled must be false');
+  ensurePattern(levelText, /enabled\s*:\s*mazeLitePhase1Enabled/, 'officeMazeLite.enabled must use the paused safe-mode flag');
+  ensurePattern(levelText, /mazeLitePhase1Enabled\s*,[\s\S]*mazeLitePlacementStatus/, 'officeMazeLite must expose paused placement metadata');
 
-  const dividersBody = findConstArrayBody(levelText, 'level1V2MazeLiteVisualDividers');
-  if (dividersBody === null) {
-    addFailure('level1V2MazeLiteVisualDividers array was not found');
+  const proposalsBody = findConstArrayBody(levelText, 'level1V2MazeLiteDisabledDividerProposals');
+  if (proposalsBody === null) {
+    addFailure('level1V2MazeLiteDisabledDividerProposals array was not found');
     return;
   }
 
-  const dividerIdsInArray = [...dividersBody.matchAll(/id\s*:\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
-  const expectedIds = expectedDividers.map(divider => divider.id);
-  if (dividerIdsInArray.length !== expectedDividers.length) {
-    addFailure(`Maze Lite Phase 1 divider count must be ${expectedDividers.length} approved dividers, found ${dividerIdsInArray.length}`);
+  const proposalIdsInArray = [...proposalsBody.matchAll(/id\s*:\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
+  const expectedIds = expectedDisabledProposals.map(divider => divider.id);
+  if (proposalIdsInArray.length !== expectedDisabledProposals.length) {
+    addFailure(`Disabled Maze Lite proposal count must be ${expectedDisabledProposals.length}, found ${proposalIdsInArray.length}`);
   }
 
-  if (JSON.stringify(dividerIdsInArray) !== JSON.stringify(expectedIds)) {
-    addFailure(`Maze Lite Phase 1 divider IDs must be exactly ${expectedIds.join(', ')}`);
+  if (JSON.stringify(proposalIdsInArray) !== JSON.stringify(expectedIds)) {
+    addFailure(`Disabled Maze Lite proposal IDs must be exactly ${expectedIds.join(', ')}`);
   }
 
-  expectedDividers.forEach(divider => {
+  expectedDisabledProposals.forEach(divider => {
     const snippet = findObjectSnippetById(levelText, divider.id, 1200);
     if (!snippet) {
-      addFailure(`Maze Lite divider ${divider.id} is missing`);
+      addFailure(`Disabled Maze Lite proposal ${divider.id} is missing`);
       return;
     }
 
+    ensurePattern(snippet, /enabled\s*:\s*false\b/, `${divider.id} must remain enabled false`);
     ensurePattern(snippet, new RegExp(`roomId\\s*:\\s*['"]${escapeRegExp(divider.roomId)}['"]`), `${divider.id} roomId must be ${divider.roomId}`);
     ensurePattern(snippet, new RegExp(`type\\s*:\\s*['"]${escapeRegExp(divider.type)}['"]`), `${divider.id} type must be ${divider.type}`);
     ensurePattern(snippet, new RegExp(`position\\s*:\\s*\\{\\s*x\\s*:\\s*${escapeRegExp(divider.position.x)}\\s*,\\s*y\\s*:\\s*${escapeRegExp(divider.position.y)}\\s*\\}`), `${divider.id} position must remain ${JSON.stringify(divider.position)}`);

@@ -44,7 +44,8 @@
     ]
   },
   "mazeLitePhase1": {
-    "status": "approved-visual-only",
+    "status": "paused-until-user-approved-positions",
+    "enabled": false,
     "source": "maze-lite-phase-1-visual-only",
     "maxDividers": 4,
     "allowCollision": false,
@@ -56,9 +57,10 @@
         "reason": "Requested position { x: 10, y: 20.5 } overlaps central-route bounds { x1: 10, y1: 3, x2: 13, y2: 22 }; omitted instead of moving objectives or weakening route rules."
       }
     ],
-    "dividers": [
+    "disabledProposalDividers": [
       {
         "id": "c-workstation-divider-01",
+        "enabled": false,
         "roomId": "main-workstation-hall",
         "type": "cubicle-partition",
         "position": { "x": 18, "y": 4.5 },
@@ -70,6 +72,7 @@
       },
       {
         "id": "c-workstation-divider-02",
+        "enabled": false,
         "roomId": "main-workstation-hall",
         "type": "cubicle-partition",
         "position": { "x": 25, "y": 6.5 },
@@ -81,6 +84,7 @@
       },
       {
         "id": "f-archive-divider-01",
+        "enabled": false,
         "roomId": "records-archive",
         "type": "archive-rack-divider",
         "position": { "x": 5, "y": 18.5 },
@@ -90,6 +94,17 @@
         "mazeRole": "visual-archive-aisle",
         "dimensionsMeters": { "width": 1.6, "depth": 0.36, "height": 1.7 }
       }
+    ],
+    "dividers": []
+  },
+  "mazeLitePlacementRules": {
+    "phase1Status": "paused-until-user-approved-positions",
+    "requireUserApprovedScreenshotPlacement": true,
+    "forbiddenPlacementNotes": [
+      "Do not place dividers in previously problematic visual bug area.",
+      "Do not place dividers near the front-left camera review area unless explicitly approved.",
+      "Do not place dividers where they dominate the first-person view.",
+      "Do not place dividers just because they are inside room bounds; visual approval is required."
     ]
   },
   "rooms": {

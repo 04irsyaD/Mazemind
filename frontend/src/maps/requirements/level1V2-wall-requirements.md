@@ -8,9 +8,13 @@ Detailed per-room wall planning is defined in level1V2-room-wall-requirements.md
 - Internal room walls are intentionally disabled for stability.
 - Room shells are not allowed in MVP.
 - Doors are not allowed in MVP.
-- Wall/divider placement preview mode may show low floor markers only.
-- Preview markers are not wallSegments, collisionVolumes, walls, or dividers.
-- Placement slot mode may show floor slot markers sourced from approved floor zones only.
+- Wall/divider placement preview mode is disabled after user visual review rejected the current markers.
+- Rejected preview markers are not wallSegments, collisionVolumes, walls, or dividers, and must not render.
+- Placement slot mode is disabled; rejected floor slot markers must not render.
+- `final.svg` is now the visual source reference for future wall/object/access pattern work.
+- Future placement must come from `level1V2-svg-pattern.json` and the conversion plan, not room bounds alone.
+- Direct implementation from `final.svg` is forbidden.
+- Wall/divider candidates from the SVG must remain line-preview-only until explicitly approved.
 
 ## Why Internal Walls Are Restricted
 - Previous internal wall attempts caused blocky/incorrect office layout.
@@ -43,13 +47,20 @@ Phase 0:
 Outer boundary only.
 
 Phase 1:
-Floor zone preview and optional floor-level placement markers only.
+Floor zone preview only while the current marker set remains rejected.
 
-Placement slot preview:
-- `placementSlotMode: true`
+Rejected placement slot status:
+- `placementSlotMode: false`
 - `placementSlotSource: approved-floor-zones`
-- `placementSlotStatus: preview-only`
-- Slot markers must not become wallSegments or collisionVolumes.
+- `placementSlotStatus: rejected-by-user`
+- `wallPlacementMode: disabled`
+- Slot markers must not render and must not become wallSegments or collisionVolumes.
+
+Future placement:
+- Must be based on `final.svg` through `level1V2-svg-pattern.json` and the conversion plan.
+- Must not be auto-generated from room bounds.
+- Must not convert unapproved/rejected markers into objects, dividers, or walls.
+- Must not convert SVG wall/divider/object/access candidates without explicit user approval.
 
 Phase 2:
 Office Maze Lite dividers, requirements-approved only.

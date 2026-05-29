@@ -12,6 +12,23 @@ const requirementsPath = path.join(
   'requirements',
   'level1V2-requirements.json'
 );
+const svgPatternPath = path.join(
+  repoRoot,
+  'frontend',
+  'src',
+  'maps',
+  'requirements',
+  'level1V2-svg-pattern.json'
+);
+const svgPatternPlanPath = path.join(
+  repoRoot,
+  'frontend',
+  'src',
+  'maps',
+  'requirements',
+  'level1V2-svg-pattern-conversion-plan.md'
+);
+const svgSourcePath = path.join(repoRoot, 'final.svg');
 const levelPath = path.join(repoRoot, 'frontend', 'src', 'maps', 'level1V2.js');
 const CELL_SIZE_METERS = 3.6;
 
@@ -33,6 +50,10 @@ function addFailure(message) {
 
 function addWarning(message) {
   warnings.push(message);
+}
+
+function sameOrderedValues(actual, expected) {
+  return JSON.stringify(actual) === JSON.stringify(expected);
 }
 
 function escapeRegExp(value) {
@@ -146,6 +167,215 @@ function placementSlotFootprint(slot) {
   };
 }
 
+function isFinitePoint(point) {
+  return Number.isFinite(point?.x) && Number.isFinite(point?.y);
+}
+
+function validateCandidateApproval(candidate, label) {
+  if (candidate.approved !== false) addFailure(`${label} approved must be false by default`);
+}
+
+function validateCandidateRuntimeRoomId(roomId, roomIds, label) {
+  if (roomId === 'secondary-office') {
+    addFailure(`${label} must use secondary-workstation instead of secondary-office`);
+    return;
+  }
+
+  if (!roomIds.has(roomId)) {
+    addFailure(`${label} roomId ${roomId} is not defined in requirements.rooms`);
+  }
+}
+
+function validateSvgPatternRequirementsEntry(requirements) {
+  const svgPattern = requirements.svgPattern;
+  if (!svgPattern) {
+    addFailure('requirements.svgPattern must reference the final.svg conversion guardrail');
+    return;
+  }
+
+  if (svgPattern.source !== 'final.svg') addFailure('requirements.svgPattern.source must be final.svg');
+  if (svgPattern.patternJson !== 'level1V2-svg-pattern.json') addFailure('requirements.svgPattern.patternJson must be level1V2-svg-pattern.json');
+  if (svgPattern.conversionPlan !== 'level1V2-svg-pattern-conversion-plan.md') addFailure('requirements.svgPattern.conversionPlan must be level1V2-svg-pattern-conversion-plan.md');
+  if (svgPattern.status !== 'pattern-reference') addFailure('requirements.svgPattern.status must be pattern-reference');
+  if (svgPattern.directImplementationAllowed !== false) addFailure('requirements.svgPattern.directImplementationAllowed must be false');
+  if (svgPattern.requiresUserApprovalBeforeConversion !== true) addFailure('requirements.svgPattern.requiresUserApprovalBeforeConversion must be true');
+  if (svgPattern.linePreviewOnly !== true) addFailure('requirements.svgPattern.linePreviewOnly must be true');
+  if (!Array.isArray(svgPattern.rules) || svgPattern.rules.length < 5) {
+    addFailure('requirements.svgPattern.rules must include SVG conversion guardrails');
+  }
+}
+
+function validateSvgPattern(pattern, requirements, levelText, planText, sourceSvgText) {
+  const roomIds = new Set(Object.keys(requirements.rooms ?? {}));
+
+  if (!sourceSvgText.includes('<svg')) {
+    addFailure('final.svg must be present at the repository root and contain an SVG document');
+  }
+  [
+    'front-admin-intake',
+    'secondary-office',
+    'A-BAY-WEST',
+    'C-DIV-01',
+    'F-RACK-01',
+    'D-HINT-01',
+    'H-BAY-01',
+    'A01',
+    'G02'
+  ].forEach(needle => {
+    if (!sourceSvgText.includes(needle)) {
+      addFailure(`final.svg must include source pattern label ${needle}`);
+    }
+  });
+
+  if (!planText.includes('# Level 1 V2 SVG Pattern Conversion Plan')) {
+    addFailure('level1V2-svg-pattern-conversion-plan.md must include the required title');
+  }
+  if (!planText.includes('final.svg')) {
+    addFailure('level1V2-svg-pattern-conversion-plan.md must identify final.svg as the source');
+  }
+  if (!planText.includes('Direct implementation from the SVG is forbidden')) {
+    addFailure('conversion plan must forbid direct SVG implementation');
+  }
+
+  if (pattern.source !== 'final.svg') addFailure('svg pattern source must be final.svg');
+  if (pattern.status !== 'pattern-reference') addFailure('svg pattern status must be pattern-reference');
+  if (pattern.directImplementationAllowed !== false) addFailure('svg pattern directImplementationAllowed must be false');
+  if (pattern.requiresUserApprovalBeforeConversion !== true) addFailure('svg pattern requiresUserApprovalBeforeConversion must be true');
+
+  const conversionRules = pattern.conversionRules ?? {};
+  if (conversionRules.allowDirectWallImplementation !== false) addFailure('svg conversionRules.allowDirectWallImplementation must be false');
+  if (conversionRules.allowCollision !== false) addFailure('svg conversionRules.allowCollision must be false');
+  if (conversionRules.allowStructuralWalls !== false) addFailure('svg conversionRules.allowStructuralWalls must be false');
+  if (conversionRules.allowDoors !== false) addFailure('svg conversionRules.allowDoors must be false');
+  if (conversionRules.allowObjectConversion !== false) addFailure('svg conversionRules.allowObjectConversion must be false');
+  if (conversionRules.linePreviewOnly !== true) addFailure('svg conversionRules.linePreviewOnly must be true');
+
+  const roomMapping = pattern.roomMapping ?? {};
+  if (roomMapping.G?.runtimeRoomId !== 'secondary-workstation') {
+    addFailure('svg roomMapping.G must map to secondary-workstation');
+  }
+  if (roomMapping['secondary-office']?.runtimeRoomId !== 'secondary-workstation') {
+    addFailure('svg roomMapping.secondary-office must map to secondary-workstation');
+  }
+  Object.entries(roomMapping).forEach(([key, mapping]) => {
+    if (!roomIds.has(mapping.runtimeRoomId)) {
+      addFailure(`svg roomMapping.${key}.runtimeRoomId ${mapping.runtimeRoomId} is not defined in requirements.rooms`);
+    }
+  });
+
+  const expectedAccessIds = [
+    'A_TO_B',
+    'A_TO_R',
+    'B_TO_E',
+    'E_TO_R',
+    'F_TO_R',
+    'R_TO_C',
+    'R_TO_D',
+    'D_TO_H',
+    'H_TO_EXIT'
+  ];
+  const accessCandidates = pattern.accessCandidates ?? [];
+  if (!Array.isArray(accessCandidates) || !sameOrderedValues(accessCandidates.map(candidate => candidate.id), expectedAccessIds)) {
+    addFailure(`svg accessCandidates IDs must be exactly ${expectedAccessIds.join(', ')}`);
+  }
+
+  accessCandidates.forEach(candidate => {
+    validateCandidateApproval(candidate, `access candidate ${candidate.id}`);
+    if (candidate.implementationStatus !== 'metadata-only') {
+      addFailure(`access candidate ${candidate.id} implementationStatus must be metadata-only`);
+    }
+    if (candidate.from === 'secondary-office' || candidate.to === 'secondary-office') {
+      addFailure(`access candidate ${candidate.id} must not use secondary-office as a runtime room ID`);
+    }
+    if (!roomIds.has(candidate.from)) {
+      addFailure(`access candidate ${candidate.id} from ${candidate.from} is not a known room`);
+    }
+    if (candidate.to !== 'exit / future level 2' && !roomIds.has(candidate.to)) {
+      addFailure(`access candidate ${candidate.id} to ${candidate.to} is not a known room or final exit`);
+    }
+    if (!isFinitePoint(candidate.sourceGap?.start) || !isFinitePoint(candidate.sourceGap?.end)) {
+      addFailure(`access candidate ${candidate.id} must include finite sourceGap start and end`);
+    }
+  });
+
+  const expectedObjectIds = [
+    'A01',
+    'B01',
+    'E01',
+    'C01',
+    'C02',
+    'C03',
+    'C04',
+    'D01',
+    'F01',
+    'F02',
+    'H01',
+    'G01',
+    'G02'
+  ];
+  const objectCandidates = pattern.objectCandidates ?? [];
+  if (!Array.isArray(objectCandidates) || !sameOrderedValues(objectCandidates.map(candidate => candidate.id), expectedObjectIds)) {
+    addFailure(`svg objectCandidates IDs must be exactly ${expectedObjectIds.join(', ')}`);
+  }
+
+  objectCandidates.forEach(candidate => {
+    validateCandidateApproval(candidate, `object candidate ${candidate.id}`);
+    validateCandidateRuntimeRoomId(candidate.roomId, roomIds, `object candidate ${candidate.id}`);
+    if (candidate.collision !== false) addFailure(`object candidate ${candidate.id} collision must be false`);
+    if (!candidate.objectType) addFailure(`object candidate ${candidate.id} objectType must not be empty`);
+    if (!candidate.role) addFailure(`object candidate ${candidate.id} role must not be empty`);
+    if (!candidate.implementationStatus) addFailure(`object candidate ${candidate.id} implementationStatus must not be empty`);
+  });
+
+  const expectedWallIds = [
+    'A-BAY-WEST',
+    'A-BAY-NORTH',
+    'A-BAY-SOUTH',
+    'C-DIV-01',
+    'F-RACK-01',
+    'F-RACK-02',
+    'D-HINT-01',
+    'H-BAY-01'
+  ];
+  const wallLineCandidates = pattern.wallLineCandidates ?? [];
+  if (!Array.isArray(wallLineCandidates) || !sameOrderedValues(wallLineCandidates.map(candidate => candidate.id), expectedWallIds)) {
+    addFailure(`svg wallLineCandidates IDs must be exactly ${expectedWallIds.join(', ')}`);
+  }
+
+  wallLineCandidates.forEach(candidate => {
+    validateCandidateApproval(candidate, `wall line candidate ${candidate.id}`);
+    validateCandidateRuntimeRoomId(candidate.roomId, roomIds, `wall line candidate ${candidate.id}`);
+
+    if (!candidate.wallType) addFailure(`wall line candidate ${candidate.id} wallType must not be empty`);
+    if (!isFinitePoint(candidate.start) || !isFinitePoint(candidate.end)) {
+      addFailure(`wall line candidate ${candidate.id} must include finite line start and end`);
+    } else if (candidate.start.x === candidate.end.x && candidate.start.y === candidate.end.y) {
+      addFailure(`wall line candidate ${candidate.id} must be line-based, not point-based`);
+    }
+    if (!['horizontal', 'vertical'].includes(candidate.orientation)) {
+      addFailure(`wall line candidate ${candidate.id} orientation must be horizontal or vertical`);
+    }
+    if (!Number.isFinite(candidate.thickness) || candidate.thickness <= 0) {
+      addFailure(`wall line candidate ${candidate.id} thickness must be a positive number`);
+    }
+    if (!Number.isFinite(candidate.height) || candidate.height !== 0) {
+      addFailure(`wall line candidate ${candidate.id} height must be 0 while preview-only`);
+    }
+    if (candidate.solid !== false) addFailure(`wall line candidate ${candidate.id} solid must be false`);
+    if (candidate.collision !== false) addFailure(`wall line candidate ${candidate.id} collision must be false`);
+    if (candidate.blocking !== false) addFailure(`wall line candidate ${candidate.id} blocking must be false`);
+    if (candidate.implementationStatus !== 'line-preview-only') {
+      addFailure(`wall line candidate ${candidate.id} implementationStatus must be line-preview-only`);
+    }
+    if (candidate.approvalRequired !== true) {
+      addFailure(`wall line candidate ${candidate.id} approvalRequired must be true`);
+    }
+    if (levelText.includes(candidate.id)) {
+      addFailure(`wall line candidate ${candidate.id} must not be converted or referenced in level1V2.js`);
+    }
+  });
+}
+
 function validateRequirementsShape(requirements) {
   if (requirements.levelId !== 'level-1-v2') {
     addFailure('requirements.levelId must be level-1-v2');
@@ -183,16 +413,21 @@ function validateRequirementsShape(requirements) {
     addFailure('requirements.rooms must include central-route');
   }
 
+  validateSvgPatternRequirementsEntry(requirements);
+
   const placementSlots = requirements.placementSlots;
   if (!placementSlots) {
-    addFailure('requirements.placementSlots must exist for floor-zone slot mode');
+    addFailure('requirements.placementSlots must exist for rejected placement slot guardrails');
   } else {
-    if (placementSlots.enabled !== true) addFailure('placementSlots.enabled must be true');
-    if (placementSlots.mode !== true) addFailure('placementSlots.mode must be true');
+    if (placementSlots.enabled !== false) addFailure('placementSlots.enabled must be false after user rejection');
+    if (placementSlots.mode !== false) addFailure('placementSlots.mode must be false after user rejection');
     if (placementSlots.source !== 'approved-floor-zones') addFailure('placementSlots.source must be approved-floor-zones');
-    if (placementSlots.status !== 'preview-only') addFailure('placementSlots.status must be preview-only');
-    if (placementSlots.requireSlotForNewObjects !== true) addFailure('placementSlots.requireSlotForNewObjects must be true');
-    if (placementSlots.requireSlotForNewDividers !== true) addFailure('placementSlots.requireSlotForNewDividers must be true');
+    if (placementSlots.status !== 'rejected-by-user') addFailure('placementSlots.status must be rejected-by-user');
+    if (placementSlots.requireSlotForNewObjects !== true) addFailure('placementSlots.requireSlotForNewObjects must remain true');
+    if (placementSlots.requireSlotForNewDividers !== true) addFailure('placementSlots.requireSlotForNewDividers must remain true');
+    if (!Array.isArray(placementSlots.slots) || placementSlots.slots.length !== 0) {
+      addFailure('placementSlots.slots must be empty after user rejection');
+    }
 
     const expectedSlotIds = [
       'A_OBJECT_SLOT_01',
@@ -207,123 +442,96 @@ function validateRequirementsShape(requirements) {
       'G_OBJECT_SLOT_01',
       'H_OBJECT_SLOT_01'
     ];
-    const slots = placementSlots.slots ?? [];
-    const actualSlotIds = slots.map(slot => slot.id);
+    const rejectedSlots = placementSlots.rejectedSlots ?? [];
+    const rejectedSlotIds = rejectedSlots.map(slot => slot.id);
 
-    if (!Array.isArray(slots) || slots.length !== expectedSlotIds.length) {
-      addFailure(`placementSlots.slots must contain exactly ${expectedSlotIds.length} slots`);
-    } else if (JSON.stringify(actualSlotIds) !== JSON.stringify(expectedSlotIds)) {
-      addFailure(`placementSlots slot IDs must be exactly ${expectedSlotIds.join(', ')}`);
+    if (!Array.isArray(rejectedSlots) || rejectedSlots.length !== expectedSlotIds.length) {
+      addFailure(`placementSlots.rejectedSlots must contain exactly ${expectedSlotIds.length} rejected slots`);
+    } else if (JSON.stringify(rejectedSlotIds) !== JSON.stringify(expectedSlotIds)) {
+      addFailure(`rejected placement slot IDs must be exactly ${expectedSlotIds.join(', ')}`);
     }
 
-    slots.forEach(slot => {
+    rejectedSlots.forEach(slot => {
       const room = requirements.rooms?.[slot.roomId];
       if (!room) {
         addFailure(`${slot.id} roomId ${slot.roomId} is not defined in requirements.rooms`);
         return;
       }
 
+      if (slot.enabled !== false) addFailure(`${slot.id} must be enabled false`);
+      if (slot.rejected !== true) addFailure(`${slot.id} must be rejected true`);
+      if (slot.approved !== false) addFailure(`${slot.id} approved must be false`);
+      if (slot.status !== 'rejected-by-user') addFailure(`${slot.id} status must be rejected-by-user`);
+      if (slot.collisionAllowed !== false) addFailure(`${slot.id} collisionAllowed must be false`);
+      if (slot.renderAs !== 'floor-slot-marker') addFailure(`${slot.id} renderAs must remain floor-slot-marker`);
       if (slot.code !== room.code) addFailure(`${slot.id} code must be ${room.code}`);
       if (!['object', 'divider'].includes(slot.slotType)) addFailure(`${slot.id} slotType must be object or divider`);
       if (!slot.label) addFailure(`${slot.id} label must not be empty`);
-      if (!Array.isArray(slot.allowedAssetTypes) || slot.allowedAssetTypes.length === 0) addFailure(`${slot.id} must list allowedAssetTypes`);
-      if (slot.collisionAllowed !== false) addFailure(`${slot.id} collisionAllowed must be false`);
-      if (slot.approved !== false) addFailure(`${slot.id} approved must be false`);
-      if (slot.status !== 'pending-user-visual-approval') addFailure(`${slot.id} status must be pending-user-visual-approval`);
-      if (slot.renderAs !== 'floor-slot-marker') addFailure(`${slot.id} renderAs must be floor-slot-marker`);
-
-      ['width', 'depth', 'height'].forEach(key => {
-        if (!Number.isFinite(slot.maxSize?.[key]) || slot.maxSize[key] <= 0) {
-          addFailure(`${slot.id} maxSize.${key} must be positive`);
-        }
-      });
-
-      const footprint = placementSlotFootprint(slot);
-      if (!boundsContainBounds(room.bounds, footprint)) {
-        addFailure(`${slot.id} floor slot marker must stay inside ${slot.roomId} bounds`);
-      }
-
-      if (slot.roomId !== 'central-route' && doBoundsOverlap(footprint, requirements.rooms['central-route'].bounds)) {
-        addFailure(`${slot.id} floor slot marker must not overlap central-route`);
-      }
-
-      requirements.objectives.route.forEach(objective => {
-        const objectiveFootprint = {
-          x1: objective.position.x - 0.32,
-          y1: objective.position.y - 0.32,
-          x2: objective.position.x + 0.32,
-          y2: objective.position.y + 0.32
-        };
-        if (!doBoundsOverlap(footprint, objectiveFootprint)) return;
-        if (slot.intendedObjectiveId !== objective.id) {
-          addFailure(`${slot.id} must not overlap objective ${objective.id} unless intendedObjectiveId matches`);
-        }
-      });
     });
   }
 
   const placementPreview = requirements.placementPreview;
   if (!placementPreview) {
-    addFailure('requirements.placementPreview must exist for preview marker mode');
+    addFailure('requirements.placementPreview must exist for rejected marker guardrails');
   } else {
-    if (placementPreview.mazeLitePlacementPreview !== true) {
-      addFailure('placementPreview.mazeLitePlacementPreview must be true');
+    if (placementPreview.mazeLitePlacementPreview !== false) {
+      addFailure('placementPreview.mazeLitePlacementPreview must be false after user rejection');
     }
     if (placementPreview.mazeLitePhase1Enabled !== false) {
       addFailure('placementPreview.mazeLitePhase1Enabled must be false');
     }
-    if (placementPreview.wallPlacementMode !== 'preview-markers-only') {
-      addFailure('placementPreview.wallPlacementMode must be preview-markers-only');
+    if (placementPreview.wallPlacementMode !== 'disabled') {
+      addFailure('placementPreview.wallPlacementMode must be disabled after user rejection');
+    }
+    if (!Array.isArray(placementPreview.candidates) || placementPreview.candidates.length !== 0) {
+      addFailure('placementPreview.candidates must be empty after user rejection');
     }
 
     const markerRules = placementPreview.markerRules ?? {};
     if (markerRules.renderAs !== 'floor-marker') addFailure('placementPreview marker renderAs must be floor-marker');
-    if (markerRules.status !== 'pending-user-visual-approval') addFailure('placementPreview marker status must be pending-user-visual-approval');
+    if (markerRules.status !== 'rejected-by-user') addFailure('placementPreview marker status must be rejected-by-user');
     if (markerRules.collision !== false) addFailure('placementPreview markers must be collision false');
     if (markerRules.blocking !== false) addFailure('placementPreview markers must be blocking false');
     if (markerRules.approved !== false) addFailure('placementPreview markers must be approved false');
+    if (markerRules.enabled !== false) addFailure('placementPreview markers must be enabled false');
+    if (markerRules.rejected !== true) addFailure('placementPreview markers must be rejected true');
     if (markerRules.maxHeight !== 0.05) addFailure('placementPreview marker maxHeight must be 0.05');
 
     const expectedLabels = ['W1', 'W2', 'W3', 'W4'];
-    if (!Array.isArray(placementPreview.candidates) || placementPreview.candidates.length !== 4) {
-      addFailure('placementPreview.candidates must contain exactly 4 preview markers');
-    } else {
-      placementPreview.candidates.forEach((candidate, index) => {
-        const room = requirements.rooms?.[candidate.targetRoomId];
-        if (!room) {
-          addFailure(`${candidate.id} targetRoomId ${candidate.targetRoomId} is not defined in requirements.rooms`);
-          return;
-        }
-
-        if (candidate.label !== expectedLabels[index]) addFailure(`${candidate.id} label must be ${expectedLabels[index]}`);
-        if (candidate.status !== 'pending-user-visual-approval') addFailure(`${candidate.id} status must be pending-user-visual-approval`);
-        if (candidate.renderAs !== 'floor-marker') addFailure(`${candidate.id} renderAs must be floor-marker`);
-        if (candidate.collision !== false) addFailure(`${candidate.id} collision must be false`);
-        if (candidate.blocking !== false) addFailure(`${candidate.id} blocking must be false`);
-        if (candidate.approved !== false) addFailure(`${candidate.id} approved must be false`);
-
-        const footprint = previewCandidateFootprint(candidate);
-        if (!boundsContainBounds(room.bounds, footprint)) {
-          addFailure(`${candidate.id} preview marker must stay inside ${candidate.targetRoomId} bounds`);
-        }
-
-        if (doBoundsOverlap(footprint, requirements.rooms['central-route'].bounds)) {
-          addFailure(`${candidate.id} preview marker must not overlap central-route`);
-        }
-
-        requirements.objectives.route.forEach(objective => {
-          const objectiveFootprint = {
-            x1: objective.position.x - 0.32,
-            y1: objective.position.y - 0.32,
-            x2: objective.position.x + 0.32,
-            y2: objective.position.y + 0.32
-          };
-          if (doBoundsOverlap(footprint, objectiveFootprint)) {
-            addFailure(`${candidate.id} preview marker must not overlap objective ${objective.id}`);
-          }
-        });
-      });
+    const expectedCandidateIds = ['candidate-c-divider-01', 'candidate-c-divider-02', 'candidate-f-archive-01', 'candidate-f-archive-02'];
+    const rejectedCandidates = placementPreview.rejectedCandidates ?? [];
+    const rejectedCandidateIds = rejectedCandidates.map(candidate => candidate.id);
+    if (!Array.isArray(rejectedCandidates) || rejectedCandidates.length !== expectedCandidateIds.length) {
+      addFailure(`placementPreview.rejectedCandidates must contain exactly ${expectedCandidateIds.length} rejected markers`);
+    } else if (JSON.stringify(rejectedCandidateIds) !== JSON.stringify(expectedCandidateIds)) {
+      addFailure(`rejected placement candidate IDs must be exactly ${expectedCandidateIds.join(', ')}`);
     }
+
+    rejectedCandidates.forEach((candidate, index) => {
+      if (!requirements.rooms?.[candidate.targetRoomId]) {
+        addFailure(`${candidate.id} targetRoomId ${candidate.targetRoomId} is not defined in requirements.rooms`);
+        return;
+      }
+
+      if (candidate.enabled !== false) addFailure(`${candidate.id} must be enabled false`);
+      if (candidate.rejected !== true) addFailure(`${candidate.id} must be rejected true`);
+      if (candidate.label !== expectedLabels[index]) addFailure(`${candidate.id} label must be ${expectedLabels[index]}`);
+      if (candidate.status !== 'rejected-by-user') addFailure(`${candidate.id} status must be rejected-by-user`);
+      if (candidate.renderAs !== 'floor-marker') addFailure(`${candidate.id} renderAs must be floor-marker`);
+      if (candidate.collision !== false) addFailure(`${candidate.id} collision must be false`);
+      if (candidate.blocking !== false) addFailure(`${candidate.id} blocking must be false`);
+      if (candidate.approved !== false) addFailure(`${candidate.id} approved must be false`);
+    });
+  }
+
+  const placementApproval = requirements.placementApproval;
+  if (!placementApproval) {
+    addFailure('requirements.placementApproval must exist after marker rejection');
+  } else {
+    if (placementApproval.currentStatus !== 'all-current-markers-rejected') addFailure('placementApproval.currentStatus must be all-current-markers-rejected');
+    if (placementApproval.requireManualTopDownApproval !== true) addFailure('placementApproval.requireManualTopDownApproval must be true');
+    if (placementApproval.doNotGenerateSlotsFromBoundsOnly !== true) addFailure('placementApproval.doNotGenerateSlotsFromBoundsOnly must be true');
+    if (placementApproval.doNotConvertUnapprovedMarkers !== true) addFailure('placementApproval.doNotConvertUnapprovedMarkers must be true');
   }
 
   const phase1 = requirements.mazeLitePhase1;
@@ -502,17 +710,18 @@ function validateStaticMazeLitePhase1(levelText, requirements) {
 
 function validateStaticPlacementPreview(levelText, requirements) {
   const placementPreview = requirements.placementPreview;
-  const expectedCandidates = placementPreview?.candidates ?? [];
+  const expectedCandidates = placementPreview?.rejectedCandidates ?? [];
 
-  ensurePattern(levelText, /const\s+mazeLitePlacementPreview\s*=\s*true\s*;/, 'mazeLitePlacementPreview must be true');
-  ensurePattern(levelText, /const\s+wallPlacementMode\s*=\s*['"]preview-markers-only['"]\s*;/, 'wallPlacementMode must be preview-markers-only');
+  ensurePattern(levelText, /const\s+mazeLitePlacementPreview\s*=\s*false\s*;/, 'mazeLitePlacementPreview must be false after user rejection');
+  ensurePattern(levelText, /const\s+wallPlacementMode\s*=\s*['"]disabled['"]\s*;/, 'wallPlacementMode must be disabled after user rejection');
   ensurePattern(levelText, /mazeLitePlacementPreview\s*,/, 'level export must include mazeLitePlacementPreview metadata');
   ensurePattern(levelText, /wallPlacementMode\s*,/, 'level export must include wallPlacementMode metadata');
   ensurePattern(levelText, /placementCandidates\s*:\s*level1V2PlacementCandidates\b/, 'level export must expose placementCandidates');
-  ensurePattern(levelText, /const\s+level1V2PlacementCandidates\s*=\s*\[/, 'level1V2PlacementCandidates must be declared');
+  ensurePattern(levelText, /const\s+level1V2RejectedPlacementCandidates\s*=\s*\[/, 'rejected placement candidates must be retained separately');
+  ensurePattern(levelText, /const\s+level1V2PlacementCandidates\s*=\s*\[\s*\]\s*;/, 'level1V2PlacementCandidates must be an empty active array after user rejection');
   ensurePattern(levelText, /const\s+level1V2PlacementCandidateMarkers\s*=\s*level1V2PlacementCandidates\.map/, 'preview marker props must derive only from placementCandidates');
-  ensurePattern(levelText, /\.\.\.level1V2PlacementCandidateMarkers/, 'architecture must include only generated placement candidate markers for preview rendering');
-  ensurePattern(levelText, /console\.info\('\[MazeMind\] Level 1 V2 Placement Candidates:/, 'DEV log must report placement candidates');
+  ensurePattern(levelText, /\.\.\.level1V2PlacementCandidateMarkers/, 'architecture may only include candidate markers generated from the empty active array');
+  ensurePattern(levelText, /no active placement markers render/, 'DEV log must report rejected placement markers are inactive');
 
   const candidatesBody = findConstArrayBody(levelText, 'level1V2PlacementCandidates');
   if (candidatesBody === null) {
@@ -521,27 +730,40 @@ function validateStaticPlacementPreview(levelText, requirements) {
   }
 
   const candidateIdsInArray = [...candidatesBody.matchAll(/id\s*:\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
-  const expectedIds = expectedCandidates.map(candidate => candidate.id);
-  if (candidateIdsInArray.length !== expectedCandidates.length) {
-    addFailure(`Placement preview candidate count must be ${expectedCandidates.length}, found ${candidateIdsInArray.length}`);
+  if (candidateIdsInArray.length !== 0) {
+    addFailure(`Active placement candidate count must be 0 after user rejection, found ${candidateIdsInArray.length}`);
   }
 
-  if (JSON.stringify(candidateIdsInArray) !== JSON.stringify(expectedIds)) {
-    addFailure(`Placement preview candidate IDs must be exactly ${expectedIds.join(', ')}`);
+  const rejectedBody = findConstArrayBody(levelText, 'level1V2RejectedPlacementCandidates');
+  if (rejectedBody === null) {
+    addFailure('level1V2RejectedPlacementCandidates array was not found');
+    return;
+  }
+
+  const rejectedIdsInArray = [...rejectedBody.matchAll(/id\s*:\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
+  const expectedIds = expectedCandidates.map(candidate => candidate.id);
+  if (rejectedIdsInArray.length !== expectedCandidates.length) {
+    addFailure(`Rejected placement candidate count must be ${expectedCandidates.length}, found ${rejectedIdsInArray.length}`);
+  }
+
+  if (JSON.stringify(rejectedIdsInArray) !== JSON.stringify(expectedIds)) {
+    addFailure(`Rejected placement candidate IDs must be exactly ${expectedIds.join(', ')}`);
   }
 
   expectedCandidates.forEach(candidate => {
     const snippet = findObjectSnippetById(levelText, candidate.id, 900);
     if (!snippet) {
-      addFailure(`Placement preview candidate ${candidate.id} is missing`);
+      addFailure(`Rejected placement candidate ${candidate.id} is missing`);
       return;
     }
 
+    ensurePattern(snippet, /enabled\s*:\s*false\b/, `${candidate.id} must be enabled false`);
+    ensurePattern(snippet, /rejected\s*:\s*true\b/, `${candidate.id} must be rejected true`);
     ensurePattern(snippet, new RegExp(`candidateType\\s*:\\s*['"]${escapeRegExp(candidate.candidateType)}['"]`), `${candidate.id} candidateType must be ${candidate.candidateType}`);
     ensurePattern(snippet, new RegExp(`targetRoomId\\s*:\\s*['"]${escapeRegExp(candidate.targetRoomId)}['"]`), `${candidate.id} targetRoomId must be ${candidate.targetRoomId}`);
     ensurePattern(snippet, new RegExp(`label\\s*:\\s*['"]${escapeRegExp(candidate.label)}['"]`), `${candidate.id} label must be ${candidate.label}`);
     ensurePattern(snippet, new RegExp(`position\\s*:\\s*\\{\\s*x\\s*:\\s*${escapeRegExp(candidate.position.x)}\\s*,\\s*y\\s*:\\s*${escapeRegExp(candidate.position.y)}\\s*\\}`), `${candidate.id} position must remain ${JSON.stringify(candidate.position)}`);
-    ensurePattern(snippet, /status\s*:\s*['"]pending-user-visual-approval['"]/, `${candidate.id} status must be pending-user-visual-approval`);
+    ensurePattern(snippet, /status\s*:\s*['"]rejected-by-user['"]/, `${candidate.id} status must be rejected-by-user`);
     ensurePattern(snippet, /renderAs\s*:\s*['"]floor-marker['"]/, `${candidate.id} renderAs must be floor-marker`);
     ensurePattern(snippet, /collision\s*:\s*false\b/, `${candidate.id} collision must be false`);
     ensurePattern(snippet, /blocking\s*:\s*false\b/, `${candidate.id} blocking must be false`);
@@ -551,19 +773,20 @@ function validateStaticPlacementPreview(levelText, requirements) {
 
 function validateStaticPlacementSlots(levelText, requirements) {
   const placementSlots = requirements.placementSlots;
-  const expectedSlots = placementSlots?.slots ?? [];
+  const expectedSlots = placementSlots?.rejectedSlots ?? [];
 
-  ensurePattern(levelText, /const\s+placementSlotMode\s*=\s*true\s*;/, 'placementSlotMode must be true');
+  ensurePattern(levelText, /const\s+placementSlotMode\s*=\s*false\s*;/, 'placementSlotMode must be false after user rejection');
   ensurePattern(levelText, /const\s+placementSlotSource\s*=\s*['"]approved-floor-zones['"]\s*;/, 'placementSlotSource must be approved-floor-zones');
-  ensurePattern(levelText, /const\s+placementSlotStatus\s*=\s*['"]preview-only['"]\s*;/, 'placementSlotStatus must be preview-only');
+  ensurePattern(levelText, /const\s+placementSlotStatus\s*=\s*['"]rejected-by-user['"]\s*;/, 'placementSlotStatus must be rejected-by-user');
   ensurePattern(levelText, /placementSlotMode\s*,/, 'level export must include placementSlotMode metadata');
   ensurePattern(levelText, /placementSlotSource\s*,/, 'level export must include placementSlotSource metadata');
   ensurePattern(levelText, /placementSlotStatus\s*,/, 'level export must include placementSlotStatus metadata');
   ensurePattern(levelText, /placementSlots\s*:\s*level1V2PlacementSlots\b/, 'level export must expose placementSlots');
-  ensurePattern(levelText, /const\s+level1V2PlacementSlots\s*=\s*\[/, 'level1V2PlacementSlots must be declared');
+  ensurePattern(levelText, /const\s+level1V2RejectedPlacementSlots\s*=\s*\[/, 'rejected placement slots must be retained separately');
+  ensurePattern(levelText, /const\s+level1V2PlacementSlots\s*=\s*\[\s*\]\s*;/, 'level1V2PlacementSlots must be an empty active array after user rejection');
   ensurePattern(levelText, /const\s+level1V2PlacementSlotMarkers\s*=\s*level1V2PlacementSlots\.map/, 'slot marker props must derive only from placementSlots');
-  ensurePattern(levelText, /\.\.\.level1V2PlacementSlotMarkers/, 'architecture must include generated placement slot markers');
-  ensurePattern(levelText, /console\.info\('\[MazeMind\] Level 1 V2 Placement Slots:/, 'DEV log must report placement slots');
+  ensurePattern(levelText, /\.\.\.level1V2PlacementSlotMarkers/, 'architecture may only include slot markers generated from the empty active array');
+  ensurePattern(levelText, /no active placement markers render/, 'DEV log must report rejected placement markers are inactive');
 
   const slotsBody = findConstArrayBody(levelText, 'level1V2PlacementSlots');
   if (slotsBody === null) {
@@ -572,22 +795,35 @@ function validateStaticPlacementSlots(levelText, requirements) {
   }
 
   const slotIdsInArray = [...slotsBody.matchAll(/id\s*:\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
-  const expectedIds = expectedSlots.map(slot => slot.id);
-  if (slotIdsInArray.length !== expectedSlots.length) {
-    addFailure(`Placement slot count must be ${expectedSlots.length}, found ${slotIdsInArray.length}`);
+  if (slotIdsInArray.length !== 0) {
+    addFailure(`Active placement slot count must be 0 after user rejection, found ${slotIdsInArray.length}`);
   }
 
-  if (JSON.stringify(slotIdsInArray) !== JSON.stringify(expectedIds)) {
-    addFailure(`Placement slot IDs must be exactly ${expectedIds.join(', ')}`);
+  const rejectedBody = findConstArrayBody(levelText, 'level1V2RejectedPlacementSlots');
+  if (rejectedBody === null) {
+    addFailure('level1V2RejectedPlacementSlots array was not found');
+    return;
+  }
+
+  const rejectedIdsInArray = [...rejectedBody.matchAll(/id\s*:\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
+  const expectedIds = expectedSlots.map(slot => slot.id);
+  if (rejectedIdsInArray.length !== expectedSlots.length) {
+    addFailure(`Rejected placement slot count must be ${expectedSlots.length}, found ${rejectedIdsInArray.length}`);
+  }
+
+  if (JSON.stringify(rejectedIdsInArray) !== JSON.stringify(expectedIds)) {
+    addFailure(`Rejected placement slot IDs must be exactly ${expectedIds.join(', ')}`);
   }
 
   expectedSlots.forEach(slot => {
     const snippet = findObjectSnippetById(levelText, slot.id, 1300);
     if (!snippet) {
-      addFailure(`Placement slot ${slot.id} is missing`);
+      addFailure(`Rejected placement slot ${slot.id} is missing`);
       return;
     }
 
+    ensurePattern(snippet, /enabled\s*:\s*false\b/, `${slot.id} must be enabled false`);
+    ensurePattern(snippet, /rejected\s*:\s*true\b/, `${slot.id} must be rejected true`);
     ensurePattern(snippet, new RegExp(`roomId\\s*:\\s*['"]${escapeRegExp(slot.roomId)}['"]`), `${slot.id} roomId must be ${slot.roomId}`);
     ensurePattern(snippet, new RegExp(`code\\s*:\\s*['"]${escapeRegExp(slot.code)}['"]`), `${slot.id} code must be ${slot.code}`);
     ensurePattern(snippet, new RegExp(`slotType\\s*:\\s*['"]${escapeRegExp(slot.slotType)}['"]`), `${slot.id} slotType must be ${slot.slotType}`);
@@ -596,7 +832,7 @@ function validateStaticPlacementSlots(levelText, requirements) {
     ensurePattern(snippet, new RegExp(`maxSize\\s*:\\s*\\{\\s*width\\s*:\\s*${numberPattern(slot.maxSize.width)}\\s*,\\s*depth\\s*:\\s*${numberPattern(slot.maxSize.depth)}\\s*,\\s*height\\s*:\\s*${numberPattern(slot.maxSize.height)}\\s*\\}`), `${slot.id} maxSize must remain approved`);
     ensurePattern(snippet, /collisionAllowed\s*:\s*false\b/, `${slot.id} collisionAllowed must be false`);
     ensurePattern(snippet, /approved\s*:\s*false\b/, `${slot.id} approved must be false`);
-    ensurePattern(snippet, /status\s*:\s*['"]pending-user-visual-approval['"]/, `${slot.id} status must be pending-user-visual-approval`);
+    ensurePattern(snippet, /status\s*:\s*['"]rejected-by-user['"]/, `${slot.id} status must be rejected-by-user`);
     ensurePattern(snippet, /renderAs\s*:\s*['"]floor-slot-marker['"]/, `${slot.id} renderAs must be floor-slot-marker`);
     slot.allowedAssetTypes.forEach(assetType => {
       ensurePattern(snippet, new RegExp(`['"]${escapeRegExp(assetType)}['"]`), `${slot.id} must include allowed asset type ${assetType}`);
@@ -710,6 +946,9 @@ function printResults() {
 }
 
 const requirementsText = readText(requirementsPath);
+const svgPatternText = readText(svgPatternPath);
+const svgPatternPlanText = readText(svgPatternPlanPath);
+const svgSourceText = readText(svgSourcePath);
 const levelText = readText(levelPath);
 
 let requirements = null;
@@ -721,9 +960,22 @@ if (requirementsText) {
   }
 }
 
+let svgPattern = null;
+if (svgPatternText) {
+  try {
+    svgPattern = JSON.parse(svgPatternText);
+  } catch (error) {
+    addFailure(`Invalid SVG pattern JSON: ${error.message}`);
+  }
+}
+
 if (requirements && levelText) {
   validateRequirementsShape(requirements);
   validateStaticMapText(levelText, requirements);
+}
+
+if (requirements && svgPattern && levelText && svgPatternPlanText && svgSourceText) {
+  validateSvgPattern(svgPattern, requirements, levelText, svgPatternPlanText, svgSourceText);
 }
 
 printResults();

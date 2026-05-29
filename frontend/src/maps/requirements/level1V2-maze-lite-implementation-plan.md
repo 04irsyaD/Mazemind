@@ -14,8 +14,8 @@ If validation fails, do not proceed.
 
 Current runtime state:
 - maze-lite Phase 1 visual divider rendering paused
-- placement preview mode enabled with floor markers only
-- placement slot mode enabled from approved floor zones
+- placement preview mode disabled after user rejected all current markers
+- placement slot mode disabled after user rejected all current slots
 - grid wall segments disabled
 - collisionVolumes empty
 - only outer boundary walls allowed
@@ -23,15 +23,18 @@ Current runtime state:
 Conflict note:
 - `f-archive-divider-02` at `{ x: 10, y: 20.5 }` is omitted because it overlaps the approved central route bounds.
 - `c-workstation-divider-01`, `c-workstation-divider-02`, and `f-archive-divider-01` are disabled proposal records only.
-- Future divider positions require screenshot/top-down visual approval; bounds validation alone is not enough.
+- All current preview candidates and placement slots were rejected by user visual review.
+- Future divider/object/wall positions require a manually approved top-down placement map; bounds validation alone is not enough.
+- Do not auto-generate slots from room bounds.
+- Do not convert rejected or unapproved markers into objects, dividers, or walls.
 
-Preview candidate markers:
+Rejected preview candidate markers:
 - W1 `main-workstation-hall` at `{ x: 20.5, y: 4.5 }`
 - W2 `main-workstation-hall` at `{ x: 24.5, y: 5.8 }`
 - W3 `records-archive` at `{ x: 5.5, y: 19 }`
 - W4 `records-archive` at `{ x: 8.5, y: 20.5 }`
 
-Placement slot markers:
+Rejected placement slot markers:
 - A1 `front-admin-intake` at `{ x: 5.5, y: 6.2 }`
 - B1 `canteen` at `{ x: 5.5, y: 10.5 }`
 - C1 `main-workstation-hall` at `{ x: 19.5, y: 5.0 }`

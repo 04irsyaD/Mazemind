@@ -43,6 +43,22 @@
       }
     ]
   },
+  "svgPattern": {
+    "source": "final.svg",
+    "patternJson": "level1V2-svg-pattern.json",
+    "conversionPlan": "level1V2-svg-pattern-conversion-plan.md",
+    "status": "pattern-reference",
+    "directImplementationAllowed": false,
+    "requiresUserApprovalBeforeConversion": true,
+    "linePreviewOnly": true,
+    "rules": [
+      "final.svg is the visual source reference for Level 1 V2 wall/object/access pattern.",
+      "The SVG must be converted through level1V2-svg-pattern.json and the conversion plan.",
+      "Direct implementation from SVG is forbidden.",
+      "No wall, divider, object, access, door, or collision candidate may be converted without explicit user approval.",
+      "Wall/divider candidates must remain line-preview-only until approved."
+    ]
+  },
   "mazeLitePhase1": {
     "status": "paused-until-user-approved-positions",
     "enabled": false,
@@ -108,25 +124,30 @@
     ]
   },
   "placementPreview": {
-    "mazeLitePlacementPreview": true,
+    "mazeLitePlacementPreview": false,
     "mazeLitePhase1Enabled": false,
-    "wallPlacementMode": "preview-markers-only",
+    "wallPlacementMode": "disabled",
     "markerRules": {
       "renderAs": "floor-marker",
-      "status": "pending-user-visual-approval",
+      "status": "rejected-by-user",
       "collision": false,
       "blocking": false,
       "approved": false,
+      "enabled": false,
+      "rejected": true,
       "maxHeight": 0.05
     },
-    "candidates": [
+    "candidates": [],
+    "rejectedCandidates": [
       {
         "id": "candidate-c-divider-01",
+        "enabled": false,
+        "rejected": true,
         "candidateType": "cubicle-divider",
         "targetRoomId": "main-workstation-hall",
         "label": "W1",
         "position": { "x": 20.5, "y": 4.5 },
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-marker",
         "collision": false,
         "blocking": false,
@@ -134,11 +155,13 @@
       },
       {
         "id": "candidate-c-divider-02",
+        "enabled": false,
+        "rejected": true,
         "candidateType": "cubicle-divider",
         "targetRoomId": "main-workstation-hall",
         "label": "W2",
         "position": { "x": 24.5, "y": 5.8 },
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-marker",
         "collision": false,
         "blocking": false,
@@ -146,11 +169,13 @@
       },
       {
         "id": "candidate-f-archive-01",
+        "enabled": false,
+        "rejected": true,
         "candidateType": "archive-rack-divider",
         "targetRoomId": "records-archive",
         "label": "W3",
         "position": { "x": 5.5, "y": 19 },
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-marker",
         "collision": false,
         "blocking": false,
@@ -158,11 +183,13 @@
       },
       {
         "id": "candidate-f-archive-02",
+        "enabled": false,
+        "rejected": true,
         "candidateType": "archive-rack-divider",
         "targetRoomId": "records-archive",
         "label": "W4",
         "position": { "x": 8.5, "y": 20.5 },
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-marker",
         "collision": false,
         "blocking": false,
@@ -171,21 +198,24 @@
     ]
   },
   "placementSlots": {
-    "enabled": true,
-    "mode": true,
+    "enabled": false,
+    "mode": false,
     "source": "approved-floor-zones",
-    "status": "preview-only",
+    "status": "rejected-by-user",
     "requireSlotForNewObjects": true,
     "requireSlotForNewDividers": true,
     "rules": [
-      "New objects must reference an approved placement slot.",
-      "New dividers must reference an approved placement slot.",
-      "Slot approval is false by default.",
-      "No object or divider may be placed from raw coordinates unless explicitly approved."
+      "Current placement slots are rejected and must not render.",
+      "No object, divider, or wall may be placed from raw coordinates or auto-generated room bounds.",
+      "Future placement must use a manually approved top-down placement map.",
+      "No unapproved marker may be converted into a real object, divider, or wall."
     ],
-    "slots": [
+    "slots": [],
+    "rejectedSlots": [
       {
         "id": "A_OBJECT_SLOT_01",
+        "enabled": false,
+        "rejected": true,
         "roomId": "front-admin-intake",
         "code": "A",
         "slotType": "object",
@@ -195,11 +225,13 @@
         "maxSize": { "width": 2.0, "depth": 1.0, "height": 1.2 },
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       },
       {
         "id": "B_OBJECT_SLOT_01",
+        "enabled": false,
+        "rejected": true,
         "roomId": "canteen",
         "code": "B",
         "slotType": "object",
@@ -209,11 +241,13 @@
         "maxSize": { "width": 2.0, "depth": 1.2, "height": 1.0 },
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       },
       {
         "id": "C_WORKSTATION_SLOT_01",
+        "enabled": false,
+        "rejected": true,
         "roomId": "main-workstation-hall",
         "code": "C",
         "slotType": "object",
@@ -223,11 +257,13 @@
         "maxSize": { "width": 2.5, "depth": 1.5, "height": 1.4 },
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       },
       {
         "id": "C_WORKSTATION_SLOT_02",
+        "enabled": false,
+        "rejected": true,
         "roomId": "main-workstation-hall",
         "code": "C",
         "slotType": "object",
@@ -237,11 +273,13 @@
         "maxSize": { "width": 2.5, "depth": 1.5, "height": 1.4 },
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       },
       {
         "id": "C_DIVIDER_SLOT_01",
+        "enabled": false,
+        "rejected": true,
         "roomId": "main-workstation-hall",
         "code": "C",
         "slotType": "divider",
@@ -251,11 +289,13 @@
         "maxSize": { "width": 2.4, "depth": 0.25, "height": 1.5 },
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       },
       {
         "id": "D_OBJECT_SLOT_01",
+        "enabled": false,
+        "rejected": true,
         "roomId": "boardroom-review",
         "code": "D",
         "slotType": "object",
@@ -266,11 +306,13 @@
         "intendedObjectiveId": "pending-ledger",
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       },
       {
         "id": "F_ARCHIVE_SLOT_01",
+        "enabled": false,
+        "rejected": true,
         "roomId": "records-archive",
         "code": "F",
         "slotType": "object",
@@ -280,11 +322,13 @@
         "maxSize": { "width": 1.8, "depth": 0.6, "height": 2.0 },
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       },
       {
         "id": "F_ARCHIVE_SLOT_02",
+        "enabled": false,
+        "rejected": true,
         "roomId": "records-archive",
         "code": "F",
         "slotType": "object",
@@ -294,11 +338,13 @@
         "maxSize": { "width": 1.8, "depth": 0.6, "height": 2.0 },
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       },
       {
         "id": "F_DIVIDER_SLOT_01",
+        "enabled": false,
+        "rejected": true,
         "roomId": "records-archive",
         "code": "F",
         "slotType": "divider",
@@ -308,11 +354,13 @@
         "maxSize": { "width": 2.0, "depth": 0.5, "height": 2.0 },
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       },
       {
         "id": "G_OBJECT_SLOT_01",
+        "enabled": false,
+        "rejected": true,
         "roomId": "secondary-workstation",
         "code": "G",
         "slotType": "object",
@@ -322,11 +370,13 @@
         "maxSize": { "width": 2.5, "depth": 1.5, "height": 1.4 },
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       },
       {
         "id": "H_OBJECT_SLOT_01",
+        "enabled": false,
+        "rejected": true,
         "roomId": "level2-access",
         "code": "H",
         "slotType": "object",
@@ -337,9 +387,19 @@
         "intendedObjectiveId": "level2-access-note",
         "collisionAllowed": false,
         "approved": false,
-        "status": "pending-user-visual-approval",
+        "status": "rejected-by-user",
         "renderAs": "floor-slot-marker"
       }
+    ]
+  },
+  "placementApproval": {
+    "currentStatus": "all-current-markers-rejected",
+    "requireManualTopDownApproval": true,
+    "doNotGenerateSlotsFromBoundsOnly": true,
+    "doNotConvertUnapprovedMarkers": true,
+    "rules": [
+      "No object, divider, or wall may be placed from raw coordinates or auto-generated room bounds.",
+      "Future placement must use a manually approved placement map."
     ]
   },
   "rooms": {

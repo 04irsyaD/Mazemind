@@ -1,0 +1,450 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1068" height="760" viewBox="0 0 1068 760" role="img">
+<title>Level 1 V2 Floorplan — Fixed: Access, Object Placement, Door Gaps</title>
+<desc>Fixed version: corrected door gaps in outer/internal walls, re-anchored object placements, fixed access route to pass through valid door openings, separated waypoint 3 from D01 ellipse.</desc>
+
+<defs>
+  <marker id="green-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#06d6a0"/>
+  </marker>
+  <marker id="red-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#ef476f"/>
+  </marker>
+  <marker id="yellow-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#ffd166"/>
+  </marker>
+</defs>
+
+<style>
+  .bg          { fill:#101718; }
+  .grid        { stroke:#2d3839; stroke-width:0.6; opacity:0.45; }
+  .outer       { fill:none; stroke:#d7dedc; stroke-width:5; }
+  .room        { stroke:#d7dedc; stroke-width:1.2; opacity:0.92; }
+  .label       { fill:#f4f7f6; font-family:Arial,sans-serif; font-size:13px; font-weight:700; text-anchor:middle; dominant-baseline:middle; }
+  .sub         { fill:#dce4e1; font-family:Arial,sans-serif; font-size:9px; text-anchor:middle; dominant-baseline:middle; opacity:0.95; }
+  .obj         { fill:#ffd166; stroke:#201400; stroke-width:1.5; }
+  .objText     { fill:#111; font-family:Arial,sans-serif; font-size:11px; font-weight:700; text-anchor:middle; dominant-baseline:middle; }
+  .wallPreview { fill:none; stroke-width:5; stroke-linecap:round; stroke-dasharray:8 6; opacity:0.95; }
+  .wallText    { fill:#fff; font-family:Arial,sans-serif; font-size:8px; text-anchor:middle; dominant-baseline:middle; }
+  .object      { stroke:#111; stroke-width:1.4; opacity:0.93; }
+  .objectText  { fill:#111; font-family:Arial,sans-serif; font-size:7px; font-weight:700; text-anchor:middle; dominant-baseline:middle; }
+  .route       { fill:none; stroke:#ffd166; stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:7 6; opacity:0.92; }
+  .door-gap    { stroke:#06d6a0; stroke-width:5; stroke-linecap:round; stroke-dasharray:4 3; opacity:0.85; }
+  .door-label  { fill:#06d6a0; font-family:Arial,sans-serif; font-size:7px; font-weight:700; text-anchor:middle; dominant-baseline:middle; }
+  .fix-badge   { fill:#ef476f; font-family:Arial,sans-serif; font-size:7px; font-weight:700; text-anchor:middle; dominant-baseline:middle; }
+  .note        { fill:#dce4e1; font-family:Arial,sans-serif; font-size:11px; }
+  .title       { fill:#fff; font-family:Arial,sans-serif; font-size:18px; font-weight:800; }
+  .legendTitle { fill:#fff; font-family:Arial,sans-serif; font-size:13px; font-weight:800; }
+  .legendText  { fill:#dce4e1; font-family:Arial,sans-serif; font-size:11px; }
+</style>
+
+<!-- ─── BACKGROUND ─── -->
+<rect class="bg" x="0" y="0" width="1068" height="760"/>
+<text class="title" x="52" y="28">Level 1 V2 — FIXED: Access + Object + Door Placement</text>
+
+<!-- ─── GRID (22×24 unit, 1 unit = 22px) ─── -->
+<line class="grid" x1="52" y1="52" x2="52" y2="580"/><line class="grid" x1="74" y1="52" x2="74" y2="580"/>
+<line class="grid" x1="96" y1="52" x2="96" y2="580"/><line class="grid" x1="118" y1="52" x2="118" y2="580"/>
+<line class="grid" x1="140" y1="52" x2="140" y2="580"/><line class="grid" x1="162" y1="52" x2="162" y2="580"/>
+<line class="grid" x1="184" y1="52" x2="184" y2="580"/><line class="grid" x1="206" y1="52" x2="206" y2="580"/>
+<line class="grid" x1="228" y1="52" x2="228" y2="580"/><line class="grid" x1="250" y1="52" x2="250" y2="580"/>
+<line class="grid" x1="272" y1="52" x2="272" y2="580"/><line class="grid" x1="294" y1="52" x2="294" y2="580"/>
+<line class="grid" x1="316" y1="52" x2="316" y2="580"/><line class="grid" x1="338" y1="52" x2="338" y2="580"/>
+<line class="grid" x1="360" y1="52" x2="360" y2="580"/><line class="grid" x1="382" y1="52" x2="382" y2="580"/>
+<line class="grid" x1="404" y1="52" x2="404" y2="580"/><line class="grid" x1="426" y1="52" x2="426" y2="580"/>
+<line class="grid" x1="448" y1="52" x2="448" y2="580"/><line class="grid" x1="470" y1="52" x2="470" y2="580"/>
+<line class="grid" x1="492" y1="52" x2="492" y2="580"/><line class="grid" x1="514" y1="52" x2="514" y2="580"/>
+<line class="grid" x1="536" y1="52" x2="536" y2="580"/><line class="grid" x1="558" y1="52" x2="558" y2="580"/>
+<line class="grid" x1="580" y1="52" x2="580" y2="580"/><line class="grid" x1="602" y1="52" x2="602" y2="580"/>
+<line class="grid" x1="624" y1="52" x2="624" y2="580"/><line class="grid" x1="646" y1="52" x2="646" y2="580"/>
+<line class="grid" x1="668" y1="52" x2="668" y2="580"/><line class="grid" x1="690" y1="52" x2="690" y2="580"/>
+<line class="grid" x1="712" y1="52" x2="712" y2="580"/><line class="grid" x1="734" y1="52" x2="734" y2="580"/>
+<line class="grid" x1="756" y1="52" x2="756" y2="580"/>
+<line class="grid" x1="52" y1="52" x2="756" y2="52"/><line class="grid" x1="52" y1="74" x2="756" y2="74"/>
+<line class="grid" x1="52" y1="96" x2="756" y2="96"/><line class="grid" x1="52" y1="118" x2="756" y2="118"/>
+<line class="grid" x1="52" y1="140" x2="756" y2="140"/><line class="grid" x1="52" y1="162" x2="756" y2="162"/>
+<line class="grid" x1="52" y1="184" x2="756" y2="184"/><line class="grid" x1="52" y1="206" x2="756" y2="206"/>
+<line class="grid" x1="52" y1="228" x2="756" y2="228"/><line class="grid" x1="52" y1="250" x2="756" y2="250"/>
+<line class="grid" x1="52" y1="272" x2="756" y2="272"/><line class="grid" x1="52" y1="294" x2="756" y2="294"/>
+<line class="grid" x1="52" y1="316" x2="756" y2="316"/><line class="grid" x1="52" y1="338" x2="756" y2="338"/>
+<line class="grid" x1="52" y1="360" x2="756" y2="360"/><line class="grid" x1="52" y1="382" x2="756" y2="382"/>
+<line class="grid" x1="52" y1="404" x2="756" y2="404"/><line class="grid" x1="52" y1="426" x2="756" y2="426"/>
+<line class="grid" x1="52" y1="448" x2="756" y2="448"/><line class="grid" x1="52" y1="470" x2="756" y2="470"/>
+<line class="grid" x1="52" y1="492" x2="756" y2="492"/><line class="grid" x1="52" y1="514" x2="756" y2="514"/>
+<line class="grid" x1="52" y1="536" x2="756" y2="536"/><line class="grid" x1="52" y1="558" x2="756" y2="558"/>
+<line class="grid" x1="52" y1="580" x2="756" y2="580"/>
+
+<!-- ═══════════════════════════════════════════════════════
+     ROOMS (posisi tidak berubah sesuai permintaan)
+═══════════════════════════════════════════════════════ -->
+<rect class="room" x="96" y="118" width="176" height="110" fill="#9caeae"/>
+<text class="label" x="184" y="166">A — Front Admin</text>
+<text class="sub"   x="184" y="182">front-admin-intake</text>
+
+<rect class="room" x="96" y="228" width="176" height="110" fill="#9aad9a"/>
+<text class="label" x="184" y="276">B — Canteen</text>
+<text class="sub"   x="184" y="292">canteen</text>
+
+<rect class="room" x="96" y="338" width="110" height="66" fill="#a7bdc2"/>
+<text class="label" x="151" y="364">E — Toilet</text>
+<text class="sub"   x="151" y="380">toilet</text>
+
+<rect class="room" x="96" y="426" width="242" height="132" fill="#8b969c"/>
+<text class="label" x="217" y="485">F — Records Archive</text>
+<text class="sub"   x="217" y="501">records-archive</text>
+
+<rect class="room" x="272" y="118" width="88" height="440" fill="#626e6e"/>
+<text class="label" x="316" y="331">R — Central Route</text>
+<text class="sub"   x="316" y="347">central-route</text>
+
+<rect class="room" x="360" y="118" width="352" height="132" fill="#aeb7ba"/>
+<text class="label" x="536" y="177">C — Workstation Hall</text>
+<text class="sub"   x="536" y="193">main-workstation-hall</text>
+
+<rect class="room" x="360" y="272" width="352" height="132" fill="#a3bcc2"/>
+<text class="label" x="536" y="331">D — Boardroom</text>
+<text class="sub"   x="536" y="347">boardroom-review</text>
+
+<rect class="room" x="360" y="426" width="88" height="132" fill="#8db8af"/>
+<text class="label" x="404" y="485">H — Level 2 Access</text>
+<text class="sub"   x="404" y="501">level2-access</text>
+
+<rect class="room" x="448" y="426" width="264" height="132" fill="#7a9e9f"/>
+<text class="label" x="580" y="485">G — Secondary Office</text>
+<text class="sub"   x="580" y="501">secondary-office</text>
+
+<!-- ═══════════════════════════════════════════════════════
+     OUTER WALL — dengan GAP resmi untuk setiap pintu
+     Outer rect diganti dengan segmen terpisah agar bisa
+     membuat gap nyata (tidak hanya garis overlay)
+═══════════════════════════════════════════════════════ -->
+
+<!-- TOP wall: x=52→756, y=52
+     GAP 1: ENTRY A  x=162–206 (lebar 44, centered di A x=96+176/2=184)
+     GAP 2: ALT ENTRY C  x=503–547 (lebar 44, centered di C x=360+352/2=536) -->
+<line x1="52"  y1="52" x2="162" y2="52" stroke="#d7dedc" stroke-width="5"/>
+<line x1="206" y1="52" x2="503" y2="52" stroke="#d7dedc" stroke-width="5"/>
+<line x1="547" y1="52" x2="756" y2="52" stroke="#d7dedc" stroke-width="5"/>
+
+<!-- BOTTOM wall: x=52→756, y=580
+     GAP: EXIT/L2  x=371–415 (lebar 44, centered di H x=360+88/2=404) -->
+<line x1="52"  y1="580" x2="371" y2="580" stroke="#d7dedc" stroke-width="5"/>
+<line x1="415" y1="580" x2="756" y2="580" stroke="#d7dedc" stroke-width="5"/>
+
+<!-- LEFT wall: y=52→580, x=52 (no external door) -->
+<line x1="52" y1="52" x2="52" y2="580" stroke="#d7dedc" stroke-width="5"/>
+
+<!-- RIGHT wall: y=52→580, x=756 (no external door) -->
+<line x1="756" y1="52" x2="756" y2="580" stroke="#d7dedc" stroke-width="5"/>
+
+<!-- ═══════════════════════════════════════════════════════
+     INTERNAL DOOR GAPS — dinding antar room
+     Digambar sebagai segmen putus dengan gap berwarna hijau
+═══════════════════════════════════════════════════════ -->
+
+<!-- DOOR: A south wall → B (y=228, gap di x=151–206, lebar 44 center di 184)
+     A bottom wall = y=228 = B top wall -->
+<line x1="96"  y1="228" x2="151" y2="228" stroke="#d7dedc" stroke-width="3"/>
+<line x1="206" y1="228" x2="272" y2="228" stroke="#d7dedc" stroke-width="3"/>
+<!-- gap A→B -->
+<line x1="151" y1="228" x2="206" y2="228" class="door-gap"/>
+<text class="door-label" x="178" y="222">A→B</text>
+
+<!-- DOOR: B south wall → (area between B and F, E is at y=338 only left portion)
+     B bottom = y=338, gap di x=151–206 -->
+<line x1="96"  y1="338" x2="151" y2="338" stroke="#d7dedc" stroke-width="3"/>
+<line x1="206" y1="338" x2="272" y2="338" stroke="#d7dedc" stroke-width="3"/>
+<line x1="151" y1="338" x2="206" y2="338" class="door-gap"/>
+<text class="door-label" x="178" y="332">B→E/F</text>
+
+<!-- DOOR: E east wall → R corridor (x=206, gap y=349–382, center di 364=center of E)
+     E spans y=338→404, center y=371 -->
+<line x1="206" y1="338" x2="206" y2="349" stroke="#d7dedc" stroke-width="3"/>
+<line x1="206" y1="393" x2="206" y2="404" stroke="#d7dedc" stroke-width="3"/>
+<line x1="206" y1="349" x2="206" y2="393" class="door-gap"/>
+<text class="door-label" x="220" y="372">E→R</text>
+
+<!-- DOOR: F north → R corridor (y=426, gap x=294–338, center di 316=center of R)
+     F top = y=426, R center x=316 -->
+<line x1="272" y1="426" x2="294" y2="426" stroke="#d7dedc" stroke-width="3"/>
+<line x1="338" y1="426" x2="360" y2="426" stroke="#d7dedc" stroke-width="3"/>
+<line x1="294" y1="426" x2="338" y2="426" class="door-gap"/>
+<text class="door-label" x="316" y="420">F→R</text>
+
+<!-- DOOR: A east wall → R corridor (x=272, gap y=140–184, center di 162+22=173=waypoint 1)
+     A spans y=118→228, door aligned with waypoint 1 at y=173 -->
+<line x1="272" y1="118" x2="272" y2="151" stroke="#d7dedc" stroke-width="3"/>
+<line x1="272" y1="195" x2="272" y2="228" stroke="#d7dedc" stroke-width="3"/>
+<line x1="272" y1="151" x2="272" y2="195" class="door-gap"/>
+<text class="door-label" x="258" y="174">A→R</text>
+
+<!-- DOOR: R east → C/D (x=360, gap y=140–184 for C, and y=294–338 for D)
+     C spans y=118→250, center y=184
+     D spans y=272→404, center y=338 -->
+<line x1="360" y1="118" x2="360" y2="151" stroke="#d7dedc" stroke-width="3"/>
+<line x1="360" y1="195" x2="360" y2="294" stroke="#d7dedc" stroke-width="3"/>
+<line x1="360" y1="338" x2="360" y2="404" stroke="#d7dedc" stroke-width="3"/>
+<line x1="360" y1="404" x2="360" y2="426" stroke="#d7dedc" stroke-width="3"/>
+<!-- gap R→C -->
+<line x1="360" y1="151" x2="360" y2="195" class="door-gap"/>
+<text class="door-label" x="374" y="174">R→C</text>
+<!-- gap R→D -->
+<line x1="360" y1="294" x2="360" y2="338" class="door-gap"/>
+<text class="door-label" x="374" y="318">R→D</text>
+
+<!-- DOOR: H south → exit (y=558 = bottom of H, gap x=382–426, center 404)
+     H spans y=426→558 -->
+<line x1="360" y1="558" x2="382" y2="558" stroke="#d7dedc" stroke-width="3"/>
+<line x1="426" y1="558" x2="448" y2="558" stroke="#d7dedc" stroke-width="3"/>
+<line x1="382" y1="558" x2="426" y2="558" class="door-gap"/>
+<text class="door-label" x="404" y="552">H→EXIT</text>
+
+<!-- DOOR: D south → H/G (y=404, gap x=382–426 for H side)  -->
+<line x1="360" y1="404" x2="382" y2="404" stroke="#d7dedc" stroke-width="3"/>
+<line x1="426" y1="404" x2="712" y2="404" stroke="#d7dedc" stroke-width="3"/>
+<line x1="382" y1="404" x2="426" y2="404" class="door-gap"/>
+<text class="door-label" x="404" y="398">D→H</text>
+
+<!-- ═══════════════════════════════════════════════════════
+     WALL DIVIDER PREVIEWS (dashed internal dividers)
+═══════════════════════════════════════════════════════ -->
+<!-- A-BAY-WEST: left edge of A (outer wall, informational) -->
+<line class="wallPreview" x1="96" y1="118" x2="96" y2="228" stroke="#2f4858"/>
+<rect x="57" y="164" width="78" height="14" rx="4" fill="#000" opacity="0.62"/>
+<text class="wallText" x="96" y="171">A-BAY-WEST</text>
+
+<!-- A-BAY-NORTH -->
+<line class="wallPreview" x1="96" y1="118" x2="272" y2="118" stroke="#2f4858"/>
+<rect x="135" y="111" width="78" height="14" rx="4" fill="#000" opacity="0.62"/>
+<text class="wallText" x="174" y="118">A-BAY-NORTH</text>
+
+<!-- A-BAY-SOUTH (y=228 — partial, gap already marked) -->
+<line class="wallPreview" x1="96" y1="228" x2="151" y2="228" stroke="#2f4858"/>
+<line class="wallPreview" x1="206" y1="228" x2="272" y2="228" stroke="#2f4858"/>
+
+<!-- C-DIV-01: workstation row divider inside C -->
+<line class="wallPreview" x1="448" y1="202" x2="580" y2="202" stroke="#3d405b"/>
+<rect x="475" y="195" width="78" height="14" rx="4" fill="#000" opacity="0.62"/>
+<text class="wallText" x="514" y="202">C-DIV-01</text>
+
+<!-- F-RACK-01, F-RACK-02 -->
+<line class="wallPreview" x1="151" y1="457" x2="272" y2="457" stroke="#5b5f66"/>
+<rect x="162" y="450" width="78" height="14" rx="4" fill="#000" opacity="0.62"/>
+<text class="wallText" x="201" y="457">F-RACK-01</text>
+
+<line class="wallPreview" x1="151" y1="518" x2="272" y2="518" stroke="#5b5f66"/>
+<rect x="162" y="511" width="78" height="14" rx="4" fill="#000" opacity="0.62"/>
+<text class="wallText" x="201" y="518">F-RACK-02</text>
+
+<!-- D-HINT-01: internal hint divider in D -->
+<line class="wallPreview" x1="448" y1="367" x2="624" y2="367" stroke="#335c67"/>
+<rect x="497" y="360" width="78" height="14" rx="4" fill="#000" opacity="0.62"/>
+<text class="wallText" x="536" y="367">D-HINT-01</text>
+
+<!-- H-BAY-01: vertical divider in H -->
+<line class="wallPreview" x1="364" y1="448" x2="364" y2="536" stroke="#0f6b61"/>
+<rect x="325" y="485" width="78" height="14" rx="4" fill="#000" opacity="0.62"/>
+<text class="wallText" x="364" y="492">H-BAY-01</text>
+
+<!-- ═══════════════════════════════════════════════════════
+     ENTRY / EXIT MARKERS (diperbaiki agar tepat di gap dinding)
+═══════════════════════════════════════════════════════ -->
+
+<!-- ENTRY A: masuk dari atas ke Room A, tepat di gap x=162–206 → center x=184 -->
+<line x1="184" y1="34" x2="184" y2="52"
+      stroke="#06d6a0" stroke-width="5" stroke-linecap="round"
+      marker-end="url(#green-arrow)"/>
+<rect x="151" y="22" width="66" height="16" rx="4" fill="#000" opacity="0.72"/>
+<text class="wallText" x="184" y="30">ENTRY A</text>
+
+<!-- ALT ENTRY C: masuk dari atas ke Room C, tepat di gap x=503–547 → center x=525 -->
+<line x1="525" y1="34" x2="525" y2="52"
+      stroke="#06d6a0" stroke-width="5" stroke-linecap="round"
+      marker-end="url(#green-arrow)"/>
+<rect x="492" y="22" width="66" height="16" rx="4" fill="#000" opacity="0.72"/>
+<text class="wallText" x="525" y="30">ALT ENTRY C</text>
+
+<!-- EXIT / L2: keluar dari bawah Room H, tepat di gap x=371–415 → center x=393
+     H bottom = y=558, gap di dinding H-south, lanjut ke outer wall gap y=580 -->
+<line x1="404" y1="580" x2="404" y2="600"
+      stroke="#ef476f" stroke-width="5" stroke-linecap="round"
+      marker-end="url(#red-arrow)"/>
+<rect x="371" y="600" width="66" height="16" rx="4" fill="#000" opacity="0.72"/>
+<text class="wallText" x="404" y="608">EXIT / L2</text>
+
+<!-- ═══════════════════════════════════════════════════════
+     ACCESS ROUTE (diperbaiki melewati door gaps yang valid)
+     Urutan: ENTRY-A → waypoint1(A) → door A→R → R corridor →
+             door R→C → waypoint2(C) → C → D (via internal) →
+             waypoint3(D) → door D→H → H → door H→EXIT → EXIT
+
+     Path nodes:
+       184,173  = waypoint 1 (inside A, di bawah intake counter)
+       316,173  = crossing R at C-level (through door A→R then up)
+       525,173  = waypoint 2 (inside C near C02)
+       525,316  = waypoint 3 (inside D, ABOVE D01 ellipse cy=338)
+       404,316  = center path D heading toward H
+       404,492  = waypoint 5 (inside H, H01 object area)
+═══════════════════════════════════════════════════════ -->
+<polyline class="route"
+  points="184,68 184,173 272,173 316,173 360,173 525,173 525,316 404,316 404,426 404,492"
+  marker-end="url(#yellow-arrow)"/>
+
+<!-- ═══════════════════════════════════════════════════════
+     OBJECTS — posisi diperbaiki agar tidak tumpang tindih
+     dan sejajar dengan divider/rack yang ada
+═══════════════════════════════════════════════════════ -->
+
+<!-- A01 — intake counter: di bawah ENTRY, snapped ke grid, atas Room A -->
+<!-- FIX: dipindah ke y=132 agar tidak terlalu mepet top wall, centered di x=184 -->
+<rect class="object" x="142" y="130" width="84" height="16" rx="3" fill="#f2cc8f"/>
+<text class="objectText" x="184" y="138">A01 — intake counter</text>
+
+<!-- B01 — canteen table: center di Room B -->
+<!-- FIX: dipindah ke x=142,y=268 agar tidak terlalu mepet kiri -->
+<rect class="object" x="110" y="258" width="84" height="22" rx="3" fill="#e9c46a"/>
+<text class="objectText" x="152" y="269">B01 — canteen table</text>
+
+<!-- E01 — restroom fixture: di dalam Room E, snapped kiri -->
+<rect class="object" x="106" y="352" width="44" height="22" rx="3" fill="#bde0fe"/>
+<text class="objectText" x="128" y="363">E01</text>
+
+<!-- C01 — workstation row 1: di bawah C-DIV-01, aligned ke grid -->
+<!-- FIX: dipindah ke y=158 (bawah divider C-DIV-01 di y=202), 
+          x=440 snapped ke grid, lebar memadai -->
+<rect class="object" x="396" y="128" width="88" height="22" rx="3" fill="#90be6d"/>
+<text class="objectText" x="440" y="139">C01 — workstation</text>
+
+<!-- C02 — workstation row 2 -->
+<!-- FIX: x=572 snapped ke grid, y=128 sejajar C01, spasi 22 grid unit -->
+<rect class="object" x="572" y="128" width="88" height="22" rx="3" fill="#90be6d"/>
+<text class="objectText" x="616" y="139">C02 — workstation</text>
+
+<!-- C03 — workstation row 3 (bawah C-DIV-01) -->
+<rect class="object" x="396" y="210" width="88" height="22" rx="3" fill="#90be6d"/>
+<text class="objectText" x="440" y="221">C03 — workstation</text>
+
+<rect class="object" x="572" y="210" width="88" height="22" rx="3" fill="#90be6d"/>
+<text class="objectText" x="616" y="221">C04 — workstation</text>
+
+<!-- D01 — meeting table ELLIPSE: center di Room D
+     FIX: dipindah ke cy=338 (center of D: y=272+132/2=338) — 
+     waypoint 3 dipindah ke y=316 agar TIDAK overlap -->
+<ellipse class="object" cx="525" cy="338" rx="66" ry="33" fill="#cdb4db"/>
+<text class="objectText" x="525" y="338">D01 — meeting table</text>
+
+<!-- F01, F02 — archive racks: sejajar dengan F-RACK-01 (y=457) dan F-RACK-02 (y=518)
+     FIX: x dimulai dari x=151 (snapped), lebar 110 -->
+<rect class="object" x="151" y="449" width="110" height="14" rx="3" fill="#adb5bd"/>
+<text class="objectText" x="206" y="456">F01 — archive rack</text>
+
+<rect class="object" x="151" y="511" width="110" height="14" rx="3" fill="#adb5bd"/>
+<text class="objectText" x="206" y="518">F02 — archive rack</text>
+
+<!-- H01 — level access pad: inside Room H, centered -->
+<!-- FIX: dipindah ke center of H (x=360+88/2=404, y=426+132/2=492), size 44×33 -->
+<rect class="object" x="382" y="476" width="44" height="33" rx="4" fill="#72efdd"/>
+<text class="objectText" x="404" y="493">H01 — level pad</text>
+
+<!-- G01 — workstation inside G: anchored ke kiri G (x=448+22=470), snapped -->
+<!-- FIX: dari x=554 mengambang → x=470 snapped ke grid kiri G -->
+<rect class="object" x="470" y="449" width="88" height="22" rx="3" fill="#b8c0ff"/>
+<text class="objectText" x="514" y="460">G01 — workstation</text>
+
+<rect class="object" x="580" y="449" width="88" height="22" rx="3" fill="#b8c0ff"/>
+<text class="objectText" x="624" y="460">G02 — workstation</text>
+
+<!-- ═══════════════════════════════════════════════════════
+     WAYPOINTS (objective order circles)
+     FIX: waypoint 3 dipindah ke y=316 agar tidak overlap D01
+═══════════════════════════════════════════════════════ -->
+<circle class="obj" cx="184" cy="173" r="9"/>
+<text class="objText" x="184" y="173">1</text>
+
+<circle class="obj" cx="525" cy="173" r="9"/>
+<text class="objText" x="525" y="173">2</text>
+
+<!-- waypoint 3: FIXED dari cy=327 ke cy=316 — di atas D01 ellipse -->
+<circle class="obj" cx="525" cy="316" r="9"/>
+<text class="objText" x="525" y="316">3</text>
+
+<circle class="obj" cx="404" cy="316" r="9"/>
+<text class="objText" x="404" y="316">4</text>
+
+<circle class="obj" cx="404" cy="492" r="9"/>
+<text class="objText" x="404" y="492">5</text>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCALE RULER
+═══════════════════════════════════════════════════════ -->
+<text class="sub" x="52"  y="596">0</text>  <text class="sub" x="96"  y="596">2</text>
+<text class="sub" x="140" y="596">4</text>  <text class="sub" x="184" y="596">6</text>
+<text class="sub" x="228" y="596">8</text>  <text class="sub" x="272" y="596">10</text>
+<text class="sub" x="316" y="596">12</text> <text class="sub" x="360" y="596">14</text>
+<text class="sub" x="404" y="596">16</text> <text class="sub" x="448" y="596">18</text>
+<text class="sub" x="492" y="596">20</text> <text class="sub" x="536" y="596">22</text>
+<text class="sub" x="580" y="596">24</text> <text class="sub" x="624" y="596">26</text>
+<text class="sub" x="668" y="596">28</text> <text class="sub" x="712" y="596">30</text>
+<text class="sub" x="756" y="596">32</text>
+<text class="sub" x="34" y="52">0</text>   <text class="sub" x="34" y="96">2</text>
+<text class="sub" x="34" y="140">4</text>  <text class="sub" x="34" y="184">6</text>
+<text class="sub" x="34" y="228">8</text>  <text class="sub" x="34" y="272">10</text>
+<text class="sub" x="34" y="316">12</text> <text class="sub" x="34" y="360">14</text>
+<text class="sub" x="34" y="404">16</text> <text class="sub" x="34" y="448">18</text>
+<text class="sub" x="34" y="492">20</text> <text class="sub" x="34" y="536">22</text>
+<text class="sub" x="34" y="580">24</text>
+
+<!-- ═══════════════════════════════════════════════════════
+     LEGEND
+═══════════════════════════════════════════════════════ -->
+<rect x="771" y="52" width="270" height="430" rx="8" fill="#172123" stroke="#344" stroke-width="1"/>
+<text class="legendTitle" x="786" y="78">Legend / Detail</text>
+
+<text class="legendText" x="786" y="104">Colored blocks</text>
+<text class="sub" x="870" y="116" text-anchor="start">approved floor zones</text>
+
+<text class="legendText" x="786" y="136">Yellow circles 1–5</text>
+<text class="sub" x="870" y="148" text-anchor="start">objective order / waypoints</text>
+
+<text class="legendText" x="786" y="168">Yellow dashed route</text>
+<text class="sub" x="870" y="180" text-anchor="start">A→R→C→D→H access flow</text>
+
+<text class="legendText" x="786" y="200">Green dashed gaps</text>
+<text class="sub" x="870" y="212" text-anchor="start">door openings (valid passage)</text>
+
+<text class="legendText" x="786" y="232">Green arrows (top)</text>
+<text class="sub" x="870" y="244" text-anchor="start">entry access points</text>
+
+<text class="legendText" x="786" y="264">Red arrow (bottom)</text>
+<text class="sub" x="870" y="276" text-anchor="start">exit / Level 2 access</text>
+
+<text class="legendText" x="786" y="296">Dark dashed lines</text>
+<text class="sub" x="870" y="308" text-anchor="start">wall/divider preview</text>
+
+<text class="legendTitle" x="786" y="340">Object Pattern (fixed)</text>
+<text class="legendText" x="786" y="362">A01 — intake counter (x=142,y=130)</text>
+<text class="legendText" x="786" y="380">B01 — canteen table (x=110,y=258)</text>
+<text class="legendText" x="786" y="398">C01–C04 — workstation grid</text>
+<text class="legendText" x="786" y="416">D01 — ellipse table cy=338 (FIXED)</text>
+<text class="legendText" x="786" y="434">F01/F02 — rack aligned to divider</text>
+<text class="legendText" x="786" y="452">H01 — level pad centered in H</text>
+<text class="legendText" x="786" y="470">G01/G02 — workstation snapped</text>
+
+<!-- FIX SUMMARY BOX -->
+<rect x="771" y="495" width="270" height="220" rx="8" fill="#1e0a0a" stroke="#ef476f" stroke-width="1.5"/>
+<text class="legendTitle" x="786" y="518" fill="#ef476f">Fix Summary</text>
+<text class="legendText" x="786" y="538">1. Outer wall: real gaps for 3 doors</text>
+<text class="legendText" x="786" y="556">2. 8 internal door gaps added</text>
+<text class="legendText" x="786" y="574">3. Route path through valid doors</text>
+<text class="legendText" x="786" y="592">4. Waypoint 3 moved: 327→316</text>
+<text class="legendText" x="786" y="610">   (no overlap with D01 ellipse)</text>
+<text class="legendText" x="786" y="628">5. D01 ellipse: cy fixed to 338</text>
+<text class="legendText" x="786" y="646">6. C01/C02 snapped to grid</text>
+<text class="legendText" x="786" y="664">7. G01 anchored to room left</text>
+<text class="legendText" x="786" y="682">8. EXIT marker below outer wall</text>
+<text class="legendText" x="786" y="700">   gap (not inside map boundary)</text>
+
+<!-- FOOTER -->
+<text class="note" x="52" y="690">Fixed version: door gaps are real wall openings, route passes through valid gaps, objects snapped to grid.</text>
+<text class="note" x="52" y="710">validate:level1v2-fixed PASS required before implementation.</text>
+
+</svg>

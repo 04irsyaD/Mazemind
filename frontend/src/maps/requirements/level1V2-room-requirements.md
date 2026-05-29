@@ -4,14 +4,14 @@
 
 ## Placement Slot Source of Truth
 
-Level 1 V2 object/divider placement must use approved colored floor zones as the source of truth.
+Level 1 V2 object/divider placement must use approved colored floor zones plus a user-approved top-down placement map as the source of truth.
 
 Current slot mode:
-- `placementSlotMode: true`
+- `placementSlotMode: false`
 - `placementSlotSource: approved-floor-zones`
-- `placementSlotStatus: preview-only`
+- `placementSlotStatus: rejected-by-user`
 
-New objects and dividers must reference an approved placement slot before becoming real rendered assets. Raw coordinate placement is not allowed unless explicitly approved.
+All current generated placement slots were rejected by user visual review. New objects and dividers must reference a future manually approved placement map before becoming real rendered assets. Raw coordinate placement and bounds-only slot generation are not allowed unless explicitly approved.
 
 | Code | Room ID | Room Function | Bounds | Allowed Asset | Ideal Count | Max Count | Placement Zone | Forbidden Object | Fallback Procedural |
 |---|---|---|---|---|---|---|---|---|---|
@@ -25,9 +25,9 @@ New objects and dividers must reference an approved placement slot before becomi
 | G | secondary-workstation | Secondary Workstation / Accounts Processing | `{ x1: 19, y1: 17, x2: 29, y2: 22 }` | small workstation cluster, account desk | 1-2 | 3 | Inside G bounds, clear of room label | toilet, canteen table, meeting table | simple workstation block |
 | R | central-route | Main route spine | `{ x1: 10, y1: 3, x2: 13, y2: 22 }` | subtle route marker only | 0 | 2 route baffles only after approval | Inside R bounds only if approved, never blocking route | normal room furniture, blocking obstacle | floor color only |
 
-## Preview Placement Slots
+## Rejected Placement Slots
 
-The current slots are floor markers only and are pending visual approval:
+The current slots are rejected and must not render:
 - A1 `front-admin-intake` at `{ x: 5.5, y: 6.2 }`
 - B1 `canteen` at `{ x: 5.5, y: 10.5 }`
 - C1 `main-workstation-hall` at `{ x: 19.5, y: 5.0 }`
@@ -39,3 +39,5 @@ The current slots are floor markers only and are pending visual approval:
 - F-D1 `records-archive` at `{ x: 7.5, y: 18.2 }`
 - G1 `secondary-workstation` at `{ x: 24.0, y: 20.0 }`
 - H1 `level2-access` at `{ x: 15.5, y: 20.0 }`
+
+No rejected slot may be converted into an object, divider, or wall without explicit user approval.

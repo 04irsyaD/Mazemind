@@ -1737,7 +1737,7 @@ function validateArchitectureComposition(level, warnings) {
   const actualIds = (level.architecture ?? []).map(object => object.id);
 
   if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
-    warnings.push('architecture must contain MVP objects, active visual dividers, and preview placement markers only');
+    warnings.push('architecture must contain MVP objects plus active approved visual additions only');
   }
 }
 
@@ -1756,121 +1756,65 @@ function validatePlacementSlots(level, warnings) {
     'G_OBJECT_SLOT_01',
     'H_OBJECT_SLOT_01'
   ];
-  const actualIds = slots.map(slot => slot.id);
-  const objectiveFootprints = new Map((level.objectives ?? []).map(objective => [
-    objective.id,
-    {
-      x1: objective.x - 0.32,
-      y1: objective.y - 0.32,
-      x2: objective.x + 0.32,
-      y2: objective.y + 0.32
-    }
-  ]));
 
-  if (level.placementSlotMode !== true) warnings.push('placementSlotMode must be true');
+  if (level.placementSlotMode !== false) warnings.push('placementSlotMode must be false after user rejected the current slot set');
   if (level.placementSlotSource !== placementSlotSource) warnings.push(`placementSlotSource must be ${placementSlotSource}`);
   if (level.placementSlotStatus !== placementSlotStatus) warnings.push(`placementSlotStatus must be ${placementSlotStatus}`);
 
-  if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
-    warnings.push(`placement slot IDs must be exactly ${expectedIds.join(', ')}`);
+  if (slots.length !== 0) {
+    warnings.push(`active placementSlots must be empty after user rejection, found ${slots.length}`);
   }
 
-  if (level1V2PlacementSlotMarkers.length !== slots.length) {
-    warnings.push('placement slot markers must be generated only from placementSlots');
+  if (level1V2PlacementSlotMarkers.length !== 0) {
+    warnings.push('placement slot markers must not render after user rejection');
   }
 
-  slots.forEach(slot => {
-    const targetRoom = level1V2FloorplanRooms.find(room => room.id === slot.roomId);
-    const footprint = getPlacementSlotFootprint(slot);
+  const rejectedIds = level1V2RejectedPlacementSlots.map(slot => slot.id);
+  if (JSON.stringify(rejectedIds) !== JSON.stringify(expectedIds)) {
+    warnings.push(`rejected placement slot IDs must be exactly ${expectedIds.join(', ')}`);
+  }
 
-    if (!hasTextValue(slot.roomId)) warnings.push(`${slot.id} roomId must not be empty`);
-    if (!['object', 'divider'].includes(slot.slotType)) warnings.push(`${slot.id} slotType must be object or divider`);
-    if (!hasTextValue(slot.label)) warnings.push(`${slot.id} label must not be empty`);
-    if (!Array.isArray(slot.allowedAssetTypes) || slot.allowedAssetTypes.length === 0) {
-      warnings.push(`${slot.id} must list allowedAssetTypes`);
-    }
-    if (slot.collisionAllowed !== false) warnings.push(`${slot.id} collisionAllowed must be false`);
-    if (slot.approved !== false) warnings.push(`${slot.id} approved must be false`);
-    if (slot.status !== 'pending-user-visual-approval') warnings.push(`${slot.id} status must be pending-user-visual-approval`);
-    if (slot.renderAs !== 'floor-slot-marker') warnings.push(`${slot.id} renderAs must be floor-slot-marker`);
-
-    ['width', 'depth', 'height'].forEach(key => {
-      if (!Number.isFinite(slot.maxSize?.[key]) || slot.maxSize[key] <= 0) {
-        warnings.push(`${slot.id} maxSize.${key} must be positive`);
-      }
-    });
-
-    if (!targetRoom) {
-      warnings.push(`${slot.id} roomId must match an approved room`);
-      return;
-    }
-
-    if (slot.code !== targetRoom.code) {
-      warnings.push(`${slot.id} code must be ${targetRoom.code}`);
-    }
-
-    if (!boundsContainBounds(targetRoom.bounds, footprint)) {
-      warnings.push(`${slot.id} floor slot marker must stay inside ${targetRoom.code} bounds`);
-    }
-
-    if (slot.roomId !== level1V2CentralRoute.id && doBoundsOverlap(footprint, level1V2CentralRoute.bounds)) {
-      warnings.push(`${slot.id} floor slot marker must not overlap central route`);
-    }
-
-    objectiveFootprints.forEach((objectiveFootprint, objectiveId) => {
-      if (!doBoundsOverlap(footprint, objectiveFootprint)) return;
-      if (slot.intendedObjectiveId !== objectiveId) {
-        warnings.push(`${slot.id} must not overlap objective ${objectiveId} unless intendedObjectiveId matches`);
-      }
-    });
+  level1V2RejectedPlacementSlots.forEach(slot => {
+    if (slot.enabled !== false) warnings.push(`${slot.id} rejected slot must be enabled false`);
+    if (slot.rejected !== true) warnings.push(`${slot.id} rejected slot must be rejected true`);
+    if (slot.approved !== false) warnings.push(`${slot.id} rejected slot must be approved false`);
+    if (slot.status !== 'rejected-by-user') warnings.push(`${slot.id} rejected slot status must be rejected-by-user`);
+    if (slot.collisionAllowed !== false) warnings.push(`${slot.id} rejected slot collisionAllowed must be false`);
   });
 }
 
 function validatePlacementCandidates(level, warnings) {
   const candidates = level.placementCandidates ?? [];
   const expectedIds = ['candidate-c-divider-01', 'candidate-c-divider-02', 'candidate-f-archive-01', 'candidate-f-archive-02'];
-  const actualIds = candidates.map(candidate => candidate.id);
 
-  if (level.mazeLitePlacementPreview !== true) {
-    warnings.push('mazeLitePlacementPreview must be true for placement marker review mode');
+  if (level.mazeLitePlacementPreview !== false) {
+    warnings.push('mazeLitePlacementPreview must be false after user rejected the current marker set');
   }
 
-  if (level.wallPlacementMode !== 'preview-markers-only') {
-    warnings.push('wallPlacementMode must be preview-markers-only');
+  if (level.wallPlacementMode !== 'disabled') {
+    warnings.push('wallPlacementMode must be disabled after user rejected the current marker set');
   }
 
-  if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
-    warnings.push(`placement candidate IDs must be exactly ${expectedIds.join(', ')}`);
+  if (candidates.length !== 0) {
+    warnings.push(`active placementCandidates must be empty after user rejection, found ${candidates.length}`);
   }
 
-  if (level1V2PlacementCandidateMarkers.length !== candidates.length) {
-    warnings.push('placement candidate markers must be generated only from placementCandidates');
+  if (level1V2PlacementCandidateMarkers.length !== 0) {
+    warnings.push('placement candidate markers must not render after user rejection');
   }
 
-  candidates.forEach(candidate => {
-    const targetRoom = level1V2FloorplanRooms.find(room => room.id === candidate.targetRoomId);
-    const footprint = getPlacementCandidateFootprint(candidate);
+  const rejectedIds = level1V2RejectedPlacementCandidates.map(candidate => candidate.id);
+  if (JSON.stringify(rejectedIds) !== JSON.stringify(expectedIds)) {
+    warnings.push(`rejected placement candidate IDs must be exactly ${expectedIds.join(', ')}`);
+  }
 
-    if (candidate.status !== 'pending-user-visual-approval') {
-      warnings.push(`${candidate.id} status must be pending-user-visual-approval`);
-    }
-    if (candidate.renderAs !== 'floor-marker') warnings.push(`${candidate.id} renderAs must be floor-marker`);
-    if (candidate.collision !== false) warnings.push(`${candidate.id} collision must be false`);
-    if (candidate.blocking !== false) warnings.push(`${candidate.id} blocking must be false`);
-    if (candidate.approved !== false) warnings.push(`${candidate.id} approved must be false`);
-
-    if (!targetRoom) {
-      warnings.push(`${candidate.id} targetRoomId must match an approved room`);
-      return;
-    }
-
-    if (!boundsContainBounds(targetRoom.bounds, footprint)) {
-      warnings.push(`${candidate.id} floor marker must stay inside ${targetRoom.code} bounds`);
-    }
-
-    if (doBoundsOverlap(footprint, level1V2CentralRoute.bounds)) {
-      warnings.push(`${candidate.id} floor marker must not overlap central route`);
-    }
+  level1V2RejectedPlacementCandidates.forEach(candidate => {
+    if (candidate.enabled !== false) warnings.push(`${candidate.id} rejected marker must be enabled false`);
+    if (candidate.rejected !== true) warnings.push(`${candidate.id} rejected marker must be rejected true`);
+    if (candidate.approved !== false) warnings.push(`${candidate.id} rejected marker must be approved false`);
+    if (candidate.status !== 'rejected-by-user') warnings.push(`${candidate.id} rejected marker status must be rejected-by-user`);
+    if (candidate.collision !== false) warnings.push(`${candidate.id} rejected marker collision must be false`);
+    if (candidate.blocking !== false) warnings.push(`${candidate.id} rejected marker blocking must be false`);
   });
 }
 
@@ -2630,8 +2574,8 @@ export const level1V2 = {
     'Only outer boundary walls exist.',
     'Every non-border interior cell remains CELL_PATH.',
     'Minimal MVP objects are procedural visual markers only; collisionVolumes remain empty.',
-    'Placement preview mode shows only low floor markers W1-W4 for screenshot/top-down review.',
-    'Placement slot mode uses approved floor zones as source of truth; slot markers are preview-only.',
+    'All previous placement markers and slots were rejected by user visual review and do not render.',
+    'Future placement must be manually planned from a user-approved top-down reference, not generated from bounds alone.',
     'Office Maze Lite Phase 1 divider rendering is paused pending user-approved screenshot/top-down placement.',
     'Maze Lite dividers are non-colliding and non-blocking; grid wall segments remain disabled.',
     'Simple objective route is A -> C -> D -> F -> H.',
@@ -2648,12 +2592,7 @@ if (CONSTANTS.DEV_MODE) {
   printLevel1V2AsciiGrid(level1V2);
   console.info('[MazeMind] Level 1 V2 MVP manual test steps:\n' + level1V2ManualTestSteps.map((step, index) => `${index + 1}. ${step}`).join('\n'));
   console.info('[MazeMind] Level 1 V2 MVP presentation checklist:\n' + level1V2PresentationChecklist.map((step, index) => `${index + 1}. ${step}`).join('\n'));
-  console.info('[MazeMind] Level 1 V2 Placement Candidates:\n' + level1V2PlacementCandidates
-    .map(candidate => `${candidate.label} ${candidate.targetRoomId} @ ${candidate.position.x},${candidate.position.y}`)
-    .join('\n'));
-  console.info('[MazeMind] Level 1 V2 Placement Slots:\n' + level1V2PlacementSlots
-    .map(slot => `${slot.label} ${slot.roomId} @ ${slot.position.x},${slot.position.y}`)
-    .join('\n'));
+  console.info('[MazeMind] Level 1 V2 placement markers rejected by user review; no active placement markers render.');
 
   if (level1V2FloorplanPreviewValidation.valid) {
     console.info('[MazeMind] Level 1 V2 floorplan preview validation passed', level1V2FloorplanPreviewValidation);

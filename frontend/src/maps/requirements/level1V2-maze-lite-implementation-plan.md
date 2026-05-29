@@ -1,5 +1,26 @@
 # Level 1 V2 Maze Lite Implementation Plan
 
+## 0. Current Guardrail Status
+
+Level 1 V2 is currently in `mvp-guarded` mode.
+
+Do not implement wall, divider, or object changes from this plan unless:
+
+1. `frontend/src/maps/requirements/level1V2-requirements.json` allows the change.
+2. The user explicitly approves the exact change.
+3. `npm run validate:level1v2` passes before and after the change.
+
+If validation fails, do not proceed.
+
+Current runtime state:
+- maze-lite Phase 1 visual dividers enabled only for approved JSON placements
+- grid wall segments disabled
+- collisionVolumes empty
+- only outer boundary walls allowed
+
+Conflict note:
+- `f-archive-divider-02` at `{ x: 10, y: 20.5 }` is omitted because it overlaps the approved central route bounds.
+
 ## 1. Purpose
 
 Level 1 V2 currently works as a floorplan route MVP.

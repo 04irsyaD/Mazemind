@@ -1,0 +1,180 @@
+{
+  "levelId": "level-1-v2",
+  "status": "mvp-guarded",
+  "grid": {
+    "width": 32,
+    "height": 24,
+    "allowInternalWalls": false,
+    "interiorCellMustBe": "CELL_PATH",
+    "outerBoundaryWallsOnly": true
+  },
+  "objectives": {
+    "documentTarget": 5,
+    "route": [
+      {
+        "order": 1,
+        "id": "shift-assignment-form",
+        "roomId": "front-admin-intake",
+        "position": { "x": 5.5, "y": 5.5 }
+      },
+      {
+        "order": 2,
+        "id": "workstation-log",
+        "roomId": "main-workstation-hall",
+        "position": { "x": 21.5, "y": 5.5 }
+      },
+      {
+        "order": 3,
+        "id": "pending-ledger",
+        "roomId": "boardroom-review",
+        "position": { "x": 21.5, "y": 12.5 }
+      },
+      {
+        "order": 4,
+        "id": "archive-record",
+        "roomId": "records-archive",
+        "position": { "x": 7, "y": 20 }
+      },
+      {
+        "order": 5,
+        "id": "level2-access-note",
+        "roomId": "level2-access",
+        "position": { "x": 15.5, "y": 20 }
+      }
+    ]
+  },
+  "mazeLitePhase1": {
+    "status": "approved-visual-only",
+    "source": "maze-lite-phase-1-visual-only",
+    "maxDividers": 4,
+    "allowCollision": false,
+    "allowBlocking": false,
+    "allowCentralRouteBaffles": false,
+    "omittedDividers": [
+      {
+        "id": "f-archive-divider-02",
+        "reason": "Requested position { x: 10, y: 20.5 } overlaps central-route bounds { x1: 10, y1: 3, x2: 13, y2: 22 }; omitted instead of moving objectives or weakening route rules."
+      }
+    ],
+    "dividers": [
+      {
+        "id": "c-workstation-divider-01",
+        "roomId": "main-workstation-hall",
+        "type": "cubicle-partition",
+        "position": { "x": 18, "y": 4.5 },
+        "rotation": 0,
+        "collision": false,
+        "blocking": false,
+        "mazeRole": "visual-lane-suggestion",
+        "dimensionsMeters": { "width": 2.1, "depth": 0.22, "height": 1.32 }
+      },
+      {
+        "id": "c-workstation-divider-02",
+        "roomId": "main-workstation-hall",
+        "type": "cubicle-partition",
+        "position": { "x": 25, "y": 6.5 },
+        "rotation": 0,
+        "collision": false,
+        "blocking": false,
+        "mazeRole": "visual-lane-suggestion",
+        "dimensionsMeters": { "width": 2.1, "depth": 0.22, "height": 1.32 }
+      },
+      {
+        "id": "f-archive-divider-01",
+        "roomId": "records-archive",
+        "type": "archive-rack-divider",
+        "position": { "x": 5, "y": 18.5 },
+        "rotation": 0,
+        "collision": false,
+        "blocking": false,
+        "mazeRole": "visual-archive-aisle",
+        "dimensionsMeters": { "width": 1.6, "depth": 0.36, "height": 1.7 }
+      }
+    ]
+  },
+  "rooms": {
+    "front-admin-intake": {
+      "code": "A",
+      "bounds": { "x1": 2, "y1": 3, "x2": 9, "y2": 7 },
+      "maxDividers": 0,
+      "maxObjects": 3,
+      "allowedAssets": ["intake-counter", "document-marker", "small-terminal"],
+      "forbiddenAssets": ["archive-rack", "toilet", "meeting-table", "large-divider"]
+    },
+    "canteen": {
+      "code": "B",
+      "bounds": { "x1": 2, "y1": 8, "x2": 9, "y2": 12 },
+      "maxDividers": 1,
+      "maxObjects": 2,
+      "allowedAssets": ["canteen-table", "break-table", "low-divider"],
+      "forbiddenAssets": ["archive-rack", "toilet", "meeting-table"]
+    },
+    "toilet": {
+      "code": "E",
+      "bounds": { "x1": 2, "y1": 13, "x2": 6, "y2": 15 },
+      "maxDividers": 0,
+      "maxObjects": 1,
+      "allowedAssets": ["restroom-marker"],
+      "forbiddenAssets": ["workstation", "archive-rack", "meeting-table", "divider"]
+    },
+    "records-archive": {
+      "code": "F",
+      "bounds": { "x1": 2, "y1": 17, "x2": 12, "y2": 22 },
+      "maxDividers": 2,
+      "maxObjects": 4,
+      "allowedAssets": ["archive-rack", "filing-cabinet", "archive-marker"],
+      "forbiddenAssets": ["toilet", "canteen-table", "meeting-table"]
+    },
+    "main-workstation-hall": {
+      "code": "C",
+      "bounds": { "x1": 14, "y1": 3, "x2": 29, "y2": 8 },
+      "maxDividers": 2,
+      "maxObjects": 5,
+      "allowedAssets": ["workstation-cluster", "monitor-block", "cubicle-partition"],
+      "forbiddenAssets": ["toilet", "canteen-table", "meeting-table"]
+    },
+    "boardroom-review": {
+      "code": "D",
+      "bounds": { "x1": 14, "y1": 10, "x2": 29, "y2": 15 },
+      "maxDividers": 1,
+      "maxObjects": 3,
+      "allowedAssets": ["meeting-table", "review-marker", "low-divider"],
+      "forbiddenAssets": ["toilet", "canteen-table", "archive-rack"]
+    },
+    "level2-access": {
+      "code": "H",
+      "bounds": { "x1": 14, "y1": 17, "x2": 17, "y2": 22 },
+      "maxDividers": 1,
+      "maxObjects": 2,
+      "allowedAssets": ["level-access-pad", "lift-marker", "stairs-marker"],
+      "forbiddenAssets": ["workstation-cluster", "canteen-table", "archive-rack"]
+    },
+    "secondary-workstation": {
+      "code": "G",
+      "bounds": { "x1": 19, "y1": 17, "x2": 29, "y2": 22 },
+      "maxDividers": 1,
+      "maxObjects": 3,
+      "allowedAssets": ["small-workstation-cluster", "account-desk", "workstation-divider"],
+      "forbiddenAssets": ["toilet", "canteen-table", "meeting-table"]
+    },
+    "central-route": {
+      "code": "R",
+      "bounds": { "x1": 10, "y1": 3, "x2": 13, "y2": 22 },
+      "maxDividers": 1,
+      "maxObjects": 1,
+      "allowedAssets": ["route-marker", "small-route-baffle"],
+      "forbiddenAssets": ["normal-room-furniture", "large-blocking-obstacle"]
+    }
+  },
+  "globalAssetRules": {
+    "allowOnlineModels": false,
+    "allowGLB": false,
+    "allowEnemies": false,
+    "allowTraps": false,
+    "allowCrushers": false,
+    "maxTotalDividers": 6,
+    "maxTotalObjects": 14,
+    "allowCollisionVolumes": false,
+    "dividerCollisionDefault": false
+  }
+}

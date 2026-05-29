@@ -25,10 +25,22 @@
 - Keep room labels readable.
 - Keep markers and objectives unobstructed.
 - Use procedural lightweight objects.
+- Before any Level 1 V2 wall/divider/object change, run:
+  `npm run validate:level1v2`
+- If validation fails, do not proceed.
 - Run npm run build.
 - Report changed files and validation result.
 
 ## Required Validation
+Before any Level 1 V2 wall/divider/object change:
+
+```bash
+npm run validate:level1v2
+```
+
+If validation fails:
+Do not proceed.
+
 Future changes must validate:
 - floor zone bounds unchanged
 - objective route unchanged

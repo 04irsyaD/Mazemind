@@ -11,7 +11,9 @@ Maze feeling should come from:
 - workstation divider placement
 
 ## Current Status
-Office Maze Lite divider implementation is paused until requirements are approved.
+Office Maze Lite Phase 1 is approved only for the visual-only dividers listed in `level1V2-requirements.json`.
+
+The requested `f-archive-divider-02` placement is omitted because `{ x: 10, y: 20.5 }` overlaps the approved central route bounds.
 
 ## Allowed Maze Lite Elements
 - cubiclePartition

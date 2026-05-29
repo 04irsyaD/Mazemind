@@ -4,129 +4,12 @@ import { officeProps } from './prefabs/officeProps.js';
 const GRID_WIDTH = 32;
 const GRID_HEIGHT = 24;
 
-const level1V2Phase1WallSegments = [
-  {
-    id: 'c-workstation-lane-wall-01',
-    type: 'minimalMazeWall',
-    roomId: 'main-workstation-hall',
-    x1: 17,
-    y1: 4,
-    x2: 22,
-    y2: 4,
-    purpose: 'Create upper workstation lane.',
-    phase: 1,
-    blocking: true,
-    visualOnly: false,
-    status: 'approved-minimal-wall-phase-1'
-  },
-  {
-    id: 'c-workstation-lane-wall-02',
-    type: 'minimalMazeWall',
-    roomId: 'main-workstation-hall',
-    x1: 24,
-    y1: 7,
-    x2: 28,
-    y2: 7,
-    purpose: 'Create lower workstation lane.',
-    phase: 1,
-    blocking: true,
-    visualOnly: false,
-    status: 'approved-minimal-wall-phase-1'
-  },
-  {
-    id: 'f-archive-aisle-wall-01',
-    type: 'minimalMazeWall',
-    roomId: 'records-archive',
-    x1: 4,
-    y1: 18,
-    x2: 9,
-    y2: 18,
-    purpose: 'Create top archive aisle.',
-    phase: 1,
-    blocking: true,
-    visualOnly: false,
-    status: 'approved-minimal-wall-phase-1'
-  },
-  {
-    id: 'f-archive-aisle-wall-02',
-    type: 'minimalMazeWall',
-    roomId: 'records-archive',
-    x1: 5,
-    y1: 21,
-    x2: 10,
-    y2: 21,
-    purpose: 'Create bottom archive aisle.',
-    phase: 1,
-    blocking: true,
-    visualOnly: false,
-    status: 'approved-minimal-wall-phase-1'
-  },
-  {
-    id: 'h-final-approach-wall-01',
-    type: 'minimalMazeWall',
-    roomId: 'level2-access',
-    x1: 17,
-    y1: 18,
-    x2: 17,
-    y2: 21,
-    purpose: 'Create final access lane.',
-    phase: 1,
-    blocking: true,
-    visualOnly: false,
-    status: 'approved-minimal-wall-phase-1'
-  }
-];
-
-const approvedLevel1V2Phase1WallSegmentIds = [
-  'c-workstation-lane-wall-01',
-  'c-workstation-lane-wall-02',
-  'f-archive-aisle-wall-01',
-  'f-archive-aisle-wall-02',
-  'h-final-approach-wall-01'
-];
-
-function phase1WallCellKey(x, y) {
-  return `${x},${y}`;
-}
-
-function getPhase1WallSegmentCells(segment) {
-  const cells = [];
-
-  if (segment.y1 === segment.y2) {
-    for (let x = Math.min(segment.x1, segment.x2); x <= Math.max(segment.x1, segment.x2); x++) {
-      cells.push({ x, y: segment.y1 });
-    }
-  } else if (segment.x1 === segment.x2) {
-    for (let y = Math.min(segment.y1, segment.y2); y <= Math.max(segment.y1, segment.y2); y++) {
-      cells.push({ x: segment.x1, y });
-    }
-  }
-
-  return cells;
-}
-
-const level1V2Phase1WallCellKeys = new Set(
-  level1V2Phase1WallSegments.flatMap(segment =>
-    getPhase1WallSegmentCells(segment).map(cell => phase1WallCellKey(cell.x, cell.y))
-  )
-);
-
-function isLevel1V2Phase1WallCell(x, y) {
-  return level1V2Phase1WallCellKeys.has(phase1WallCellKey(x, y));
-}
-
-function applyLevel1V2Phase1WallSegments(grid) {
-  level1V2Phase1WallSegments.forEach(segment => {
-    getPhase1WallSegmentCells(segment).forEach(({ x, y }) => {
-      if (grid[y]?.[x] !== undefined) {
-        grid[y][x] = CONSTANTS.CELL_WALL;
-      }
-    });
-  });
-}
+const level1V2WallSegments = [];
+const mazeLitePhase1Source = 'maze-lite-phase-1-visual-only';
+const metersToGridCells = meters => Number((meters / CONSTANTS.CELL_SIZE).toFixed(3));
 
 function buildFloorZonePreviewGrid() {
-  const grid = Array.from({ length: GRID_HEIGHT }, (_, y) =>
+  return Array.from({ length: GRID_HEIGHT }, (_, y) =>
     Array.from({ length: GRID_WIDTH }, (_, x) => {
       const isBorder =
         x === 0 ||
@@ -137,9 +20,6 @@ function buildFloorZonePreviewGrid() {
       return isBorder ? CONSTANTS.CELL_WALL : CONSTANTS.CELL_PATH;
     })
   );
-
-  applyLevel1V2Phase1WallSegments(grid);
-  return grid;
 }
 
 function withTopLevelBounds(area) {
@@ -619,9 +499,12 @@ function createMvpPlatform({
 }
 
 const level1V2OfficeMazeLiteStatus = {
-  enabled: false,
-  wallPhase1Enabled: true,
-  note: 'Office Maze Lite dividers remain disabled; Minimal Maze Wall Phase 1 uses only approved grid wall segments.'
+  enabled: true,
+  phase: 1,
+  visualOnly: true,
+  gridWallSegmentsEnabled: false,
+  dividerCollisionEnabled: false,
+  note: 'Office Maze Lite Phase 1 uses exactly four visual-only dividers; grid wall segments and collision volumes remain disabled.'
 };
 
 const level1V2MvpObjects = [
@@ -770,11 +653,108 @@ const level1V2MvpObjects = [
   }))
 ];
 
-const level1V2MazeLiteDividers = [];
-const level1V2MazeLiteObstacles = level1V2MazeLiteDividers;
+const level1V2MazeLiteVisualDividers = [
+  {
+    id: 'c-workstation-divider-01',
+    roomId: 'main-workstation-hall',
+    type: 'cubicle-partition',
+    position: { x: 18, y: 4.5 },
+    rotation: 0,
+    collision: false,
+    blocking: false,
+    mazeRole: 'visual-lane-suggestion',
+    source: mazeLitePhase1Source,
+    requirementControlled: true,
+    dimensionsMeters: { width: 2.1, depth: 0.22, height: 1.32 }
+  },
+  {
+    id: 'c-workstation-divider-02',
+    roomId: 'main-workstation-hall',
+    type: 'cubicle-partition',
+    position: { x: 25, y: 6.5 },
+    rotation: 0,
+    collision: false,
+    blocking: false,
+    mazeRole: 'visual-lane-suggestion',
+    source: mazeLitePhase1Source,
+    requirementControlled: true,
+    dimensionsMeters: { width: 2.1, depth: 0.22, height: 1.32 }
+  },
+  {
+    id: 'f-archive-divider-01',
+    roomId: 'records-archive',
+    type: 'archive-rack-divider',
+    position: { x: 5, y: 18.5 },
+    rotation: 0,
+    collision: false,
+    blocking: false,
+    mazeRole: 'visual-archive-aisle',
+    source: mazeLitePhase1Source,
+    requirementControlled: true,
+    dimensionsMeters: { width: 1.6, depth: 0.36, height: 1.7 }
+  }
+];
+
+const mazeLiteDividerPrefabByType = {
+  'cubicle-partition': 'cubiclePartition',
+  'archive-rack-divider': 'archiveRackDivider'
+};
+
+const mazeLiteDividerRoomCodeById = {
+  'main-workstation-hall': 'C',
+  'records-archive': 'F'
+};
+
+function createMazeLiteVisualDividerProp(divider) {
+  const prefabName = mazeLiteDividerPrefabByType[divider.type];
+  const dimensions = divider.dimensionsMeters;
+  const width = metersToGridCells(dimensions.width);
+  const depth = metersToGridCells(dimensions.depth);
+
+  const prop = officeProps[prefabName]({
+    id: divider.id,
+    label: divider.id,
+    roomId: divider.roomId,
+    x: divider.position.x,
+    y: divider.position.y,
+    rotation: divider.rotation,
+    width,
+    depth,
+    height: dimensions.height,
+    size: { width, height: dimensions.height, depth },
+    visualOnly: true,
+    collision: false,
+    blocking: false,
+    mazeRole: divider.mazeRole,
+    source: divider.source,
+    requirementControlled: divider.requirementControlled,
+    assetType: divider.type,
+    purpose: divider.mazeRole
+  });
+
+  return {
+    ...prop,
+    roomCode: mazeLiteDividerRoomCodeById[divider.roomId],
+    status: 'maze-lite-phase-1-visual-only',
+    visualOnly: true,
+    metadata: {
+      ...prop.metadata,
+      source: divider.source,
+      requirementControlled: divider.requirementControlled,
+      mazeRole: divider.mazeRole,
+      assetType: divider.type,
+      visualOnly: true
+    }
+  };
+}
+
+const level1V2MazeLiteVisualDividerProps = level1V2MazeLiteVisualDividers.map(createMazeLiteVisualDividerProp);
+const level1V2MazeLiteDividers = level1V2MazeLiteVisualDividers;
+const level1V2MazeLiteObstacles = [];
 
 const level1V2Architecture = [
-  ...level1V2MvpObjects
+  ...level1V2MvpObjects,
+  ...level1V2MazeLiteVisualDividerProps
 ];
 
 const objectiveActiveColor = 0xb7f7ff;
@@ -938,13 +918,13 @@ const level1V2MvpObjectives = [
 const level1V2ManualTestSteps = [
   'Start in A.',
   'Collect Shift Assignment Form.',
-  'Navigate to C around workstation wall segments.',
+  'Navigate to C.',
   'Collect Workstation Log.',
   'Navigate to D.',
   'Review Pending Ledger.',
-  'Navigate to F around archive aisle wall segments.',
+  'Navigate to F.',
   'Collect Archive Record.',
-  'Navigate to H around final approach wall.',
+  'Navigate to H.',
   'Confirm Level 2 access.',
   'Confirm Documents 5/5.',
   'Confirm Level 1 V2 route complete.',
@@ -1038,7 +1018,6 @@ function createLevel1V2AsciiPreview(level) {
       y === GRID_HEIGHT - 1;
 
     if (isBorder && cell === CONSTANTS.CELL_WALL) return '#';
-    if (isLevel1V2Phase1WallCell(x, y)) return 'W';
     if (x === playerStartCell.x && y === playerStartCell.y) return 'P';
 
     const objectiveGlyph = objectiveCells.get(cellKey(x, y));
@@ -1055,8 +1034,8 @@ function createLevel1V2AsciiPreview(level) {
   return [
     `grid: ${level.grid[0]?.length ?? 0} x ${level.grid.length}`,
     `playerStart: x=${level.playerStart.x}, y=${level.playerStart.y}, yaw=${level.playerStart.yaw}, pitch=${level.playerStart.pitch}`,
-    `legend: # outer boundary, W Phase 1 wall, . path, A/B/C/D/E/F/G/H room, R central route, P player, 1-5 objectives`,
-    `phase1 wallSegments: ${level.wallSegments?.map(segment => segment.id).join(', ') ?? 'none'}`,
+    `legend: # outer boundary, . path, A/B/C/D/E/F/G/H room, R central route, P player, 1-5 objectives`,
+    `wallSegments: ${level.wallSegments?.length ?? 0}`,
     'rooms:',
     ...level1V2FloorplanRooms.map(room => `${room.code} ${room.id}: ${formatBounds(room.bounds)}`),
     `central route ${level1V2CentralRoute.code} ${level1V2CentralRoute.id}: ${formatBounds(level1V2CentralRoute.bounds)}`,
@@ -1344,19 +1323,124 @@ function validateMvpObjects(objects, warnings) {
   });
 }
 
+function getMazeLiteDividerFootprint(divider) {
+  const width = metersToGridCells(divider.dimensionsMeters?.width ?? 1);
+  const depth = metersToGridCells(divider.dimensionsMeters?.depth ?? 0.2);
+  const x = divider.position?.x;
+  const y = divider.position?.y;
+
+  return {
+    x1: x - width / 2,
+    y1: y - depth / 2,
+    x2: x + width / 2,
+    y2: y + depth / 2
+  };
+}
+
 function validateArchitectureComposition(level, warnings) {
-  const expectedIds = (level.mvpObjects ?? []).map(object => object.id);
+  const expectedIds = [
+    ...(level.mvpObjects ?? []).map(object => object.id),
+    ...level1V2MazeLiteVisualDividerProps.map(object => object.id)
+  ];
   const actualIds = (level.architecture ?? []).map(object => object.id);
 
   if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
-    warnings.push('architecture must contain MVP objects only while Office Maze Lite dividers are disabled');
+    warnings.push('architecture must contain MVP objects followed only by approved Phase 1 visual dividers');
   }
 }
 
 function validateMazeLiteDividers(level, warnings) {
-  if ((level.mazeLiteDividers ?? []).length !== 0 || (level.mazeLiteObstacles ?? []).length !== 0) {
-    warnings.push('Office Maze Lite dividers must remain disabled until formal room/asset requirements are approved');
+  const dividers = level.mazeLiteDividers ?? [];
+  const expectedDividers = level1V2MazeLiteVisualDividers;
+  const expectedIds = expectedDividers.map(divider => divider.id);
+  const actualIds = dividers.map(divider => divider.id);
+  const objectiveFootprints = (level.objectives ?? []).map(objective => ({
+    id: objective.id,
+    x: objective.x,
+    y: objective.y,
+    footprint: {
+      x1: objective.x - 0.32,
+      y1: objective.y - 0.32,
+      x2: objective.x + 0.32,
+      y2: objective.y + 0.32
+    }
+  }));
+  const markerFootprints = (level.floorplanMarkers ?? []).map(marker => ({
+    id: marker.id,
+    x: marker.position?.x,
+    y: marker.position?.y,
+    footprint: {
+      x1: (marker.position?.x ?? 0) - 0.4,
+      y1: (marker.position?.y ?? 0) - 0.4,
+      x2: (marker.position?.x ?? 0) + 0.4,
+      y2: (marker.position?.y ?? 0) + 0.4
+    }
+  }));
+
+  if (dividers.length < 1 || dividers.length > 4) {
+    warnings.push(`Maze Lite Phase 1 divider count must be between 1 and 4, found ${dividers.length}`);
   }
+
+  if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
+    warnings.push(`Maze Lite Phase 1 divider IDs must be exactly ${expectedIds.join(', ')}`);
+  }
+
+  if ((level.mazeLiteObstacles ?? []).length !== 0) {
+    warnings.push('mazeLiteObstacles must remain empty for the visual-only phase');
+  }
+
+  dividers.forEach((divider, index) => {
+    const expectedDivider = expectedDividers[index];
+    const dimensions = divider.dimensionsMeters ?? {};
+    const footprint = getMazeLiteDividerFootprint(divider);
+    const targetRoom = level1V2FloorplanRooms.find(room => room.id === divider.roomId);
+
+    if (!expectedDivider || JSON.stringify(divider) !== JSON.stringify(expectedDivider)) {
+      warnings.push(`${divider.id ?? `divider ${index + 1}`} must match the approved Phase 1 placement`);
+    }
+
+    if (divider.source !== mazeLitePhase1Source) warnings.push(`${divider.id} source must be ${mazeLitePhase1Source}`);
+    if (divider.requirementControlled !== true) warnings.push(`${divider.id} must be requirementControlled`);
+    if (divider.collision !== false) warnings.push(`${divider.id} collision must be false`);
+    if (divider.blocking !== false) warnings.push(`${divider.id} blocking must be false`);
+    if (!['cubicle-partition', 'archive-rack-divider'].includes(divider.type)) {
+      warnings.push(`${divider.id} type is not approved for Phase 1`);
+    }
+
+    if (divider.type === 'cubicle-partition') {
+      if (dimensions.width < 2 || dimensions.width > 2.4) warnings.push(`${divider.id} width must stay 2.0m to 2.4m`);
+      if (dimensions.depth < 0.18 || dimensions.depth > 0.25) warnings.push(`${divider.id} depth must stay 0.18m to 0.25m`);
+      if (dimensions.height < 1.2 || dimensions.height > 1.5) warnings.push(`${divider.id} height must stay 1.2m to 1.5m`);
+    }
+
+    if (divider.type === 'archive-rack-divider') {
+      if (dimensions.width < 1.5 || dimensions.width > 2) warnings.push(`${divider.id} width must stay 1.5m to 2.0m`);
+      if (dimensions.depth < 0.35 || dimensions.depth > 0.5) warnings.push(`${divider.id} depth must stay 0.35m to 0.5m`);
+      if (dimensions.height < 1.6 || dimensions.height > 2) warnings.push(`${divider.id} height must stay 1.6m to 2.0m`);
+    }
+
+    if (!targetRoom) {
+      warnings.push(`${divider.id} roomId must match an approved room`);
+    } else if (!boundsContainBounds(targetRoom.bounds, footprint)) {
+      warnings.push(`${divider.id} must stay inside ${targetRoom.code} bounds`);
+    }
+
+    if (doBoundsOverlap(footprint, level1V2CentralRoute.bounds)) {
+      warnings.push(`${divider.id} must not overlap the central route`);
+    }
+
+    objectiveFootprints.forEach(objective => {
+      if (doBoundsOverlap(footprint, objective.footprint)) {
+        warnings.push(`${divider.id} must not overlap objective ${objective.id}`);
+      }
+    });
+
+    markerFootprints.forEach(marker => {
+      if (Number.isFinite(marker.x) && Number.isFinite(marker.y) && doBoundsOverlap(footprint, marker.footprint)) {
+        warnings.push(`${divider.id} must not overlap room label ${marker.id}`);
+      }
+    });
+  });
 }
 
 function validateMazeLiteCollisionVolumes(level, warnings) {
@@ -1393,27 +1477,6 @@ function collectReachableCells(grid, start) {
   return reachable;
 }
 
-function getPhase1WallSegmentLength(segment) {
-  return Math.abs(segment.x2 - segment.x1) + Math.abs(segment.y2 - segment.y1) + 1;
-}
-
-function arePhase1WallSegmentsEqual(actual, expected) {
-  return [
-    'id',
-    'type',
-    'roomId',
-    'x1',
-    'y1',
-    'x2',
-    'y2',
-    'purpose',
-    'phase',
-    'blocking',
-    'visualOnly',
-    'status'
-  ].every(key => actual?.[key] === expected?.[key]);
-}
-
 function getInteriorWallCellKeys(grid) {
   const wallKeys = new Set();
 
@@ -1428,88 +1491,22 @@ function getInteriorWallCellKeys(grid) {
   return wallKeys;
 }
 
-function validatePhase1WallSegments(level, warnings) {
+function validateBoundaryOnlyGrid(level, warnings) {
   const wallSegments = level.wallSegments ?? [];
-  const wallIds = wallSegments.map(segment => segment.id);
-  const expectedIds = approvedLevel1V2Phase1WallSegmentIds;
-  const approvedWallKeys = new Set(level1V2Phase1WallCellKeys);
   const gridWallKeys = getInteriorWallCellKeys(level.grid);
-  const objectiveCells = new Map((level.objectives ?? []).map(objective => [
-    cellKey(Math.floor(objective.x), Math.floor(objective.y)),
-    objective.id
-  ]));
-  const playerStartCell = {
-    x: Math.floor(level.playerStart.x),
-    y: Math.floor(level.playerStart.y)
-  };
-  const playerStartKey = cellKey(playerStartCell.x, playerStartCell.y);
 
-  if (wallSegments.length !== 5) {
-    warnings.push(`Phase 1 wallSegments count must be exactly 5, found ${wallSegments.length}`);
+  if (wallSegments.length !== 0) {
+    warnings.push(`wallSegments must remain empty for the guarded MVP, found ${wallSegments.length}`);
   }
-
-  if (JSON.stringify(wallIds) !== JSON.stringify(expectedIds)) {
-    warnings.push(`Phase 1 wall segment IDs must be exactly ${expectedIds.join(', ')}`);
-  }
-
-  wallSegments.forEach((segment, index) => {
-    const expectedSegment = level1V2Phase1WallSegments[index];
-    if (!arePhase1WallSegmentsEqual(segment, expectedSegment)) {
-      warnings.push(`${segment.id ?? `wall segment ${index + 1}`} must match the Phase 1 approval document exactly`);
-    }
-
-    const isHorizontal = segment.y1 === segment.y2;
-    const isVertical = segment.x1 === segment.x2;
-    if (!isHorizontal && !isVertical) {
-      warnings.push(`${segment.id} must be horizontal or vertical only`);
-      return;
-    }
-
-    if (getPhase1WallSegmentLength(segment) > 6) {
-      warnings.push(`${segment.id} exceeds the approved 6-cell maximum`);
-    }
-
-    getPhase1WallSegmentCells(segment).forEach(({ x, y }) => {
-      if (x <= 0 || y <= 0 || x >= GRID_WIDTH - 1 || y >= GRID_HEIGHT - 1) {
-        warnings.push(`${segment.id} wall cell ${x},${y} must stay inside playable interior`);
-      }
-
-      if (level.grid[y]?.[x] !== CONSTANTS.CELL_WALL) {
-        warnings.push(`${segment.id} wall cell ${x},${y} must be CELL_WALL`);
-      }
-
-      const key = cellKey(x, y);
-      const objectiveId = objectiveCells.get(key);
-      if (objectiveId) {
-        warnings.push(`${segment.id} must not overlap objective ${objectiveId}`);
-      }
-
-      if (key === playerStartKey) {
-        warnings.push(`${segment.id} must not overlap playerStart`);
-      }
-    });
-  });
-
-  approvedWallKeys.forEach(key => {
-    if (!gridWallKeys.has(key)) {
-      warnings.push(`approved Phase 1 wall cell ${key} is missing from grid`);
-    }
-  });
 
   gridWallKeys.forEach(key => {
-    if (!approvedWallKeys.has(key)) {
-      warnings.push(`extra interior wall cell ${key} is not approved for Phase 1`);
-    }
+    warnings.push(`interior cell ${key} must remain CELL_PATH`);
   });
 
   return {
-    ids: wallIds,
-    count: wallSegments.length,
-    approvedCellCount: approvedWallKeys.size,
+    wallSegmentCount: wallSegments.length,
     gridInteriorWallCellCount: gridWallKeys.size,
-    exactIds: JSON.stringify(wallIds) === JSON.stringify(expectedIds),
-    exactGridCells: gridWallKeys.size === approvedWallKeys.size &&
-      [...gridWallKeys].every(key => approvedWallKeys.has(key))
+    boundaryOnly: wallSegments.length === 0 && gridWallKeys.size === 0
   };
 }
 
@@ -1541,7 +1538,7 @@ function validateObjectiveRouteReachability(level, warnings) {
     });
 
     if (!targetReachable) {
-      warnings.push(`route segment ${from.id} -> ${to.id} is blocked by Phase 1 walls`);
+      warnings.push(`route segment ${from.id} -> ${to.id} is blocked by the collision grid`);
     }
   }
 
@@ -1783,12 +1780,8 @@ function validateLevel1V2FloorplanPreview(level) {
         warnings.push(`outer boundary cell ${x},${y} must be CELL_WALL`);
       }
 
-      if (!isBorder && isLevel1V2Phase1WallCell(x, y) && grid[y][x] !== CONSTANTS.CELL_WALL) {
-        warnings.push(`approved Phase 1 wall cell ${x},${y} must be CELL_WALL`);
-      }
-
-      if (!isBorder && !isLevel1V2Phase1WallCell(x, y) && grid[y][x] !== CONSTANTS.CELL_PATH) {
-        warnings.push(`interior non-Phase 1 cell ${x},${y} must be CELL_PATH`);
+      if (!isBorder && grid[y][x] !== CONSTANTS.CELL_PATH) {
+        warnings.push(`interior cell ${x},${y} must be CELL_PATH`);
       }
     }
   }
@@ -1828,16 +1821,16 @@ function validateLevel1V2FloorplanPreview(level) {
     warnings.push('mvpObjectiveMode must be true');
   }
 
-  if (level.wallMode !== 'minimal-maze-wall-phase-1') {
-    warnings.push('wallMode must be minimal-maze-wall-phase-1');
+  if (level.wallMode !== 'outer-boundary-only') {
+    warnings.push('wallMode must be outer-boundary-only');
   }
 
-  if (level.wallImplementation !== 'controlled-approved-segments') {
-    warnings.push('wallImplementation must be controlled-approved-segments');
+  if (level.wallImplementation !== 'boundary-grid-only') {
+    warnings.push('wallImplementation must be boundary-grid-only');
   }
 
-  if (level.internalWallPolicy !== 'phase-1-approved-only') {
-    warnings.push('internalWallPolicy must be phase-1-approved-only');
+  if (level.internalWallPolicy !== 'disabled') {
+    warnings.push('internalWallPolicy must be disabled');
   }
 
   level1V2FloorplanRooms.forEach(room => {
@@ -1947,7 +1940,7 @@ function validateLevel1V2FloorplanPreview(level) {
   validateMazeLiteCollisionVolumes(level, warnings);
   validateArchitectureComposition(level, warnings);
   validatePresentationLighting(level, warnings);
-  const phase1WallValidation = validatePhase1WallSegments(level, warnings);
+  const boundaryGridValidation = validateBoundaryOnlyGrid(level, warnings);
 
   const playerStartCell = {
     x: Math.floor(level.playerStart.x),
@@ -1993,9 +1986,11 @@ function validateLevel1V2FloorplanPreview(level) {
       officeMazeLiteStatus: level.officeMazeLite,
       mazeLiteDividerCount: mazeLiteDividers.length,
       mazeLiteObstacleCount: mazeLiteObstacles.length,
-      mazeLiteDividersDisabled: mazeLiteDividers.length === 0 && mazeLiteObstacles.length === 0,
+      mazeLitePhase1VisualOnly: mazeLiteDividers.length > 0 &&
+        mazeLiteDividers.length <= 4 &&
+        mazeLiteDividers.every(divider => divider.collision === false && divider.blocking === false),
       collisionVolumesEmpty: level.collisionVolumes.length === 0,
-      phase1WallValidation,
+      boundaryGridValidation,
       objectiveRouteReachability,
       objectiveCount: level.objectives.length,
       documentCountTarget: level.objectiveFlow?.documentCountTarget,
@@ -2010,8 +2005,8 @@ function validateLevel1V2FloorplanPreview(level) {
       objectiveCompleteTexts: level.objectives.map(objective => objective.completeText),
       routeHint: level.objectives[0]?.routeHint,
       nextLevelMessage: level.objectiveFlow?.nextLevelMessage,
-      interiorNonPhase1CellsArePath: !warnings.some(warning => warning.includes('interior non-Phase 1 cell')),
-      noUnapprovedInternalWalls: phase1WallValidation.exactGridCells,
+      interiorCellsArePath: boundaryGridValidation.gridInteriorWallCellCount === 0,
+      noInternalWalls: boundaryGridValidation.boundaryOnly,
       reachableCells: reachableCells.size
     }
   };
@@ -2027,9 +2022,9 @@ export const level1V2 = {
   floorplanPreview: true,
   mvpObjectiveMode: true,
   mapBuildMode: 'floorplan-zones-mvp',
-  wallMode: 'minimal-maze-wall-phase-1',
-  wallImplementation: 'controlled-approved-segments',
-  internalWallPolicy: 'phase-1-approved-only',
+  wallMode: 'outer-boundary-only',
+  wallImplementation: 'boundary-grid-only',
+  internalWallPolicy: 'disabled',
   officeMazeLite: level1V2OfficeMazeLiteStatus,
   objectiveFlow: {
     route: ['A', 'C', 'D', 'F', 'H'],
@@ -2066,7 +2061,7 @@ export const level1V2 = {
   navigationNodes: [],
   areaLights: level1V2AreaLights,
   ceilingLights: level1V2CeilingLights,
-  wallSegments: level1V2Phase1WallSegments,
+  wallSegments: level1V2WallSegments,
   partitionBands: [],
   doorways: [],
   connectors: [],
@@ -2081,10 +2076,11 @@ export const level1V2 = {
   notes: [
     'Level 1 V2 MVP objective preview. Floor zones remain the source of truth.',
     'A-H rooms and the central route are shown as floor colors only.',
-    'Outer boundary walls plus exactly five approved Minimal Maze Wall Phase 1 segments exist.',
-    'Every non-border, non-Phase 1 wall interior cell remains CELL_PATH.',
+    'Only outer boundary walls exist.',
+    'Every non-border interior cell remains CELL_PATH.',
     'Minimal MVP objects are procedural visual markers only; collisionVolumes remain empty.',
-    'Office Maze Lite dividers remain disabled; Phase 1 walls are controlled approved grid segments.',
+    'Office Maze Lite Phase 1 adds approved visual-only dividers in C and F.',
+    'Maze Lite dividers are non-colliding and non-blocking; grid wall segments remain disabled.',
     'Simple objective route is A -> C -> D -> F -> H.',
     'Level 1 V2 MVP presentation checklist: start at A, collect Shift Assignment Form, follow tasks to C/D/F/H, confirm Documents 5/5, confirm route complete, reset to 0/5.',
     `Start hint: ${level1V2StartHint}`,

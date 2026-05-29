@@ -199,6 +199,9 @@ function validateSvgPatternRequirementsEntry(requirements) {
   if (svgPattern.status !== 'pattern-reference') addFailure('requirements.svgPattern.status must be pattern-reference');
   if (svgPattern.directImplementationAllowed !== false) addFailure('requirements.svgPattern.directImplementationAllowed must be false');
   if (svgPattern.requiresUserApprovalBeforeConversion !== true) addFailure('requirements.svgPattern.requiresUserApprovalBeforeConversion must be true');
+  if (!sameOrderedValues(svgPattern.approvedObjectConversions ?? [], ['A01'])) {
+    addFailure('requirements.svgPattern.approvedObjectConversions must be exactly A01');
+  }
   if (svgPattern.linePreviewOnly !== true) addFailure('requirements.svgPattern.linePreviewOnly must be true');
   if (!Array.isArray(svgPattern.rules) || svgPattern.rules.length < 5) {
     addFailure('requirements.svgPattern.rules must include SVG conversion guardrails');
@@ -248,6 +251,9 @@ function validateSvgPattern(pattern, requirements, levelText, planText, sourceSv
   if (conversionRules.allowStructuralWalls !== false) addFailure('svg conversionRules.allowStructuralWalls must be false');
   if (conversionRules.allowDoors !== false) addFailure('svg conversionRules.allowDoors must be false');
   if (conversionRules.allowObjectConversion !== false) addFailure('svg conversionRules.allowObjectConversion must be false');
+  if (!sameOrderedValues(conversionRules.approvedObjectConversions ?? [], ['A01'])) {
+    addFailure('svg conversionRules.approvedObjectConversions must be exactly A01');
+  }
   if (conversionRules.linePreviewOnly !== true) addFailure('svg conversionRules.linePreviewOnly must be true');
 
   const roomMapping = pattern.roomMapping ?? {};
@@ -319,7 +325,27 @@ function validateSvgPattern(pattern, requirements, levelText, planText, sourceSv
   }
 
   objectCandidates.forEach(candidate => {
-    validateCandidateApproval(candidate, `object candidate ${candidate.id}`);
+    const isApprovedA01Conversion = candidate.id === 'A01';
+
+    if (isApprovedA01Conversion) {
+      if (candidate.approved !== true) addFailure('object candidate A01 approved must be true for this controlled conversion');
+      if (candidate.implementationStatus !== 'converted-mvp-visual') {
+        addFailure('object candidate A01 implementationStatus must be converted-mvp-visual');
+      }
+      if (candidate.convertedAs !== 'mvp-front-admin-intake-counter') {
+        addFailure('object candidate A01 convertedAs must be mvp-front-admin-intake-counter');
+      }
+      if (candidate.blocking !== false) addFailure('object candidate A01 blocking must be false');
+    } else {
+      validateCandidateApproval(candidate, `object candidate ${candidate.id}`);
+      if (candidate.implementationStatus === 'converted-mvp-visual') {
+        addFailure(`object candidate ${candidate.id} must not be converted in the A01-only pass`);
+      }
+      if (candidate.blocking !== undefined && candidate.blocking !== false) {
+        addFailure(`object candidate ${candidate.id} blocking must not be true`);
+      }
+    }
+
     validateCandidateRuntimeRoomId(candidate.roomId, roomIds, `object candidate ${candidate.id}`);
     if (candidate.collision !== false) addFailure(`object candidate ${candidate.id} collision must be false`);
     if (!candidate.objectType) addFailure(`object candidate ${candidate.id} objectType must not be empty`);
@@ -843,6 +869,35 @@ function validateStaticPlacementSlots(levelText, requirements) {
   });
 }
 
+function validateStaticSvgPatternA01Conversion(levelText, requirements) {
+  if (!sameOrderedValues(requirements.svgPattern?.approvedObjectConversions ?? [], ['A01'])) {
+    addFailure('Only A01 may be approved for SVG object conversion');
+  }
+
+  ensurePattern(levelText, /function\s+createSvgPatternA01IntakeCounter\s*\(/, 'A01 must use a dedicated controlled conversion helper');
+  ensurePattern(levelText, /createMvpObject\(\s*['"]A['"]\s*,\s*createSvgPatternA01IntakeCounter\(\)\s*\)/, 'A01 must convert through the existing A-room MVP object slot');
+
+  const snippet = findObjectSnippetById(levelText, 'mvp-front-admin-intake-counter', 2600);
+  if (!snippet) {
+    addFailure('A01 converted intake counter object is missing');
+    return;
+  }
+
+  ensurePattern(snippet, /roomId\s*:\s*['"]front-admin-intake['"]/, 'A01 roomId must be front-admin-intake');
+  ensurePattern(snippet, /x\s*:\s*6\b/, 'A01 x must remain 6');
+  ensurePattern(snippet, /y\s*:\s*6\.35\b/, 'A01 y must remain 6.35');
+  ensurePattern(snippet, /width\s*:\s*1\.6\b/, 'A01 width must remain 1.6');
+  ensurePattern(snippet, /depth\s*:\s*0\.55\b/, 'A01 depth must remain 0.55');
+  ensurePattern(snippet, /source\s*:\s*['"]svg-pattern-A01['"]/, 'A01 must include source svg-pattern-A01');
+  ensurePattern(snippet, /svgCandidateId\s*:\s*['"]A01['"]/, 'A01 must include svgCandidateId A01');
+  ensurePattern(snippet, /requirementControlled\s*:\s*true\b/, 'A01 must be requirementControlled');
+  ensurePattern(snippet, /collision\s*:\s*false\b/, 'A01 collision must be false');
+  ensurePattern(snippet, /blocking\s*:\s*false\b/, 'A01 blocking must be false');
+
+  ensureNotPattern(levelText, /svgCandidateId\s*:\s*['"](?!A01['"])[^'"]+['"]/, 'No SVG object candidate except A01 may be converted');
+  ensureNotPattern(levelText, /source\s*:\s*['"]svg-pattern-(?!A01['"])[^'"]+['"]/, 'No SVG pattern source except A01 may be converted');
+}
+
 function validateStaticMapText(levelText, requirements) {
   ensurePattern(levelText, /const\s+GRID_WIDTH\s*=\s*32\b/, 'GRID_WIDTH must remain 32');
   ensurePattern(levelText, /const\s+GRID_HEIGHT\s*=\s*24\b/, 'GRID_HEIGHT must remain 24');
@@ -867,6 +922,7 @@ function validateStaticMapText(levelText, requirements) {
   validateStaticMazeLitePhase1(levelText, requirements);
   validateStaticPlacementPreview(levelText, requirements);
   validateStaticPlacementSlots(levelText, requirements);
+  validateStaticSvgPatternA01Conversion(levelText, requirements);
 
   const expectedObjectiveIds = requirements.objectives.route.map(objective => objective.id);
   ensureOrderedNeedles(

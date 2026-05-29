@@ -18,6 +18,11 @@ Every asset must:
 - not block objective route
 - not overlap outer boundary walls
 
+## SVG Pattern Conversion Status
+- `A01` is the only SVG object candidate currently approved for controlled MVP visual conversion.
+- `A01` must remain visual-only, non-colliding, and non-blocking.
+- No other SVG object candidate may be converted without explicit user approval.
+
 ## Collision Rules
 - Decorative assets should be non-blocking if possible.
 - Divider assets may use collision only after requirements approval.

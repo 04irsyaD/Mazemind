@@ -521,8 +521,8 @@ const level1V2OfficeMazeLiteStatus = {
   note: 'All previous placement markers were rejected by user visual review. Future placement must be manually planned from an approved top-down reference, not generated from bounds alone.'
 };
 
-const level1V2MvpObjects = [
-  createMvpObject('A', officeProps.intakeDesk({
+function createSvgPatternA01IntakeCounter() {
+  const counter = officeProps.intakeDesk({
     id: 'mvp-front-admin-intake-counter',
     label: 'Front Admin Intake Counter',
     roomId: 'front-admin-intake',
@@ -537,7 +537,28 @@ const level1V2MvpObjects = [
     trimColor: 0x6c777a,
     purpose: 'mvp-admin-intake-marker',
     visualOnly: true
-  })),
+  });
+
+  return {
+    ...counter,
+    source: 'svg-pattern-A01',
+    svgCandidateId: 'A01',
+    requirementControlled: true,
+    collision: false,
+    blocking: false,
+    metadata: {
+      ...counter.metadata,
+      source: 'svg-pattern-A01',
+      svgCandidateId: 'A01',
+      requirementControlled: true,
+      collision: false,
+      blocking: false
+    }
+  };
+}
+
+const level1V2MvpObjects = [
+  createMvpObject('A', createSvgPatternA01IntakeCounter()),
   createMvpObject('B', officeProps.coffeeTable({
     id: 'mvp-canteen-table-marker',
     label: 'Canteen Table Marker',
@@ -1659,6 +1680,11 @@ function validateMvpObjects(objects, warnings) {
       warnings.push(`${object.id} must not reference GLB, online, or model assets`);
     }
 
+    const svgCandidateId = object.svgCandidateId ?? object.metadata?.svgCandidateId;
+    if (hasTextValue(svgCandidateId) && svgCandidateId !== 'A01') {
+      warnings.push(`${object.id} may not convert SVG candidate ${svgCandidateId}; only A01 is approved`);
+    }
+
     const footprint = getObjectFootprint(object);
     if (!footprint) {
       warnings.push(`${object.id} must have a finite x/y position`);
@@ -1681,6 +1707,37 @@ function validateMvpObjects(objects, warnings) {
 
     if (doBoundsOverlap(footprint, level1V2CentralRoute.bounds)) {
       warnings.push(`${object.id} must not overlap the central route`);
+    }
+
+    if (svgCandidateId === 'A01') {
+      const firstObjective = level1V2MvpObjectives.find(objective => objective.id === 'shift-assignment-form');
+      const objectiveFootprint = firstObjective
+        ? {
+            x1: firstObjective.x - 0.32,
+            y1: firstObjective.y - 0.32,
+            x2: firstObjective.x + 0.32,
+            y2: firstObjective.y + 0.32
+          }
+        : null;
+      const playerStartFootprint = {
+        x1: playerStart.x - 0.32,
+        y1: playerStart.y - 0.32,
+        x2: playerStart.x + 0.32,
+        y2: playerStart.y + 0.32
+      };
+
+      if (object.id !== 'mvp-front-admin-intake-counter') warnings.push('A01 must convert only the existing front admin intake counter');
+      if (object.roomId !== 'front-admin-intake') warnings.push('A01 must stay in front-admin-intake');
+      if (object.source !== 'svg-pattern-A01' || object.metadata?.source !== 'svg-pattern-A01') warnings.push('A01 must carry svg-pattern-A01 source metadata');
+      if (object.requirementControlled !== true || object.metadata?.requirementControlled !== true) warnings.push('A01 must be requirementControlled');
+      if (object.collision !== false || object.metadata?.collision !== false) warnings.push('A01 collision must be false');
+      if (object.blocking !== false || object.metadata?.blocking !== false) warnings.push('A01 blocking must be false');
+      if (objectiveFootprint && doBoundsOverlap(footprint, objectiveFootprint)) {
+        warnings.push('A01 must not overlap objective 1');
+      }
+      if (doBoundsOverlap(footprint, playerStartFootprint)) {
+        warnings.push('A01 must not block player start');
+      }
     }
   });
 }

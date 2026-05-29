@@ -50,6 +50,7 @@
     "status": "pattern-reference",
     "directImplementationAllowed": false,
     "requiresUserApprovalBeforeConversion": true,
+    "approvedObjectConversions": ["A01"],
     "linePreviewOnly": true,
     "rules": [
       "final.svg is the visual source reference for Level 1 V2 wall/object/access pattern.",

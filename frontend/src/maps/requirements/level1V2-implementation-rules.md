@@ -32,6 +32,7 @@
 - Treat `final.svg` as the visual source reference for future Level 1 V2 wall/object/access pattern work.
 - Convert SVG intent only through `level1V2-svg-pattern.json` and `level1V2-svg-pattern-conversion-plan.md`.
 - Keep SVG pattern candidates metadata-only until explicit user approval.
+- Only `A01` is currently approved for controlled visual-only MVP object conversion.
 - Before any Level 1 V2 wall/divider/object change, run:
   `npm run validate:level1v2`
 - If validation fails, do not proceed.

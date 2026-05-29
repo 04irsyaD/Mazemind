@@ -129,11 +129,13 @@
       "roomId": "front-admin-intake",
       "objectType": "intake-counter",
       "role": "admin/intake object",
-      "implementationStatus": "already-mvp-or-candidate",
+      "implementationStatus": "converted-mvp-visual",
       "collision": false,
-      "approved": false,
+      "blocking": false,
+      "approved": true,
+      "convertedAs": "mvp-front-admin-intake-counter",
       "sourceShape": { "type": "rect", "x": 142, "y": 130, "width": 84, "height": 16 },
-      "notes": "Existing MVP marker remains independent; SVG conversion is not approved."
+      "notes": "Approved controlled conversion for the existing MVP intake counter only. Visual-only, non-colliding, non-blocking."
     },
     {
       "id": "B01",
@@ -417,6 +419,7 @@
     "allowStructuralWalls": false,
     "allowDoors": false,
     "allowObjectConversion": false,
+    "approvedObjectConversions": ["A01"],
     "linePreviewOnly": true
   }
 }

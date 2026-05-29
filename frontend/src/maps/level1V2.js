@@ -7,12 +7,12 @@ const GRID_HEIGHT = 24;
 const level1V2WallSegments = [];
 const mazeLitePhase1Source = 'maze-lite-phase-1-visual-only';
 const mazeLitePhase1Enabled = false;
-const mazeLitePlacementPreview = true;
+const mazeLitePlacementPreview = false;
 const mazeLitePlacementStatus = 'paused-pending-user-approved-placement';
-const wallPlacementMode = 'preview-markers-only';
-const placementSlotMode = true;
+const wallPlacementMode = 'disabled';
+const placementSlotMode = false;
 const placementSlotSource = 'approved-floor-zones';
-const placementSlotStatus = 'preview-only';
+const placementSlotStatus = 'rejected-by-user';
 const metersToGridCells = meters => Number((meters / CONSTANTS.CELL_SIZE).toFixed(3));
 
 function buildFloorZonePreviewGrid() {
@@ -518,7 +518,7 @@ const level1V2OfficeMazeLiteStatus = {
   placementSlotStatus,
   gridWallSegmentsEnabled: false,
   dividerCollisionEnabled: false,
-  note: 'Office Maze Lite Phase 1 divider rendering is paused until user-approved screenshot/top-down placement.'
+  note: 'All previous placement markers were rejected by user visual review. Future placement must be manually planned from an approved top-down reference, not generated from bounds alone.'
 };
 
 const level1V2MvpObjects = [
@@ -773,14 +773,16 @@ const level1V2MazeLiteVisualDividerProps = level1V2MazeLiteVisualDividers.map(cr
 const level1V2MazeLiteDividers = level1V2MazeLiteVisualDividers;
 const level1V2MazeLiteObstacles = [];
 
-const level1V2PlacementCandidates = [
+const level1V2RejectedPlacementCandidates = [
   {
     id: 'candidate-c-divider-01',
+    enabled: false,
+    rejected: true,
     candidateType: 'cubicle-divider',
     targetRoomId: 'main-workstation-hall',
     label: 'W1',
     position: { x: 20.5, y: 4.5 },
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-marker',
     collision: false,
     blocking: false,
@@ -788,11 +790,13 @@ const level1V2PlacementCandidates = [
   },
   {
     id: 'candidate-c-divider-02',
+    enabled: false,
+    rejected: true,
     candidateType: 'cubicle-divider',
     targetRoomId: 'main-workstation-hall',
     label: 'W2',
     position: { x: 24.5, y: 5.8 },
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-marker',
     collision: false,
     blocking: false,
@@ -800,11 +804,13 @@ const level1V2PlacementCandidates = [
   },
   {
     id: 'candidate-f-archive-01',
+    enabled: false,
+    rejected: true,
     candidateType: 'archive-rack-divider',
     targetRoomId: 'records-archive',
     label: 'W3',
     position: { x: 5.5, y: 19 },
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-marker',
     collision: false,
     blocking: false,
@@ -812,17 +818,21 @@ const level1V2PlacementCandidates = [
   },
   {
     id: 'candidate-f-archive-02',
+    enabled: false,
+    rejected: true,
     candidateType: 'archive-rack-divider',
     targetRoomId: 'records-archive',
     label: 'W4',
     position: { x: 8.5, y: 20.5 },
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-marker',
     collision: false,
     blocking: false,
     approved: false
   }
 ];
+
+const level1V2PlacementCandidates = [];
 
 function createPlacementCandidateMarker(candidate, index) {
   const isArchiveCandidate = candidate.targetRoomId === 'records-archive';
@@ -871,9 +881,11 @@ function createPlacementCandidateMarker(candidate, index) {
 
 const level1V2PlacementCandidateMarkers = level1V2PlacementCandidates.map(createPlacementCandidateMarker);
 
-const level1V2PlacementSlots = [
+const level1V2RejectedPlacementSlots = [
   {
     id: 'A_OBJECT_SLOT_01',
+    enabled: false,
+    rejected: true,
     roomId: 'front-admin-intake',
     code: 'A',
     slotType: 'object',
@@ -883,11 +895,13 @@ const level1V2PlacementSlots = [
     maxSize: { width: 2.0, depth: 1.0, height: 1.2 },
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   },
   {
     id: 'B_OBJECT_SLOT_01',
+    enabled: false,
+    rejected: true,
     roomId: 'canteen',
     code: 'B',
     slotType: 'object',
@@ -897,11 +911,13 @@ const level1V2PlacementSlots = [
     maxSize: { width: 2.0, depth: 1.2, height: 1.0 },
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   },
   {
     id: 'C_WORKSTATION_SLOT_01',
+    enabled: false,
+    rejected: true,
     roomId: 'main-workstation-hall',
     code: 'C',
     slotType: 'object',
@@ -911,11 +927,13 @@ const level1V2PlacementSlots = [
     maxSize: { width: 2.5, depth: 1.5, height: 1.4 },
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   },
   {
     id: 'C_WORKSTATION_SLOT_02',
+    enabled: false,
+    rejected: true,
     roomId: 'main-workstation-hall',
     code: 'C',
     slotType: 'object',
@@ -925,11 +943,13 @@ const level1V2PlacementSlots = [
     maxSize: { width: 2.5, depth: 1.5, height: 1.4 },
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   },
   {
     id: 'C_DIVIDER_SLOT_01',
+    enabled: false,
+    rejected: true,
     roomId: 'main-workstation-hall',
     code: 'C',
     slotType: 'divider',
@@ -939,11 +959,13 @@ const level1V2PlacementSlots = [
     maxSize: { width: 2.4, depth: 0.25, height: 1.5 },
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   },
   {
     id: 'D_OBJECT_SLOT_01',
+    enabled: false,
+    rejected: true,
     roomId: 'boardroom-review',
     code: 'D',
     slotType: 'object',
@@ -954,11 +976,13 @@ const level1V2PlacementSlots = [
     intendedObjectiveId: 'pending-ledger',
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   },
   {
     id: 'F_ARCHIVE_SLOT_01',
+    enabled: false,
+    rejected: true,
     roomId: 'records-archive',
     code: 'F',
     slotType: 'object',
@@ -968,11 +992,13 @@ const level1V2PlacementSlots = [
     maxSize: { width: 1.8, depth: 0.6, height: 2.0 },
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   },
   {
     id: 'F_ARCHIVE_SLOT_02',
+    enabled: false,
+    rejected: true,
     roomId: 'records-archive',
     code: 'F',
     slotType: 'object',
@@ -982,11 +1008,13 @@ const level1V2PlacementSlots = [
     maxSize: { width: 1.8, depth: 0.6, height: 2.0 },
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   },
   {
     id: 'F_DIVIDER_SLOT_01',
+    enabled: false,
+    rejected: true,
     roomId: 'records-archive',
     code: 'F',
     slotType: 'divider',
@@ -996,11 +1024,13 @@ const level1V2PlacementSlots = [
     maxSize: { width: 2.0, depth: 0.5, height: 2.0 },
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   },
   {
     id: 'G_OBJECT_SLOT_01',
+    enabled: false,
+    rejected: true,
     roomId: 'secondary-workstation',
     code: 'G',
     slotType: 'object',
@@ -1010,11 +1040,13 @@ const level1V2PlacementSlots = [
     maxSize: { width: 2.5, depth: 1.5, height: 1.4 },
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   },
   {
     id: 'H_OBJECT_SLOT_01',
+    enabled: false,
+    rejected: true,
     roomId: 'level2-access',
     code: 'H',
     slotType: 'object',
@@ -1025,10 +1057,12 @@ const level1V2PlacementSlots = [
     intendedObjectiveId: 'level2-access-note',
     collisionAllowed: false,
     approved: false,
-    status: 'pending-user-visual-approval',
+    status: 'rejected-by-user',
     renderAs: 'floor-slot-marker'
   }
 ];
+
+const level1V2PlacementSlots = [];
 
 function createPlacementSlotMarker(slot, index) {
   const markerColors = {

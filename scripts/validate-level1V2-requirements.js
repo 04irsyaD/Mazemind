@@ -886,8 +886,12 @@ function validateStaticSvgPatternA01Conversion(levelText, requirements) {
   ensurePattern(snippet, /roomId\s*:\s*['"]front-admin-intake['"]/, 'A01 roomId must be front-admin-intake');
   ensurePattern(snippet, /x\s*:\s*6\b/, 'A01 x must remain 6');
   ensurePattern(snippet, /y\s*:\s*6\.35\b/, 'A01 y must remain 6.35');
-  ensurePattern(snippet, /width\s*:\s*1\.6\b/, 'A01 width must remain 1.6');
-  ensurePattern(snippet, /depth\s*:\s*0\.55\b/, 'A01 depth must remain 0.55');
+  ensurePattern(snippet, /width\s*:\s*1\.9\b/, 'A01 width must remain 1.9 for visual review');
+  ensurePattern(snippet, /depth\s*:\s*0\.7\b/, 'A01 depth must remain 0.7 for visual review');
+  ensurePattern(snippet, /size\s*:\s*\{\s*width\s*:\s*1\.9\s*,\s*height\s*:\s*0\.96\s*,\s*depth\s*:\s*0\.7\s*\}/, 'A01 size must remain the approved visual review size');
+  ensurePattern(snippet, /topColor\s*:\s*0xf1eee1\b/, 'A01 must keep the brighter topColor for review visibility');
+  ensurePattern(snippet, /emissive\s*:\s*0x172828\b/, 'A01 must keep subtle emissive polish');
+  ensurePattern(snippet, /emissiveIntensity\s*:\s*0\.045\b/, 'A01 emissiveIntensity must remain subtle');
   ensurePattern(snippet, /source\s*:\s*['"]svg-pattern-A01['"]/, 'A01 must include source svg-pattern-A01');
   ensurePattern(snippet, /svgCandidateId\s*:\s*['"]A01['"]/, 'A01 must include svgCandidateId A01');
   ensurePattern(snippet, /requirementControlled\s*:\s*true\b/, 'A01 must be requirementControlled');

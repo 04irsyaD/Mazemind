@@ -528,13 +528,16 @@ function createSvgPatternA01IntakeCounter() {
     roomId: 'front-admin-intake',
     x: 6,
     y: 6.35,
-    width: 1.6,
-    depth: 0.55,
-    size: { width: 1.6, height: 0.94, depth: 0.55 },
-    color: 0xaeb8b7,
-    panelColor: 0x909b9c,
-    topColor: 0xd5d9d6,
-    trimColor: 0x6c777a,
+    width: 1.9,
+    depth: 0.7,
+    size: { width: 1.9, height: 0.96, depth: 0.7 },
+    color: 0xb8c4c2,
+    panelColor: 0x9ca8a8,
+    topColor: 0xf1eee1,
+    trimColor: 0x748486,
+    emissive: 0x172828,
+    emissiveIntensity: 0.045,
+    topRoughness: 0.58,
     purpose: 'mvp-admin-intake-marker',
     visualOnly: true
   });
@@ -552,7 +555,8 @@ function createSvgPatternA01IntakeCounter() {
       svgCandidateId: 'A01',
       requirementControlled: true,
       collision: false,
-      blocking: false
+      blocking: false,
+      reviewNote: 'A01 visual review polish: brighter top and slightly larger non-blocking counter.'
     }
   };
 }

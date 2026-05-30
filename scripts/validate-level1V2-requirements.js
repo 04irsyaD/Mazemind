@@ -109,6 +109,10 @@ function ensureOrderedNeedles(text, needles, label) {
   });
 }
 
+function countMatches(text, pattern) {
+  return [...text.matchAll(pattern)].length;
+}
+
 function metersToGridCells(meters) {
   return Number((meters / CELL_SIZE_METERS).toFixed(3));
 }
@@ -876,6 +880,12 @@ function validateStaticSvgPatternA01Conversion(levelText, requirements) {
 
   ensurePattern(levelText, /function\s+createSvgPatternA01IntakeCounter\s*\(/, 'A01 must use a dedicated controlled conversion helper');
   ensurePattern(levelText, /createMvpObject\(\s*['"]A['"]\s*,\s*createSvgPatternA01IntakeCounter\(\)\s*\)/, 'A01 must convert through the existing A-room MVP object slot');
+  ensurePattern(levelText, /const\s+level1V2A01ReviewMarkers\s*=\s*\[/, 'A01 review markers must use a dedicated guarded marker array');
+  ensurePattern(levelText, /\.\.\.level1V2A01ReviewMarkers\s*,/, 'A01 review markers must be included in architecture');
+
+  if (countMatches(levelText, /id\s*:\s*['"]mvp-front-admin-intake-counter['"]/g) !== 1) {
+    addFailure('A01 converted intake counter id must appear exactly once');
+  }
 
   const snippet = findObjectSnippetById(levelText, 'mvp-front-admin-intake-counter', 2600);
   if (!snippet) {
@@ -898,7 +908,56 @@ function validateStaticSvgPatternA01Conversion(levelText, requirements) {
   ensurePattern(snippet, /collision\s*:\s*false\b/, 'A01 collision must be false');
   ensurePattern(snippet, /blocking\s*:\s*false\b/, 'A01 blocking must be false');
 
-  ensureNotPattern(levelText, /svgCandidateId\s*:\s*['"](?!A01['"])[^'"]+['"]/, 'No SVG object candidate except A01 may be converted');
+  const reviewPadSnippet = findObjectSnippetById(levelText, 'svg-review-pad-A01', 1600);
+  if (!reviewPadSnippet) {
+    addFailure('A01 temporary review pad is missing');
+  } else {
+    ensurePattern(reviewPadSnippet, /type\s*:\s*['"]platform['"]/, 'A01 review pad type must be platform');
+    ensurePattern(reviewPadSnippet, /roomId\s*:\s*['"]front-admin-intake['"]/, 'A01 review pad roomId must be front-admin-intake');
+    ensurePattern(reviewPadSnippet, /targetObjectId\s*:\s*['"]mvp-front-admin-intake-counter['"]/, 'A01 review pad must target the intake counter');
+    ensurePattern(reviewPadSnippet, /label\s*:\s*['"]A01 Review Pad['"]/, 'A01 review pad label must be A01 Review Pad');
+    ensurePattern(reviewPadSnippet, /x\s*:\s*6\b/, 'A01 review pad x must be 6');
+    ensurePattern(reviewPadSnippet, /y\s*:\s*6\.35\b/, 'A01 review pad y must be 6.35');
+    ensurePattern(reviewPadSnippet, /width\s*:\s*2\.1\b/, 'A01 review pad width must be 2.1');
+    ensurePattern(reviewPadSnippet, /depth\s*:\s*0\.9\b/, 'A01 review pad depth must be 0.9');
+    ensurePattern(reviewPadSnippet, /height\s*:\s*0\.045\b/, 'A01 review pad height must be 0.045');
+    ensurePattern(reviewPadSnippet, /visualOnly\s*:\s*true\b/, 'A01 review pad must be visualOnly');
+    ensurePattern(reviewPadSnippet, /collision\s*:\s*false\b/, 'A01 review pad collision must be false');
+    ensurePattern(reviewPadSnippet, /blocking\s*:\s*false\b/, 'A01 review pad blocking must be false');
+    ensurePattern(reviewPadSnippet, /reviewOnly\s*:\s*true\b/, 'A01 review pad must be reviewOnly');
+    ensurePattern(reviewPadSnippet, /source\s*:\s*['"]svg-pattern-A01['"]/, 'A01 review pad source must be svg-pattern-A01');
+    ensurePattern(reviewPadSnippet, /svgCandidateId\s*:\s*['"]A01-review['"]/, 'A01 review pad svgCandidateId must be A01-review');
+    ensureNotPattern(reviewPadSnippet, /collisionVolumes\s*:/, 'A01 review pad must not define collisionVolumes');
+    ensureNotPattern(reviewPadSnippet, /wallSegments\s*:/, 'A01 review pad must not define wallSegments');
+  }
+
+  const reviewLabelSnippet = findObjectSnippetById(levelText, 'svg-review-label-A01', 1200);
+  if (reviewLabelSnippet) {
+    ensurePattern(reviewLabelSnippet, /type\s*:\s*['"]sign['"]/, 'A01 review label type must be sign');
+    ensurePattern(reviewLabelSnippet, /text\s*:\s*['"]A01['"]/, 'A01 review label text must be A01');
+    ensurePattern(reviewLabelSnippet, /targetObjectId\s*:\s*['"]mvp-front-admin-intake-counter['"]/, 'A01 review label must target the intake counter');
+    ensurePattern(reviewLabelSnippet, /visualOnly\s*:\s*true\b/, 'A01 review label must be visualOnly');
+    ensurePattern(reviewLabelSnippet, /collision\s*:\s*false\b/, 'A01 review label collision must be false');
+    ensurePattern(reviewLabelSnippet, /blocking\s*:\s*false\b/, 'A01 review label blocking must be false');
+    ensurePattern(reviewLabelSnippet, /reviewOnly\s*:\s*true\b/, 'A01 review label must be reviewOnly');
+    ensureNotPattern(reviewLabelSnippet, /collisionVolumes\s*:/, 'A01 review label must not define collisionVolumes');
+    ensureNotPattern(reviewLabelSnippet, /wallSegments\s*:/, 'A01 review label must not define wallSegments');
+  }
+
+  if (countMatches(levelText, /id\s*:\s*['"]svg-review-pad-A01['"]/g) !== 1) {
+    addFailure('A01 review pad id must appear exactly once');
+  }
+  if (countMatches(levelText, /svgCandidateId\s*:\s*['"]A01['"]/g) !== 2) {
+    addFailure('A01 svgCandidateId must appear only on the intake counter object and metadata');
+  }
+  if (countMatches(levelText, /svgCandidateId\s*:\s*['"]A01-review['"]/g) !== 2) {
+    addFailure('A01-review svgCandidateId must appear only on the review pad object and metadata');
+  }
+  if (countMatches(levelText, /source\s*:\s*['"]svg-pattern-A01['"]/g) !== 4) {
+    addFailure('svg-pattern-A01 source must appear only on the A01 counter and A01 review pad object metadata');
+  }
+
+  ensureNotPattern(levelText, /svgCandidateId\s*:\s*['"](?!A01['"]|A01-review['"])[^'"]+['"]/, 'No SVG object candidate except A01 or the A01 review marker may be referenced');
   ensureNotPattern(levelText, /source\s*:\s*['"]svg-pattern-(?!A01['"])[^'"]+['"]/, 'No SVG pattern source except A01 may be converted');
 }
 

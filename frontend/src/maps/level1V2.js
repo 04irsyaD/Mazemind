@@ -692,6 +692,72 @@ const level1V2MvpObjects = [
   }))
 ];
 
+const level1V2A01ReviewMarkers = [
+  {
+    id: 'svg-review-pad-A01',
+    type: 'platform',
+    roomId: 'front-admin-intake',
+    targetObjectId: 'mvp-front-admin-intake-counter',
+    label: 'A01 Review Pad',
+    x: 6,
+    y: 6.35,
+    width: 2.1,
+    depth: 0.9,
+    height: 0.045,
+    color: 0xd2bd69,
+    emissive: 0x3a2f10,
+    emissiveIntensity: 0.12,
+    roughness: 0.62,
+    visualOnly: true,
+    collision: false,
+    blocking: false,
+    reviewOnly: true,
+    source: 'svg-pattern-A01',
+    svgCandidateId: 'A01-review',
+    size: { width: 2.1, height: 0.045, depth: 0.9 },
+    metadata: {
+      prefab: 'a01ReviewPad',
+      roomId: 'front-admin-intake',
+      targetObjectId: 'mvp-front-admin-intake-counter',
+      visualOnly: true,
+      collision: false,
+      blocking: false,
+      reviewOnly: true,
+      source: 'svg-pattern-A01',
+      svgCandidateId: 'A01-review'
+    }
+  },
+  {
+    id: 'svg-review-label-A01',
+    type: 'sign',
+    roomId: 'front-admin-intake',
+    targetObjectId: 'mvp-front-admin-intake-counter',
+    label: 'A01',
+    text: 'A01',
+    x: 6,
+    y: 6.88,
+    height: 1.28,
+    width: 0.42,
+    panelHeight: 0.34,
+    color: 0xf4eed5,
+    channelId: 'a01-review-label',
+    visualOnly: true,
+    collision: false,
+    blocking: false,
+    reviewOnly: true,
+    size: { width: 0.42, height: 0.34, depth: 0.02 },
+    metadata: {
+      prefab: 'a01ReviewLabel',
+      roomId: 'front-admin-intake',
+      targetObjectId: 'mvp-front-admin-intake-counter',
+      visualOnly: true,
+      collision: false,
+      blocking: false,
+      reviewOnly: true
+    }
+  }
+];
+
 const level1V2MazeLiteDisabledDividerProposals = [
   {
     id: 'c-workstation-divider-01',
@@ -1139,6 +1205,7 @@ const level1V2PlacementSlotMarkers = level1V2PlacementSlots.map(createPlacementS
 
 const level1V2Architecture = [
   ...level1V2MvpObjects,
+  ...level1V2A01ReviewMarkers,
   ...level1V2MazeLiteVisualDividerProps,
   ...level1V2PlacementCandidateMarkers,
   ...level1V2PlacementSlotMarkers
@@ -1791,6 +1858,7 @@ function getPlacementSlotFootprint(slot) {
 function validateArchitectureComposition(level, warnings) {
   const expectedIds = [
     ...(level.mvpObjects ?? []).map(object => object.id),
+    ...level1V2A01ReviewMarkers.map(object => object.id),
     ...level1V2MazeLiteVisualDividerProps.map(object => object.id),
     ...level1V2PlacementCandidateMarkers.map(object => object.id),
     ...level1V2PlacementSlotMarkers.map(object => object.id)
